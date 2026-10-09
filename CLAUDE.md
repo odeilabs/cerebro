@@ -21,7 +21,7 @@ Odei Labs/
 └── Gaia's Response/
     ├── cerebro/              ESTE repo: paquete Guardianes + instrucciones comunes
     ├── King Kong/            juego 1 (repo, remoto github.com/odeilabs/KingKong)
-    ├── Basiliskos/           juego 2 (repo local)
+    ├── Basiliskos/           juego 2 (repo, remoto github.com/odeilabs/Basiliskos)
     ├── <18 juegos futuros>/  de momento portada + README/ROADMAP con la propuesta
     └── DLCs/<18 DLC>/        expansiones, cada una propone su juego base
 ```

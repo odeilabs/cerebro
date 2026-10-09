@@ -42,7 +42,10 @@ namespace Guardianes.UI
         GameObject _menu, _inicio, _qte;
         Text _textoCalidad, _textoVolumen, _textoCampana, _textoNivel, _textoInicioInfo, _textoContinuarPartida, _textoControlesMenu;
         GameObject _botonContinuarPartida;
-        Text _qteTitulo, _qteTexto, _qteResultado, _marcadorTexto, _nivel, _dialogo;
+        Text _qteTitulo, _qteTexto, _qteResultado, _marcadorTexto, _nivel, _dialogo, _jefeNombre;
+        GameObject _jefe;
+        Image _jefeVida, _jefeRetardo;
+        float _jefeMostrada = 1f;
         float _dialogoDesde, _dialogoHasta;
         Text[] _qteTeclas;
         Image[] _qteCajas;
@@ -155,6 +158,7 @@ namespace Guardianes.UI
             _dialogo.rectTransform.sizeDelta = new Vector2(1500f, 120f);
             _dialogo.horizontalOverflow = HorizontalWrapMode.Wrap;
             ConstruirMarcador(r);
+            ConstruirJefe(r);
             ConstruirQte(r);
             ConstruirPantallas(r);
             ConstruirMenu(r);
@@ -196,6 +200,40 @@ namespace Guardianes.UI
             _marcadorTexto.rectTransform.sizeDelta = new Vector2(400f, 60f);
             _marcadorTexto.rectTransform.pivot = new Vector2(0.5f, 1f);
             _marcador.enabled = _marcadorTexto.enabled = false;
+        }
+
+        /// <summary>La barra de un jefe (arriba, en el centro): su nombre y su vida.</summary>
+        void ConstruirJefe(Transform r)
+        {
+            _jefe = new GameObject("Jefe", typeof(RectTransform));
+            _jefe.transform.SetParent(r, false);
+            var rt = (RectTransform)_jefe.transform;
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -40f);
+            rt.sizeDelta = new Vector2(700f, 60f);
+            _jefeNombre = Etiqueta(_jefe.transform, "", new Vector2(0f, 0f), 24, TextAnchor.UpperCenter, new Vector2(0.5f, 1f));
+            _jefeNombre.rectTransform.sizeDelta = new Vector2(700f, 32f);
+            Barra(_jefe.transform, new Vector2(0f, -34f), new Vector2(700f, 12f), new Color(0.1f, 0.03f, 0.02f, 0.8f), out _jefeRetardo, new Color(0.95f, 0.85f, 0.7f, 0.9f));
+            _jefeVida = Relleno(_jefeRetardo.transform.parent, new Color(0.85f, 0.35f, 0.1f, 1f));
+            _jefe.SetActive(false);
+        }
+
+        /// <summary>
+        /// Muestra la barra de un jefe con su vida (0..1); con nombre null la quita. La vida perdida
+        /// baja despacio (como la de la criatura).
+        /// </summary>
+        public void Jefe(string nombre, float fraccion = 1f)
+        {
+            if (_jefe == null) return;
+            bool ver = !string.IsNullOrEmpty(nombre);
+            if (ver && !_jefe.activeSelf) _jefeMostrada = Mathf.Clamp01(fraccion);
+            _jefe.SetActive(ver);
+            if (!ver) return;
+            _jefeNombre.text = nombre;
+            fraccion = Mathf.Clamp01(fraccion);
+            _jefeMostrada = fraccion > _jefeMostrada ? fraccion : Mathf.MoveTowards(_jefeMostrada, fraccion, Time.unscaledDeltaTime * 0.3f);
+            Llenar(_jefeVida, fraccion);
+            Llenar(_jefeRetardo, _jefeMostrada);
         }
 
         void ConstruirQte(Transform r)

@@ -73,7 +73,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   juego con `Sonar` y los bancos `voces`/`percusion`/`pisadas`...), `Runtime/Camara/CamaraCriatura`
   (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`
   (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero),
-  `Runtime/UI/HudJuego` (+ `PantallasHud`: cada juego hereda y pinta su estado en
+  `Runtime/UI/HudJuego` (con `Jefe(nombre, vida)`: la barra de un jefe arriba, en el centro; + `PantallasHud`: cada juego hereda y pinta su estado en
   `ConstruirEstado`/`ActualizarEstado`).
 - `Editor/` — `ConfiguradorHDRP` (ajustes ultra y la atmósfera de selva), `MaterialesLit`,
   `Capturador`, `Diagnostico`, `ImportadorTexturas`, `Terreno/` (`Relieve` y `PasadasRelieve`:
