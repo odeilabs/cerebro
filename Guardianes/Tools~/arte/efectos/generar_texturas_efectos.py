@@ -11,7 +11,7 @@ Genera en Assets/_Game/Art/Efectos/Texturas (RGBA, PNG):
   anillo.png      anillo de polvo para las ondas expansivas (se ve desde arriba)
 
 Solo numpy/scipy/Pillow (el .venv de AssetsCreator los tiene):
-  ..\\AssetsCreator\\AssetsCreatorWin\\.venv\\Scripts\\python.exe Tools\\arte\\efectos\\generar_texturas_efectos.py
+  <Odei Labs>\\AssetsCreator\\AssetsCreatorWin\\.venv\\Scripts\\python.exe <cerebro>\\Guardianes\\Tools~\\arte\\efectos\\generar_texturas_efectos.py --proyecto <proyecto Unity>
 """
 import os
 import sys

@@ -1,0 +1,110 @@
+# Cerebro de Gaia's Response — instrucciones comunes para todos los juegos
+
+*Gaia's Response* es la saga de juegos de criaturas míticas de Odei Labs: la Tierra responde, y en
+cada juego controlas a una criatura que despierta para defender la naturaleza de los humanos que la
+destruyen (la corporación **Ferrox** y otros). Este repositorio (`Gaia's Response/cerebro`) es lo
+común a todos los juegos. Léelo antes de tocar cualquier juego de la saga; después, el `CLAUDE.md`
+del juego.
+
+- [README.md](README.md) — qué hay en el cerebro, cómo arrancar un juego nuevo y la **guía de
+  AssetsCreator** (qué se puede coger, cómo crear assets nuevos y cómo dejarlos para toda la saga).
+- [ROADMAP.md](ROADMAP.md) — lo que falta en el cerebro.
+- [Guardianes/CLAUDE.md](Guardianes/CLAUDE.md) — el paquete Unity `com.odeilabs.guardianes`
+  sistema por sistema.
+- `../README.md` — el mapa de la saga (todos los juegos y DLC).
+
+## Dónde vive cada cosa
+
+```
+Odei Labs/
+├── AssetsCreator/            generador de assets (NO se modifica su código; se usa lo que genera)
+└── Gaia's Response/
+    ├── cerebro/              ESTE repo: paquete Guardianes + instrucciones comunes
+    ├── King Kong/            juego 1 (repo, remoto github.com/odeilabs/KingKong)
+    ├── Basiliskos/           juego 2 (repo local)
+    ├── <18 juegos futuros>/  de momento portada + README/ROADMAP con la propuesta
+    └── DLCs/<18 DLC>/        expansiones, cada una propone su juego base
+```
+
+Cada juego con código: `<Juego>/<Proyecto Unity>/` y, junto al proyecto, `Tools/`, `Guion/`,
+`Capturas/` (ignorada), `README.md`, `ROADMAP.md` y `CLAUDE.md`. Su `Packages/manifest.json` enlaza
+el paquete común con `"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`.
+
+## Reglas de trabajo (todas las sesiones, todos los juegos)
+
+- **Español** en código, nombres, logs, comentarios, commits y documentación. Sin tildes en el
+  texto del HUD si el juego no las usa (King Kong no; Basiliskos sí).
+- **Git desde PowerShell** (desde Git Bash falla al escribir objetos en algunos repos). Commits en
+  español y **sin `Co-Authored-By`**. Mensajes largos: escríbelos en un fichero (fuera del repo, p.
+  ej. en el directorio temporal) y `git commit -F <fichero>`; los here-strings chocan con el filtro
+  de comandos.
+- **No hacer `push` ni crear repos remotos sin preguntar.**
+- **No modificar AssetsCreator** (`Odei Labs/AssetsCreator`): ni código ni configuración. Se usa
+  lo que genera; los assets nuevos se generan con sus comandos y parámetros (ver la guía del
+  README).
+- **Verificar en Unity en batch con el editor cerrado** (si el editor está abierto, el proyecto está
+  bloqueado y batch falla): `Tools/Unity-Batch.ps1 -Metodo <clase.Metodo>` y
+  `Tools/Unity-Pruebas.ps1 -Guion <guion>` de cada juego. **Mira las fotos** de las pruebas (con
+  la herramienta de leer imágenes): que compile y pase no basta.
+- Antes de mover, borrar o sobrescribir algo, míralo. Las carpetas `Library/`, `Logs/`,
+  `UserSettings/` y `Assets/_Recovery/` de los proyectos no se commitean.
+
+## Qué va al cerebro y qué al juego
+
+- **Lo que vaya a servir a más de un juego va al cerebro**, no a un juego: mundo (relieve, agua,
+  vegetación, día y noche), humanos de Ferrox y su IA (detección, miedo), instalaciones, vehículos,
+  combate, efectos, sonido, cámara, HUD base, misiones (director, objetivos, reglas), pruebas,
+  herramientas de editor y generadores de arte.
+- **Lo de una criatura concreta va en su juego**, colgado de `Guardianes.Criaturas.Criatura`, de
+  los eventos estáticos o de los métodos virtuales (`Premiar`, `Celebrar`, `HudJuego.ConstruirEstado`...).
+  Si un sistema empieza en un juego y luego lo necesita otro, se sube al cerebro con cuidado de
+  conservar los GUID de los componentes que ya usan las escenas.
+- Un cambio en el cerebro **se comprueba en todos los juegos que lo usan** (hoy King Kong y
+  Basiliskos): compilar en batch y una prueba de cada uno. Los comportamientos nuevos que cambian el
+  juego (p. ej. el miedo de los humanos) se activan por juego para no alterar a los demás.
+- Enumeraciones que se guardan en partidas o datos (`TipoZona`, `MotivoPremio`...): los valores
+  nuevos van **al final**.
+
+## Convenciones del paquete y de los juegos
+
+- Escala real: 1 unidad = 1 m. Mundos centrados en el origen (x este, z norte). La referencia de
+  tamaño de la saga es Kong de pie (`Criatura.TamanoReferencia` = 17,5 m): todo lo que depende del
+  tamaño escala con `Criatura.Tamano`.
+- **Nada pesado en los repos**: terreno y vegetación se guardan compactos (`.bytes` en LFS) y se
+  reconstruyen al cargar a partir de semillas; texturas y sonidos se generan con los scripts de
+  `Tools~`/`Tools`. Los binarios van por **Git LFS desde el primer commit** (ver `.gitattributes`
+  de Basiliskos como plantilla).
+- Ensamblados por juego: `<Juego>` (runtime, referencia `Guardianes`), `<Juego>.Editor`
+  (referencia además `Guardianes.Editor`) y `<Juego>.Pruebas.Juego` (pruebas PlayMode). Namespace
+  raíz = nombre del juego; el editor en `<Juego>.EditorTools`.
+- Logs con prefijo: `[GD]` el paquete, `[KK]` King Kong, `[BK]` Basiliskos; cada juego nuevo
+  elige el suyo (dos letras).
+- Shaders: las variantes de HDRP/Lit del paquete se generan con
+  `Guardianes/Tools~/generar_shaders_lit.py`; **no se editan** los `.shader` ni los `Data.hlsl`
+  generados. Globales de shader con prefijo `_GD_`.
+- Materiales sobre Lit con `Guardianes.EditorTools.MaterialesLit.Crear`.
+- HDRP "ultra" con `ConfiguradorHDRP`; las capturas fuera del modo juego no tienen viento ni
+  skinning: para ver criaturas y humanos moverse, pruebas en modo juego.
+
+## Verificar (cómo son las pruebas de la saga)
+
+- `Tools/Unity-Batch.ps1 -Metodo <Juego>.EditorTools.<Clase>.<Metodo>DesdeBatch [-Extra ...]`:
+  construir la escena, capturas, previsualizar el relieve. Para solo abrir y compilar:
+  `-Metodo Guardianes.EditorTools.Diagnostico.ComprobarDesdeBatch` (compila los shaders propios).
+- `Tools/Unity-Pruebas.ps1 -Guion <guion> [-Capturas <carpeta>]`: PlayMode en batch. Un
+  `ConductorPrueba` conduce a la criatura con entradas simuladas según un guion de pasos
+  (`GuionesPrueba`), hace fotos con la cámara del juego (a una RenderTexture: en batch no hay
+  pantalla), cuenta lo que pasa y la prueba NUnit falla si no pasa lo que el guion pide. Las fotos
+  quedan en `-Capturas` (por defecto `%TEMP%\<prefijo>_juego_<guion>`), el log y el XML en `%TEMP%`.
+- En batch: `runInBackground`, `WaitForEndOfFrame` no vuelve nunca, audio en silencio, sin
+  desenfoque de movimiento. Unity a veces sale con 0xC0000005 tras guardar los resultados: vale lo
+  que diga el XML.
+- `python Guardianes/Tools~/hoja_contactos.py <carpeta de fotos>` junta las fotos en una hoja.
+
+## Documentación
+
+Cada proyecto tiene `README.md` (qué es, estado, cómo se juega/compila) y `ROADMAP.md` (hecho,
+siguiente, después). Los juegos con código, además, `CLAUDE.md` (estructura, reglas de diseño,
+cómo verificar). Cuando cambies algo que afecte a esos documentos, actualízalos en el mismo commit.
+Los juegos que solo tienen portada llevan una **propuesta** marcada como tal: es un punto de
+partida, no una decisión.

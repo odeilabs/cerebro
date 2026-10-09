@@ -1,14 +1,16 @@
 # Guardianes — paquete común de la saga
 
-Paquete de Unity (`com.odeilabs.guardianes`) con lo que comparten los juegos de la saga **Guardianes**
-de Odei Labs: *King Kong — El guardián de la isla*, *Basiliskos* y los que vengan (y el crossover
-final). Cada juego lo añade a su `Packages/manifest.json` como paquete local:
+Paquete de Unity (`com.odeilabs.guardianes`) con lo que comparten los juegos de la saga **Gaia's
+Response** de Odei Labs: *King Kong — El guardián de la isla*, *Basiliskos* y los que vengan (y el
+crossover final, *Primal Legends*). Vive en el cerebro de la saga (`Gaia's Response/cerebro`, ver
+`../CLAUDE.md` para las reglas comunes y `../README.md` para la guía de AssetsCreator). Cada juego
+lo añade a su `Packages/manifest.json` como paquete local:
 
 ```json
-"com.odeilabs.guardianes": "file:../../../Guardianes"
+"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"
 ```
 
-(la ruta es relativa a la carpeta `Packages` del proyecto: `Odei Labs/<juego>/<proyecto>/Packages`).
+(la ruta es relativa a la carpeta `Packages` del proyecto: `Gaia's Response/<juego>/<proyecto>/Packages`).
 
 Unity 6000.5.2f1, HDRP 17.5, Input System 1.19, Burst + Collections + Mathematics. Código y nombres
 en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.

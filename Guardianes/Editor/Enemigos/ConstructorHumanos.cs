@@ -20,7 +20,7 @@ namespace Guardianes.EditorTools.Enemigos
     {
         public const string CarpetaArte = "Assets/_Game/Art/Humanos";
         public const string CarpetaPrefabs = "Assets/_Game/Prefabs/Enemigos";
-        const string RaizAssetsCreator = @"..\..\AssetsCreator\AssetsCreatorWin\proyectos";
+        const string SubcarpetaProyectos = @"AssetsCreator\AssetsCreatorWin\proyectos";
 
         public struct Def
         {
@@ -44,8 +44,29 @@ namespace Guardianes.EditorTools.Enemigos
             AssetDatabase.SaveAssets();
         }
 
-        static string Origen(string proyecto) =>
-            Path.GetFullPath(Path.Combine(Application.dataPath, "..", RaizAssetsCreator, proyecto, "salida"));
+        /// <summary>
+        /// La carpeta proyectos de AssetsCreator: la variable de entorno ASSETSCREATOR (la carpeta
+        /// AssetsCreator) o, si no, subiendo desde el proyecto Unity hasta encontrar
+        /// AssetsCreator\AssetsCreatorWin\proyectos (Odei Labs\AssetsCreator, junto a Gaia's Response).
+        /// </summary>
+        public static string ProyectosAssetsCreator()
+        {
+            var env = Environment.GetEnvironmentVariable("ASSETSCREATOR");
+            if (!string.IsNullOrEmpty(env))
+            {
+                var p = Path.Combine(env, "AssetsCreatorWin", "proyectos");
+                if (Directory.Exists(p)) return Path.GetFullPath(p);
+            }
+            var dir = new DirectoryInfo(Path.GetFullPath(Path.Combine(Application.dataPath, "..")));
+            for (; dir != null; dir = dir.Parent)
+            {
+                var p = Path.Combine(dir.FullName, SubcarpetaProyectos);
+                if (Directory.Exists(p)) return p;
+            }
+            throw new DirectoryNotFoundException("No encuentro " + SubcarpetaProyectos + " subiendo desde el proyecto (o define ASSETSCREATOR)");
+        }
+
+        static string Origen(string proyecto) => Path.Combine(ProyectosAssetsCreator(), proyecto, "salida");
 
         // ------------------------------------------------------------------ Copia desde AssetsCreator
         static string Copiar(string proyecto, string carpetaDestino, Func<string, bool> filtro)
