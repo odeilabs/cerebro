@@ -1,0 +1,18 @@
+{
+  "name": "com.odeilabs.guardianes",
+  "version": "0.1.0",
+  "displayName": "Guardianes (saga de Odei Labs)",
+  "description": "Lo comun de la saga Guardianes (King Kong, Basiliskos y los que vengan): relieve y agua, vegetacion instanciada con viento, combate, humanos y helicopteros de Ferrox, efectos, sonido, camara de criatura, calidad, HUD y utilidades del editor (capturas, materiales Lit, reparto de selva).",
+  "unity": "6000.5",
+  "author": {
+    "name": "Odei Labs"
+  },
+  "dependencies": {
+    "com.unity.render-pipelines.high-definition": "17.5.0",
+    "com.unity.inputsystem": "1.19.0",
+    "com.unity.burst": "1.8.29",
+    "com.unity.collections": "6.5.0",
+    "com.unity.mathematics": "1.4.0",
+    "com.unity.ugui": "2.5.0"
+  }
+}

@@ -1,0 +1,19 @@
+# cerebro (Gaia's Response): lo que no va al repo
+
+# SO y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+.vs/
+.idea/
+
+# Configuracion local de Claude Code
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
+
+# Revisiones de los generadores de arte (hojas de contacto)
+Guardianes/Tools~/arte/**/_revision/
