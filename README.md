@@ -31,11 +31,12 @@ Burst, Collections, Mathematics, uGUI). Su detalle sistema por sistema está en
 
 | Área | Qué da |
 | --- | --- |
-| Mundo (`Guardianes.Mundo`) | Medidas del mapa, consultas (`Mapa`: altura, agua, profundidad, contaminación), datos compactos (`DatosMundo` en `.bytes`), terreno de 8 capas con Burst, agua de HDRP (lagos, ríos, cascadas), ríos con meandros, zonas. |
+| Mundo (`Guardianes.Mundo`) | Medidas del mapa, consultas (`Mapa`: altura, agua, profundidad, contaminación), datos compactos (`DatosMundo` en `.bytes`), terreno de 8 capas con Burst, agua de HDRP (lagos, ríos, cascadas), ríos con meandros, zonas, día y noche (`CicloDia`: sol, luna, exposición y la luz que ven los humanos; `FuenteLuz`: hogueras, faroles, linternas). |
 | Vegetación | Especies procedurales (ceiba, dosel, palmera, helechos, bambú...), reparto por reglas, render instanciado por cámara con LOD y culling en Burst, viento, derribos. |
 | Criaturas | `Criatura`: la criatura del jugador. Todos (humanos, helicópteros, cámara, efectos, sonido, HUD) la buscan aquí y escalan con su `Tamano` (Kong = 17,5 m = escala 1). Eventos `Intimidar`, `OndaCono`, `Purificar`, `Pisar`; `Premiar` y `Celebrar` los traduce cada juego. |
 | Combate | `Salud`, `DatosDanio`, `Impacto` (daño en área, empuje, derribos), `Lanzable`. |
-| Ferrox (`Guardianes.Enemigos`) | `Humano` (IA según el tamaño de la criatura, detección con luz y escondites), `ZonaHumana`, instalaciones y piezas, `Estructura`, `Helicoptero` (rotor por BEMT), `Cohete`. |
+| Ferrox (`Guardianes.Enemigos`) | `Humano` (IA según el tamaño de la criatura, detección con luz y escondites, **miedo** que se contagia, rondas y centinelas), `MarcaLeyenda`, `ZonaHumana`, instalaciones y piezas, `Estructura`, `Helicoptero` (rotor por BEMT), `Cohete`. |
+| Misiones (`Guardianes.Misiones`) | `DirectorMisiones` (introducción, objetivos con diálogos, reglas, desenlace, balance, fallo y repetición), `Objetivo` (`Narracion`, `Llegar`, `Condicion`...), `Regla` (`SinSerVisto`, `CriaturaViva`...), `Mision`. Cada juego hereda el director y añade sus objetivos. |
 | Presentación | `EfectosCombate`, `SonidoJuego`, `CamaraCriatura`, `CalidadJuego`, `HudJuego` (avisos, objetivo, marcador, diálogos, menús, pantallas de misión y de caída). |
 | Editor | `ConfiguradorHDRP` (HDRP "ultra", atmósfera de selva), `MaterialesLit`, `Capturador`, `Diagnostico`, terreno (`Relieve`, `PasadasRelieve`: erosión, ríos, lagos, humedad), reparto de selva, materiales de agua, efectos, audio, `ConstructorHumanos` (humanos de AssetsCreator), `ConstructorHelicoptero`, `ConfiguradorZonas`. |
 | Shaders | `Guardianes/Vegetacion`, `Pelaje`, `Rio`, `Escamas` (variantes de Lit, generadas), `Particula`, `Cascada`, `Calor`. |
@@ -314,7 +315,7 @@ ficheros (los colores pueden variar ±1).
    charco) desaparece.
 9. **Texturas especiales**: `_grosor` de las hojas es el Thickness Map de HDRP tal cual; los EXR de
    `cielo` son cubemaps lat-long BC6H; la noche de `cielo` cae en subnormales del half (para una
-   noche jugable, `cielo-pintado`).
+   noche jugable, `cielo-pintado` o el `CicloDia` del cerebro).
 10. **Partículas**: una partícula unlit de color 1 sale negra a mediodía en HDRP: hay que pintarla
     en nits (como `Guardianes/Particula`).
 11. **Variantes del Lit**: se generan contra el `Lit.shader` del HDRP de cada proyecto; una copia de

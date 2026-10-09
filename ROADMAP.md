@@ -16,22 +16,26 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
   [CLAUDE.md](CLAUDE.md) y [README.md](README.md) con la guía de AssetsCreator.
 - `ConstructorHumanos` encuentra AssetsCreator subiendo desde el proyecto (o con `%ASSETSCREATOR%`),
   sin depender de la profundidad de la carpeta del juego.
+- **Día y noche** (`CicloDia`, `FuenteLuz`): sol por latitud y declinación, luna, exposición de
+  noche, la luz de cada punto para la IA (cielo más hogueras, faroles y linternas).
+- **Miedo de los humanos** (activable por juego con `Humano.ConMiedo`; Basiliskos lo usa, King Kong
+  no): miedo de 0 a 100, contagio, disparar a las sombras, quedarse helado, huir para no volver;
+  `MarcaLeyenda`. `Humano` gana `quieto` (centinelas) y `ruta` (rondas), y los protegidos ya no
+  acosan a una criatura pequeña.
+- **Director de misiones común** (`Guardianes.Misiones`): misiones con introducción, objetivos,
+  diálogos, reglas, desenlace, balance, fallo y repetición. Lo estrena el Acto I de Basiliskos.
 
 ## Siguiente
 
-1. **Día y noche**: un ciclo común (sol, luna, exposición, la luz que ven los humanos) y fuentes de
-   luz (linternas, focos, hogueras, generadores) que cualquier juego pueda usar. Lo pide el Acto I
-   de Basiliskos (misiones de noche).
-2. **Miedo de los humanos**: el valor de miedo (0-100) en `Humano`, lo que lo sube (gritos,
-   siseos, cuerpos, oscuridad, ver a la criatura de reojo, marcas de leyenda), el contagio y sus
-   efectos (disparar a las sombras, quedarse quieto, tirar el arma, huir para no volver). Activable
-   por juego.
-3. **Director de misiones común**: objetivos, reglas, diálogos y narración, cinemáticas, éxito,
-   fallo y balance, con la parte de cada criatura en su juego. Basiliskos lo estrena; King Kong
-   puede pasar su campaña después.
-4. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
-   recuento de eventos, piloto que sigue el marcador del objetivo) para que cada juego solo añada sus
-   acciones.
+1. **Pasar la campaña de King Kong al director común** (sus objetivos propios como subclases) y
+   probar en su modo libre el día y la noche y el miedo.
+2. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
+   recuento de eventos) y del piloto que juega las misiones siguiendo el objetivo, para que cada juego
+   solo añada sus acciones.
+3. **El HUD en las fotos de las pruebas**: en batch el lienzo va en *Screen Space - Camera* y pasa por
+   el posproceso de HDRP (exposición, grano, bloom): el texto sale tenue. Pintarlo después del
+   posproceso.
+4. Estrellas y luna con textura en el cielo físico de noche; nubes que se oscurecen.
 
 ## Después
 
@@ -44,8 +48,10 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 - Vehículos terrestres y acuáticos (todoterreno, excavadora, lancha, draga, barco) y un avión.
 - Criaturas grandes que vuelan (Fénix, Grifo, Pájaro del Trueno, Roc) y que nadan (Leviatán,
   Kraken, Megalodón, Jörmungandr): cámara y control de vuelo/buceo en `CamaraCriatura`, agua
-  abierta (océano) en `AguaMundo`, y biomas nuevos (desierto, tundra, volcán, ciudad) en el reparto
-  de vegetación y las capas de terreno.
+  abierta (océano) en `AguaMundo`, y biomas nuevos (desierto, tundra, volcán, bosque templado) en el
+  reparto de vegetación y las capas de terreno.
+- Varias cabezas (Cerbero, Hidra, Tifón: la espina procedural de Basiliskos sirve para los cuellos),
+  fuego que se propaga por la vegetación, lava y terreno que cambia en juego, raíces que crecen.
 - Partida guardada común (hoy cada juego guarda la suya) y menú de inicio común.
 - *Primal Legends* (el crossover): que varias `Criatura` convivan en una escena (cámara, HUD y
   humanos con varias criaturas, no solo `Criatura.Jugador`).
