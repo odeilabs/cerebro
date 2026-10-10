@@ -1,7 +1,7 @@
 # Guardianes — paquete común de la saga
 
 Paquete de Unity (`com.odeilabs.guardianes`) con lo que comparten los juegos de la saga **Gaia's
-Response** de Odei Labs: *King Kong — El guardián de la isla*, *Basiliskos* y los que vengan (y el
+Response** de Odei Labs: *Gorilla Revenge — El guardián de la isla* (antes *King Kong*), *Basiliskos* y los que vengan (y el
 crossover final, *Primal Legends*). Vive en el cerebro de la saga (`Gaia's Response/cerebro`, ver
 `../CLAUDE.md` para las reglas comunes y `../README.md` para la guía de AssetsCreator).
 
@@ -10,9 +10,9 @@ crossover final, *Primal Legends*). Vive en el cerebro de la saga (`Gaia's Respo
 cerebro del que sale), para que su build no necesite el cerebro y los cambios de aquí no toquen una
 versión ya hecha. Durante el desarrollo, cada juego mira aquí si hay cambios y trae a su copia lo que
 le interese, probándolo. Por eso todo lo de aquí es opcional y configurable por juego, sin suponer
-las mecánicas de ninguna criatura. (Hoy King Kong y Basiliskos aún lo enlazan con
-`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasarlos a su copia está en el
-roadmap del cerebro.)
+las mecánicas de ninguna criatura. (Gorilla Revenge ya lleva su copia; Basiliskos aún lo
+enlaza con `"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasarlo a su copia está
+en el roadmap del cerebro.)
 
 Unity 6000.5.2f1, HDRP 17.5, Input System 1.19, Burst + Collections + Mathematics. Código y nombres
 en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
@@ -54,7 +54,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada), `ZonaHumana`, `ConstructorInstalaciones` + `Piezas` +
   `ConstructorPiezasCampana`, `Estructura`, `Helicoptero` (rotor del BEMT de Lur Aerospace), `Cohete`,
-  `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; King Kong no):
+  `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
   `miedo` de 0 a 100 que sube con la oscuridad (sin linterna), lo que ve de reojo, los ojos de la
   criatura cuando les da una luz de noche, siseos y rugidos (se oyen a 4 veces su radio), mordiscos,
   los gritos y las muertes de los de alrededor, las luces que se apagan y las `MarcaLeyenda` (camisas,
@@ -70,7 +70,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Valoracion` y los textos), `Objetivo` (`Narracion`, `Esperar`, `Sobrevivir`, `Llegar`, `Condicion`
   con funciones, `Descubrir`; `Dice`/`AlAcabar`/`ConPista`) y `Regla` (`SinSerVisto`,
   `SinMatarCiviles`, `CriaturaViva`, `ReglaCondicion`). Los objetivos de cada criatura heredan de
-  `Objetivo` en su juego. King Kong aún usa su campaña propia.
+  `Objetivo` en su juego. Gorilla Revenge aún usa su campaña propia.
 - `Runtime/Sensacion/` — **la sensación de los golpes y del control** (opcional: cada juego la
   trae a su copia y la llama con su perfil; hoy ninguno). `PerfilSensacion` (asset; `Crear(ArquetipoSensacion)`: `Gigante`, `Agil`,
   `Creciente`, `Volador`, `Acuatico`, `Arcade`), `Sensaciones` (`Perfil`, `Impacto(Golpe)` con
@@ -114,7 +114,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   semillas y datos compactos (LFS).
 - Lo que dependa de una criatura concreta no entra aquí: va en su juego, colgado de `Criatura`,
   de los eventos o de los métodos virtuales.
-- Los componentes que King Kong ya usaba conservan su GUID (sus escenas y prefabs siguen valiendo);
+- Los componentes que Gorilla Revenge (entonces King Kong) ya usaba conservan su GUID (sus escenas y prefabs siguen valiendo);
   las clases que cada juego especializa (`TerrenoIsla : TerrenoMundo`, `CamaraKong :
   CamaraCriatura`, `HudKong : HudJuego`) se quedan en el juego con su GUID.
 - Los logs del paquete van con `[GD]`.
@@ -123,5 +123,5 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 
 El paquete no tiene proyecto propio: se compila y se prueba dentro de los juegos (sus
 `Tools/Unity-Batch.ps1` y `Tools/Unity-Pruebas.ps1`, con el editor cerrado). Un cambio aquí se
-compila al menos en un juego; mientras King Kong y Basiliskos sigan enlazando el cerebro, se prueba en
-los dos. Los juegos con su copia lo prueban cuando lo traen.
+compila al menos en un juego; mientras Basiliskos siga enlazando el cerebro, se prueba en
+él. Los juegos con su copia lo prueban cuando lo traen.

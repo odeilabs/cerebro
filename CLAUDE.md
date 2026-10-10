@@ -22,7 +22,7 @@ Odei Labs/
 ├── AssetsCreator/            generador de assets (NO se modifica su código; se usa lo que genera)
 └── Gaia's Response/
     ├── cerebro/              ESTE repo: paquete Guardianes + instrucciones comunes
-    ├── King Kong/            juego 1 (repo, remoto github.com/odeilabs/KingKong)
+    ├── Gorilla Revenge/      juego 1, antes King Kong (repo, remoto github.com/odeilabs/KingKong)
     ├── Basiliskos/           juego 2 (repo, remoto github.com/odeilabs/Basiliskos)
     ├── <18 juegos futuros>/  de momento portada + README/ROADMAP con la propuesta
     └── DLCs/<18 DLC>/        expansiones, cada una propone su juego base
@@ -58,15 +58,16 @@ beben los juegos, no algo de lo que dependan**. Cada juego implementa en local l
   (perfiles, flags como `Humano.ConMiedo`, eventos), sin suponer las mecánicas de ninguna criatura,
   y teniendo en cuenta los juegos que aún no han empezado (vuelo, nado, varias cabezas, arcade).
 
-Estado (octubre 2026): King Kong y Basiliskos aún enlazan el cerebro con
-`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasar cada uno a su copia está en
-el [ROADMAP](ROADMAP.md) y se hace cuando su autor lo diga (no a mitad de su desarrollo). Mientras
-tanto, un cambio en el cerebro les llega al abrirlos: hay que comprobarlo en los dos.
+Estado (octubre 2026): **Gorilla Revenge** ya lleva su copia (desde `cca49a1`, ver su
+`Packages/com.odeilabs.guardianes/ORIGEN.md`). **Basiliskos** aún enlaza el cerebro con
+`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasarlo a su copia está en el
+[ROADMAP](ROADMAP.md) y se hace cuando su autor lo diga (no a mitad de su desarrollo). Mientras
+tanto, un cambio en el cerebro le llega al abrirlo: hay que comprobarlo en él.
 
 ## Reglas de trabajo (todas las sesiones, todos los juegos)
 
 - **Español** en código, nombres, logs, comentarios, commits y documentación. Sin tildes en el
-  texto del HUD si el juego no las usa (King Kong no; Basiliskos sí).
+  texto del HUD si el juego no las usa (Gorilla Revenge no; Basiliskos sí).
 - **Git desde PowerShell** (desde Git Bash falla al escribir objetos en algunos repos). Commits en
   español y **sin `Co-Authored-By`**. Mensajes largos: escríbelos en un fichero (fuera del repo, p.
   ej. en el directorio temporal) y `git commit -F <fichero>`; los here-strings chocan con el filtro
@@ -93,8 +94,8 @@ tanto, un cambio en el cerebro les llega al abrirlos: hay que comprobarlo en los
   Si un sistema empieza en un juego y luego lo necesita otro, se sube al cerebro con cuidado de
   conservar los GUID de los componentes que ya usan las escenas.
 - Un cambio en el cerebro se comprueba compilando en batch en al menos un juego; cada juego lo
-  prueba a fondo cuando lo trae a su copia. Mientras un juego siga enlazando el cerebro (hoy King
-  Kong y Basiliskos), se comprueba en él con una prueba. Los comportamientos nuevos que cambian el
+  prueba a fondo cuando lo trae a su copia. Mientras un juego siga enlazando el cerebro (hoy
+  Basiliskos), se comprueba en él con una prueba. Los comportamientos nuevos que cambian el
   juego (p. ej. el miedo de los humanos) se activan por juego para no alterar a los demás.
 - Enumeraciones que se guardan en partidas o datos (`TipoZona`, `MotivoPremio`...): los valores
   nuevos van **al final**.
@@ -111,7 +112,7 @@ tanto, un cambio en el cerebro les llega al abrirlos: hay que comprobarlo en los
 - Ensamblados por juego: `<Juego>` (runtime, referencia `Guardianes`), `<Juego>.Editor`
   (referencia además `Guardianes.Editor`) y `<Juego>.Pruebas.Juego` (pruebas PlayMode). Namespace
   raíz = nombre del juego; el editor en `<Juego>.EditorTools`.
-- Logs con prefijo: `[GD]` el paquete, `[KK]` King Kong, `[BK]` Basiliskos; cada juego nuevo
+- Logs con prefijo: `[GD]` el paquete, `[GR]` Gorilla Revenge (antes `[KK]`), `[BK]` Basiliskos; cada juego nuevo
   elige el suyo (dos letras).
 - Shaders: las variantes de HDRP/Lit del paquete se generan con
   `Guardianes/Tools~/generar_shaders_lit.py`; **no se editan** los `.shader` ni los `Data.hlsl`

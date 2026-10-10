@@ -5,7 +5,7 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 
 ## Hecho (octubre 2026)
 
-- Paquete `com.odeilabs.guardianes` extraído de King Kong y usado por King Kong y Basiliskos:
+- Paquete `com.odeilabs.guardianes` extraído de King Kong (hoy Gorilla Revenge) y usado por Gorilla Revenge y Basiliskos:
   mundo (relieve, agua, ríos, lagos, vegetación instanciada con viento, derribos), `Criatura`,
   combate, humanos de Ferrox (detección con luz y escondites, criaturas pequeñas y gigantes),
   zonas e instalaciones, helicópteros (BEMT) y cohetes, efectos, sonido, cámara, calidad,
@@ -18,8 +18,8 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
   sin depender de la profundidad de la carpeta del juego.
 - **Día y noche** (`CicloDia`, `FuenteLuz`): sol por latitud y declinación, luna, exposición de
   noche, la luz de cada punto para la IA (cielo más hogueras, faroles y linternas).
-- **Miedo de los humanos** (activable por juego con `Humano.ConMiedo`; Basiliskos lo usa, King Kong
-  no): miedo de 0 a 100, contagio, disparar a las sombras, quedarse helado, huir para no volver;
+- **Miedo de los humanos** (activable por juego con `Humano.ConMiedo`; Basiliskos lo usa, Gorilla
+  Revenge no): miedo de 0 a 100, contagio, disparar a las sombras, quedarse helado, huir para no volver;
   `MarcaLeyenda`. `Humano` gana `quieto` (centinelas) y `ruta` (rondas), y los protegidos ya no
   acosan a una criatura pequeña.
 - **Director de misiones común** (`Guardianes.Misiones`): misiones con introducción, objetivos,
@@ -30,28 +30,30 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
   trauma de cámara, temblor del golpeado, destello, vibración), `TraumaCamara`, `BufferEntrada`,
   `MargenApoyo`, `AsistenciaPunteria` y `Medidor`, con su comprobación en batch. Opcional: ningún
   juego lo usa todavía.
+- **Gorilla Revenge (antes King Kong) con su copia del paquete** en `Packages/com.odeilabs.guardianes/`
+  (desde `cca49a1`, con `ORIGEN.md`): ya no enlaza el cerebro; compila y pasa sus pruebas en batch.
 - **Regla de la copia local** (ver [CLAUDE.md](CLAUDE.md#el-cerebro-es-la-fuente-cada-juego-lleva-su-copia)):
   el cerebro es la fuente y cada juego lleva su propia copia del paquete, para que su build no
   necesite el cerebro y los cambios posteriores no toquen una versión concreta.
 
 ## Siguiente
 
-1. **Cada juego con su copia del paquete** (cuando lo diga su autor, no a mitad de su desarrollo):
-   copiar `cerebro/Guardianes` con sus `.meta` a `<Proyecto>/Packages/com.odeilabs.guardianes/`,
+1. **Basiliskos con su copia del paquete** (cuando lo diga su autor, no a mitad de su desarrollo),
+   como ya tiene Gorilla Revenge: copiar `cerebro/Guardianes` con sus `.meta` a `<Proyecto>/Packages/com.odeilabs.guardianes/`,
    quitar la línea `file:` del `manifest.json` (y su entrada de `packages-lock.json`), escribir
    `ORIGEN.md` con el commit del cerebro, comprobar que compila y que las escenas no pierden
    referencias (batch y sus pruebas con fotos), y probar un build sin la carpeta `cerebro` al lado.
-   Primero King Kong (está libre), luego Basiliskos. Con ello, una herramienta común para comparar la
+   Con ello, una herramienta común para comparar la
    copia con el cerebro (qué commits y ficheros han cambiado desde `ORIGEN.md`) y traer lo elegido
    (`Tools~/`, un script de PowerShell que copie con los `.meta` y actualice `ORIGEN.md`), y un aviso
    en el editor de cada juego cuando el cerebro tenga cambios que su copia no tiene.
 2. **Aplicar la sensación común**, en local en cada juego (traída a su copia y llamada desde su
-   código, con su perfil; cuando lo diga el autor: Basiliskos está en desarrollo): King Kong con un
+   código, con su perfil; cuando lo diga el autor: Basiliskos está en desarrollo): Gorilla Revenge con un
    perfil `Gigante` (combo, palmada, lanzar, remates a helicópteros) y Basiliskos con `Creciente`
    (mordisco con buffer, emboscada, estrangular, sprint que rompe), `TraumaCamara` en sus cámaras y
    `Medidor.Informe()` en sus pruebas. Después, el sonido en capas sobre `AlImpacto` y la destrucción
    en cadena en `Estructura` y `Humano`.
-3. **Pasar la campaña de King Kong al director común** (sus objetivos propios como subclases) y
+3. **Pasar la campaña de Gorilla Revenge al director común** (sus objetivos propios como subclases) y
    probar en su modo libre el día y la noche y el miedo.
 4. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
    recuento de eventos) y del piloto que juega las misiones siguiendo el objetivo, para que cada juego

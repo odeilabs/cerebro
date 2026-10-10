@@ -2,7 +2,7 @@
   "name": "com.odeilabs.guardianes",
   "version": "0.1.0",
   "displayName": "Guardianes (saga de Odei Labs)",
-  "description": "Lo comun de la saga Gaia's Response (King Kong, Basiliskos y los que vengan): relieve y agua, vegetacion instanciada con viento, combate, humanos y helicopteros de Ferrox, efectos, sonido, camara de criatura, calidad, HUD y utilidades del editor (capturas, materiales Lit, reparto de selva).",
+  "description": "Lo comun de la saga Gaia's Response (Gorilla Revenge, Basiliskos y los que vengan): relieve y agua, vegetacion instanciada con viento, combate, humanos y helicopteros de Ferrox, efectos, sonido, camara de criatura, calidad, HUD y utilidades del editor (capturas, materiales Lit, reparto de selva).",
   "unity": "6000.5",
   "author": {
     "name": "Odei Labs"

@@ -1,7 +1,7 @@
 # Guardianes
 
 Paquete común de la saga **Gaia's Response** de Odei Labs: los juegos en los que controlas a una
-criatura mítica que la tierra despierta cuando la envenenan (*King Kong*, *Basiliskos*...) y el
+criatura mítica que la tierra despierta cuando la envenenan (*Gorilla Revenge*, *Basiliskos*...) y el
 crossover que las reunirá contra Ferrox.
 
 Lleva el mundo (relieve, agua, vegetación instanciada con viento), el combate, los humanos y

@@ -75,7 +75,7 @@ impacto) y **recuperación** (la vuelta). La sensación se construye sobre todo 
    grandes se sienten mucho, y varios seguidos se acumulan sin volverse locos. Opción en el menú para
    reducirla.
 3. **Reacción del golpeado.** Retroceso en la dirección del golpe, tambaleo, salir volando con física
-   si el golpe es grande (King Kong ya lo hace), estatua, huida. **Nunca un golpe sin reacción.**
+   si el golpe es grande (Gorilla Revenge ya lo hace), estatua, huida. **Nunca un golpe sin reacción.**
 4. **Sonido en capas.** Un golpe = chasquido agudo (el contacto) + cuerpo grave (el peso) + cola
    (eco, escombros). Variar tono y muestra en cada golpe. El sonido es la mitad de la sensación.
 5. **Destello y partículas.** Un fotograma de destello en el golpeado, chispas, polvo, astillas,
@@ -159,7 +159,7 @@ golpe y cuánto pesa según sus mecánicas.
 
 | Arquetipo | Para quién | Carácter |
 |---|---|---|
-| `Gigante` | King Kong, Behemot, Cerbero, Escorpión Colosal, Smilodon (adulto) | paradas largas, sacudida grande y grave |
+| `Gigante` | Gorilla Revenge (Kong), Behemot, Cerbero, Escorpión Colosal, Smilodon (adulto) | paradas largas, sacudida grande y grave |
 | `Agil` | Noctarion, Fenrir, Manticora, la cría de Basiliskos | paradas cortas y nítidas, sacudida rápida y pequeña |
 | `Creciente` | Basiliskos, Raizmuerta (lo que crece en la partida) | intermedio: lo que cambia lo pone `Criatura.Escala` |
 | `Volador` | Fénix, Grifo, Pájaro del Trueno, Tifón | poca sacudida (la cámara ya se mueve mucho) |
@@ -169,10 +169,10 @@ golpe y cuánto pesa según sus mecánicas.
 Son puntos de partida: cada juego crea su perfil (un asset) y lo ajusta, y puede cambiarlo en juego
 (Basiliskos, por etapas; una hidra, por cabeza; un ave, al picar). Lo propio de cada criatura (qué
 golpe es un remate, el "apretar" del estrangular, el picado, la embestida desde el agua) queda en su
-juego. Cuando se aplique: King Kong con `Gigante` y Basiliskos con `Creciente`, con `TraumaCamara` en
+juego. Cuando se aplique: Gorilla Revenge con `Gigante` y Basiliskos con `Creciente`, con `TraumaCamara` en
 `CamaraKong`/la cámara de la serpiente y `Medidor.Informe()` al final de sus pruebas.
 
-**King Kong**: hitstop y trauma en el combo y la palmada; agarrar y lanzar con cámara lenta corta al
+**Gorilla Revenge**: hitstop y trauma en el combo y la palmada; agarrar y lanzar con cámara lenta corta al
 soltar; remates contra helicópteros; cancelar la recuperación de golpes grandes en salto o embestida.
 
 **Basiliskos**: la emboscada como gran momento (hitstop largo, cámara que se acerca, sonido seco); el

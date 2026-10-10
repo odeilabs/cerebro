@@ -65,10 +65,11 @@ posteriores en el cerebro no toquen una versión concreta del juego (la regla co
   `HudBasilisco : HudJuego`, sus perfiles y configuraciones) vive en el código del juego, no dentro de
   la copia.
 
-**Estado (octubre 2026)**: King Kong y Basiliskos todavía enlazan el cerebro como paquete local
-(`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"` en su `manifest.json`), así que un
-cambio en el cerebro les llega en cuanto se abren y hay que comprobarlo en los dos. Pasarlos a su
-copia está en el [ROADMAP](ROADMAP.md), cuando lo diga su autor.
+**Estado (octubre 2026)**: **Gorilla Revenge** ya lleva su copia (`Gorilla Revenge/Packages/
+com.odeilabs.guardianes/`, desde `cca49a1`; es el ejemplo a seguir). **Basiliskos** todavía enlaza el
+cerebro como paquete local (`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"` en su
+`manifest.json`), así que un cambio en el cerebro le llega en cuanto se abre y hay que comprobarlo en
+él. Pasarlo a su copia está en el [ROADMAP](ROADMAP.md), cuando lo diga su autor.
 
 ## Arrancar un juego nuevo de la saga
 
@@ -199,10 +200,10 @@ cd "C:\Users\inigo\Desktop\Odei Labs\AssetsCreator\AssetsCreatorWin"
 | Cuernos, colmillos, alas, garrotes | `forma --forma cuerno\|colmillo\|ala_plumas\|garrote\|maza_gigante...` | `ws2_cuerno`, `ws2_colmillo`, `ws2_ala_plumas`, `ws2_garrote` | Armas de criatura, cuernos, alas... |
 | Cuadrúpedos con esqueleto (57 huesos, 23 clips) | `animal --especie X --pbr 1024 [--estado "mojado=1,barro=0.6,sangre=0.3"]` | `animal_*` (caballo, ciervo, conejo, gato, jabalí, león, lobo; pendientes de regenerar) | Animales cuadrúpedos con esqueleto; Animales esculpidos |
 | Serpientes PBR con rig y clips | `serpiente --especie mamba_negra\|vibora_russell\|taipan_interior` | las tres | Serpientes PBR ultra |
-| Gorila / King Kong (pelaje por capas) | `gorila --nombre kong --alto 17.5`, `shader-hdrp` | — (portado desde King Kong) | Gorilas y King Kong |
+| Gorila / King Kong (pelaje por capas) | `gorila --nombre kong --alto 17.5`, `shader-hdrp` | — (portado desde Gorilla Revenge) | Gorilas y King Kong |
 | Huesos de gigante | `huesos` | — | Helicóptero de ataque y huesos de gigante |
 | Helicóptero de ataque | `helicoptero` | — | ídem |
-| Selva tropical (14 especies, LOD, viento) | `selva [--solo ceiba,palmera,...]` + `shader-hdrp --variantes viento` | — (portada desde King Kong) | Selva tropical |
+| Selva tropical (14 especies, LOD, viento) | `selva [--solo ceiba,palmera,...]` + `shader-hdrp --variantes viento` | — (portada desde Gorilla Revenge) | Selva tropical |
 | Suelo de selva por capas | `capas-terreno [--solo ...\|lugares]` | — | Suelo de selva por capas |
 | Palmeras y playa | `objeto planta --preset palmera_*`, `objeto playa`, `forma --forma palmera\|hamaca...` | `arb_palmera*`, `pbr_palmera` | Playa y palmeras |
 | Agua para el Water System de HDRP | `agua --nombre X --preset tropical\|lago\|tormenta...` | — | Agua: del mar cristalino al temporal |
@@ -282,7 +283,7 @@ se puede, solo con parámetros:
 ### Añadirlo a AssetsCreator para toda la saga
 
 1. **Genera con un nombre con prefijo**: `--nombre gd_<asset>` si lo van a usar varios juegos,
-   `<prefijo del juego>_<asset>` si es de uno (`kk_` King Kong, `bk_` Basiliskos). Queda en
+   `<prefijo del juego>_<asset>` si es de uno (`kk_` Gorilla Revenge —de cuando se llamaba King Kong—, `bk_` Basiliskos). Queda en
    `proyectos\<nombre>\salida\` y cualquier juego lo encuentra por nombre. No pises proyectos de
    otros juegos de Odei Labs (`ht_`, `fs_`, `ws2_`, `ww2_`, `ts_`...). `kk_mercenario` y `kk_ak47`
    conservan su nombre (los usa `ConstructorHumanos`).
