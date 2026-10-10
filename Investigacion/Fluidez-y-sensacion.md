@@ -138,8 +138,11 @@ impacto) y **recuperación** (la vuelta). La sensación se construye sobre todo 
    prueba como un indicador más.
 
 **Hecho (octubre 2026): `Guardianes.Sensacion`**, la base de los puntos 1, 2, 3 y 5, **sin aplicar
-todavía a ningún juego**. No se engancha sola a `Impacto`, `Salud` ni `CamaraCriatura`: cada juego
-decide qué es un golpe y cuánto pesa según sus mecánicas, y lo llama.
+todavía a ningún juego**. Es para **implementaciones locales en cada proyecto**: como todo el cerebro,
+es la fuente de la que cada juego copia lo que usa a su propia copia del paquete (su build no
+necesita el cerebro y los cambios posteriores aquí no tocan una versión concreta), y lo llama desde su
+código. No se engancha sola a `Impacto`, `Salud` ni `CamaraCriatura`: cada juego decide qué es un
+golpe y cuánto pesa según sus mecánicas.
 
 - `PerfilSensacion` (ScriptableObject): parada, trauma, sacudida, destello y vibración según la
   fuerza del golpe (0 roce, 1 fuerte, más de 1 remate). `Crear(arquetipo)` da un punto de partida.

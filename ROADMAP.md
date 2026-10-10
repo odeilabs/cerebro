@@ -24,30 +24,42 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
   acosan a una criatura pequeña.
 - **Director de misiones común** (`Guardianes.Misiones`): misiones con introducción, objetivos,
   diálogos, reglas, desenlace, balance, fallo y repetición. Lo estrena el Acto I de Basiliskos.
-
 - **Sensación común, la base** (`Guardianes.Sensacion`, ver
   [Investigacion/Fluidez-y-sensacion.md](Investigacion/Fluidez-y-sensacion.md)): perfiles por
   arquetipo (gigante, ágil, creciente, volador, acuático, arcade), `Sensaciones.Impacto` (parada,
   trauma de cámara, temblor del golpeado, destello, vibración), `TraumaCamara`, `BufferEntrada`,
   `MargenApoyo`, `AsistenciaPunteria` y `Medidor`, con su comprobación en batch. Opcional: ningún
   juego lo usa todavía.
+- **Regla de la copia local** (ver [CLAUDE.md](CLAUDE.md#el-cerebro-es-la-fuente-cada-juego-lleva-su-copia)):
+  el cerebro es la fuente y cada juego lleva su propia copia del paquete, para que su build no
+  necesite el cerebro y los cambios posteriores no toquen una versión concreta.
 
 ## Siguiente
 
-1. **Aplicar la sensación común** (cuando lo diga el autor: Basiliskos está en desarrollo): King
-   Kong con un perfil `Gigante` (combo, palmada, lanzar, remates a helicópteros) y Basiliskos con
-   `Creciente` (mordisco con buffer, emboscada, estrangular, sprint que rompe), `TraumaCamara` en sus
-   cámaras y `Medidor.Informe()` en sus pruebas. Después, el sonido en capas sobre `AlImpacto` y la
-   destrucción en cadena en `Estructura` y `Humano`.
-2. **Pasar la campaña de King Kong al director común** (sus objetivos propios como subclases) y
+1. **Cada juego con su copia del paquete** (cuando lo diga su autor, no a mitad de su desarrollo):
+   copiar `cerebro/Guardianes` con sus `.meta` a `<Proyecto>/Packages/com.odeilabs.guardianes/`,
+   quitar la línea `file:` del `manifest.json` (y su entrada de `packages-lock.json`), escribir
+   `ORIGEN.md` con el commit del cerebro, comprobar que compila y que las escenas no pierden
+   referencias (batch y sus pruebas con fotos), y probar un build sin la carpeta `cerebro` al lado.
+   Primero King Kong (está libre), luego Basiliskos. Con ello, una herramienta común para comparar la
+   copia con el cerebro (qué commits y ficheros han cambiado desde `ORIGEN.md`) y traer lo elegido
+   (`Tools~/`, un script de PowerShell que copie con los `.meta` y actualice `ORIGEN.md`), y un aviso
+   en el editor de cada juego cuando el cerebro tenga cambios que su copia no tiene.
+2. **Aplicar la sensación común**, en local en cada juego (traída a su copia y llamada desde su
+   código, con su perfil; cuando lo diga el autor: Basiliskos está en desarrollo): King Kong con un
+   perfil `Gigante` (combo, palmada, lanzar, remates a helicópteros) y Basiliskos con `Creciente`
+   (mordisco con buffer, emboscada, estrangular, sprint que rompe), `TraumaCamara` en sus cámaras y
+   `Medidor.Informe()` en sus pruebas. Después, el sonido en capas sobre `AlImpacto` y la destrucción
+   en cadena en `Estructura` y `Humano`.
+3. **Pasar la campaña de King Kong al director común** (sus objetivos propios como subclases) y
    probar en su modo libre el día y la noche y el miedo.
-3. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
+4. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
    recuento de eventos) y del piloto que juega las misiones siguiendo el objetivo, para que cada juego
    solo añada sus acciones.
-4. **El HUD en las fotos de las pruebas**: en batch el lienzo va en *Screen Space - Camera* y pasa por
+5. **El HUD en las fotos de las pruebas**: en batch el lienzo va en *Screen Space - Camera* y pasa por
    el posproceso de HDRP (exposición, grano, bloom): el texto sale tenue. Pintarlo después del
    posproceso.
-5. Estrellas y luna con textura en el cielo físico de noche; nubes que se oscurecen.
+6. Estrellas y luna con textura en el cielo físico de noche; nubes que se oscurecen.
 
 ## Después
 

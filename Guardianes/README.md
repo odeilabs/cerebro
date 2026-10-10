@@ -9,6 +9,8 @@ helicópteros de Ferrox, los efectos, el sonido, la cámara de criatura, la cali
 herramientas del editor y de arte. Detalles en [CLAUDE.md](CLAUDE.md); cómo se usa desde los juegos
 y la guía de AssetsCreator, en el [README del cerebro](../README.md).
 
-```json
-"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"
-```
+Es **la fuente** de la que cada juego copia lo que usa: el paquete va incrustado en cada proyecto
+(`<Proyecto>/Packages/com.odeilabs.guardianes/`, con sus `.meta` y un `ORIGEN.md` con el commit del
+cerebro), de modo que el build del juego no necesita el cerebro y los cambios posteriores aquí no
+afectan a una versión concreta. Durante el desarrollo, el juego mira el cerebro y trae lo que le
+interese.

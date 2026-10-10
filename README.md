@@ -6,7 +6,7 @@ juego de la saga (o a empezar uno), lee primero [CLAUDE.md](CLAUDE.md) (reglas c
 README. Lo que falta está en [ROADMAP.md](ROADMAP.md); el mapa de los juegos, en `../README.md`.
 
 - [Qué hay en el cerebro](#qué-hay-en-el-cerebro)
-- [Cómo lo enlaza cada juego](#cómo-lo-enlaza-cada-juego)
+- [Cómo lo usa cada juego (copia local)](#cómo-lo-usa-cada-juego-copia-local)
 - [Arrancar un juego nuevo de la saga](#arrancar-un-juego-nuevo-de-la-saga)
 - [Herramientas comunes (Tools~)](#herramientas-comunes-tools)
 - [Guía de AssetsCreator](#guía-de-assetscreator)
@@ -43,24 +43,32 @@ Burst, Collections, Mathematics, uGUI). Su detalle sistema por sistema está en
 | Editor | `ConfiguradorHDRP` (HDRP "ultra", atmósfera de selva), `MaterialesLit`, `Capturador`, `Diagnostico`, terreno (`Relieve`, `PasadasRelieve`: erosión, ríos, lagos, humedad), reparto de selva, materiales de agua, efectos, audio, `ConstructorHumanos` (humanos de AssetsCreator), `ConstructorHelicoptero`, `ConfiguradorZonas`. |
 | Shaders | `Guardianes/Vegetacion`, `Pelaje`, `Rio`, `Escamas` (variantes de Lit, generadas), `Particula`, `Cascada`, `Calor`. |
 
-## Cómo lo enlaza cada juego
+## Cómo lo usa cada juego (copia local)
 
-Cada proyecto Unity de la saga lo declara en su `Packages/manifest.json` como paquete local:
+El cerebro es **la fuente**, no una dependencia: cada juego lleva **su propia copia** del paquete
+dentro de su repo, para que su build no necesite la carpeta `cerebro` y para que los cambios
+posteriores en el cerebro no toquen una versión concreta del juego (la regla completa está en
+[CLAUDE.md](CLAUDE.md#el-cerebro-es-la-fuente-cada-juego-lleva-su-copia)).
 
-```json
-"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes",
-```
+- La copia va **incrustada** en `<Proyecto>/Packages/com.odeilabs.guardianes/` (Unity carga los
+  paquetes que hay en `Packages/` sin línea en `manifest.json`). Se copia `cerebro/Guardianes`
+  **con todos sus `.meta`**: los componentes tienen GUID fijos y las escenas los referencian; no
+  regeneres los `.meta` ni muevas scripts sin el suyo.
+- Junto a la copia, `ORIGEN.md`: el commit del cerebro del que sale y, en cada sincronización, qué se
+  trajo y por qué.
+- **Mientras se desarrolla, se mira el cerebro a menudo** (al empezar cada sesión en el juego y antes
+  de cada versión): `git -C ../cerebro log <commit de ORIGEN.md>..HEAD -- Guardianes` dice qué ha
+  cambiado. Se trae lo que interese, se prueba en el juego (batch y pruebas con fotos) y se apunta en
+  `ORIGEN.md`. Nada llega solo.
+- Lo nuevo común se escribe en el cerebro y luego se trae; un arreglo hecho en la copia de un juego
+  se sube también al cerebro. Lo que cada juego especializa (`TerrenoIsla : TerrenoMundo`,
+  `HudBasilisco : HudJuego`, sus perfiles y configuraciones) vive en el código del juego, no dentro de
+  la copia.
 
-La ruta es relativa a `Packages/` del proyecto: `Gaia's Response/<Juego>/<Proyecto>/Packages` →
-`Gaia's Response/cerebro/Guardianes`. Unity lo trata como paquete editable (aparece en
-`Packages/Guardianes` del editor) y escribe la misma ruta en `packages-lock.json`. Consecuencias:
-
-- Un cambio en el cerebro llega a **todos** los juegos en cuanto se abren: hay que comprobarlo en
-  todos (compilar en batch y una prueba de cada uno).
-- Los componentes del paquete tienen GUID fijos (sus `.meta` están en el repo): no regeneres los
-  `.meta` ni muevas scripts sin su `.meta`, o las escenas de los juegos pierden las referencias.
-- Lo que cada juego especializa (`TerrenoIsla : TerrenoMundo`, `HudBasilisco : HudJuego`...) vive
-  en el juego.
+**Estado (octubre 2026)**: King Kong y Basiliskos todavía enlazan el cerebro como paquete local
+(`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"` en su `manifest.json`), así que un
+cambio en el cerebro les llega en cuanto se abren y hay que comprobarlo en los dos. Pasarlos a su
+copia está en el [ROADMAP](ROADMAP.md), cuando lo diga su autor.
 
 ## Arrancar un juego nuevo de la saga
 
@@ -74,8 +82,9 @@ La plantilla es **Basiliskos** (`../Basiliskos`): cópiale la estructura, no el 
 3. **Git con LFS desde el primer commit**: copia `.gitattributes` y `.gitignore` de Basiliskos (el
    de la raíz y el del proyecto). Binarios (texturas, audio, FBX, `.bytes`) por LFS. No se crea el
    remoto sin preguntar.
-4. **Paquetes**: añade la línea del cerebro al `manifest.json` y las dependencias que pide el
-   paquete (HDRP 17.5.0, Input System 1.19.0, Burst 1.8.29, Collections 6.5.0, Mathematics 1.4.0,
+4. **Paquetes**: copia `cerebro/Guardianes` (con sus `.meta`) a
+   `<Proyecto>/Packages/com.odeilabs.guardianes/`, apunta el commit del cerebro en su `ORIGEN.md` y
+   añade al `manifest.json` las dependencias que pide el paquete (HDRP 17.5.0, Input System 1.19.0, Burst 1.8.29, Collections 6.5.0, Mathematics 1.4.0,
    uGUI 2.5.0).
 5. **Ensamblados** en `Assets/_Game` (copia los de Basiliskos cambiando el nombre):
    - `Scripts/<Juego>.asmdef`: `rootNamespace` = `<Juego>`, referencias `Guardianes`,

@@ -3,14 +3,16 @@
 Paquete de Unity (`com.odeilabs.guardianes`) con lo que comparten los juegos de la saga **Gaia's
 Response** de Odei Labs: *King Kong — El guardián de la isla*, *Basiliskos* y los que vengan (y el
 crossover final, *Primal Legends*). Vive en el cerebro de la saga (`Gaia's Response/cerebro`, ver
-`../CLAUDE.md` para las reglas comunes y `../README.md` para la guía de AssetsCreator). Cada juego
-lo añade a su `Packages/manifest.json` como paquete local:
+`../CLAUDE.md` para las reglas comunes y `../README.md` para la guía de AssetsCreator).
 
-```json
-"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"
-```
-
-(la ruta es relativa a la carpeta `Packages` del proyecto: `Gaia's Response/<juego>/<proyecto>/Packages`).
+**Esto es la fuente, no una dependencia**: cada juego lleva su propia copia de este paquete en
+`<Proyecto>/Packages/com.odeilabs.guardianes/` (con los `.meta`, y un `ORIGEN.md` con el commit del
+cerebro del que sale), para que su build no necesite el cerebro y los cambios de aquí no toquen una
+versión ya hecha. Durante el desarrollo, cada juego mira aquí si hay cambios y trae a su copia lo que
+le interese, probándolo. Por eso todo lo de aquí es opcional y configurable por juego, sin suponer
+las mecánicas de ninguna criatura. (Hoy King Kong y Basiliskos aún lo enlazan con
+`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasarlos a su copia está en el
+roadmap del cerebro.)
 
 Unity 6000.5.2f1, HDRP 17.5, Input System 1.19, Burst + Collections + Mathematics. Código y nombres
 en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
@@ -70,7 +72,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `SinMatarCiviles`, `CriaturaViva`, `ReglaCondicion`). Los objetivos de cada criatura heredan de
   `Objetivo` en su juego. King Kong aún usa su campaña propia.
 - `Runtime/Sensacion/` — **la sensación de los golpes y del control** (opcional: cada juego la
-  llama; hoy ninguno). `PerfilSensacion` (asset; `Crear(ArquetipoSensacion)`: `Gigante`, `Agil`,
+  trae a su copia y la llama con su perfil; hoy ninguno). `PerfilSensacion` (asset; `Crear(ArquetipoSensacion)`: `Gigante`, `Agil`,
   `Creciente`, `Volador`, `Acuatico`, `Arcade`), `Sensaciones` (`Perfil`, `Impacto(Golpe)` con
   `ModoParada` local/global/ninguna, `Golpe.Desde(DatosDanio, Salud)`, `Temblor`, `Vibrar`,
   `EstaParado` para lo animado a mano, `EscalaTiempoBase`, `Opciones` de accesibilidad, eventos
@@ -121,4 +123,5 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 
 El paquete no tiene proyecto propio: se compila y se prueba dentro de los juegos (sus
 `Tools/Unity-Batch.ps1` y `Tools/Unity-Pruebas.ps1`, con el editor cerrado). Un cambio aquí se
-comprueba en **los dos** juegos.
+compila al menos en un juego; mientras King Kong y Basiliskos sigan enlazando el cerebro, se prueba en
+los dos. Los juegos con su copia lo prueban cuando lo traen.

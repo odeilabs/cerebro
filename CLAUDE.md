@@ -29,8 +29,39 @@ Odei Labs/
 ```
 
 Cada juego con código: `<Juego>/<Proyecto Unity>/` y, junto al proyecto, `Tools/`, `Guion/`,
-`Capturas/` (ignorada), `README.md`, `ROADMAP.md` y `CLAUDE.md`. Su `Packages/manifest.json` enlaza
-el paquete común con `"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`.
+`Capturas/` (ignorada), `README.md`, `ROADMAP.md` y `CLAUDE.md`, y **su propia copia del paquete
+común** (ver la regla siguiente).
+
+## El cerebro es la fuente; cada juego lleva su copia
+
+Lo que hay en el cerebro (sistemas, métodos, mecánicas, herramientas) es **la fuente de la que
+beben los juegos, no algo de lo que dependan**. Cada juego implementa en local lo que coge:
+
+- **Se copia a la carpeta del juego.** El build de un juego no puede necesitar la carpeta `cerebro`:
+  todo lo que use del cerebro tiene que estar dentro de su repo. Así una versión concreta del juego
+  no se rompe ni cambia por un cambio posterior en el cerebro, y se puede compilar con solo su repo.
+- **Cómo**: el paquete va **incrustado** en el proyecto, en
+  `<Proyecto>/Packages/com.odeilabs.guardianes/` (copia de `cerebro/Guardianes` **con sus `.meta`**,
+  para conservar los GUID que usan las escenas), y en `manifest.json` no hay línea `file:` hacia el
+  cerebro (Unity carga solo los paquetes que están en `Packages/`). Junto a la copia, `ORIGEN.md`
+  con el commit del cerebro del que sale y lo que se trajo en cada sincronización.
+- **Durante el desarrollo, el juego mira el cerebro todo el rato** por si hay cambios: comparar la
+  copia con el cerebro (el commit de `ORIGEN.md` frente al actual) al empezar cada sesión de trabajo
+  en un juego y antes de cada versión, y **traer a mano lo que interese**, probándolo en ese juego
+  (compilar en batch y sus pruebas con fotos). Traer cambios es una decisión del juego, nunca
+  automática; lo que no se trae no le afecta.
+- **Lo nuevo común se hace en el cerebro** y después se trae a cada juego; si se arregla algo en la
+  copia de un juego, se sube también al cerebro para que no se pierda. Lo propio de una criatura no
+  se escribe dentro de la copia: va en el código del juego (subclases, eventos, sus assets de
+  configuración), para que la copia se pueda refrescar sin pisar nada.
+- Los sistemas del cerebro se escriben pensando en eso: **opcionales y configurables por juego**
+  (perfiles, flags como `Humano.ConMiedo`, eventos), sin suponer las mecánicas de ninguna criatura,
+  y teniendo en cuenta los juegos que aún no han empezado (vuelo, nado, varias cabezas, arcade).
+
+Estado (octubre 2026): King Kong y Basiliskos aún enlazan el cerebro con
+`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasar cada uno a su copia está en
+el [ROADMAP](ROADMAP.md) y se hace cuando su autor lo diga (no a mitad de su desarrollo). Mientras
+tanto, un cambio en el cerebro les llega al abrirlos: hay que comprobarlo en los dos.
 
 ## Reglas de trabajo (todas las sesiones, todos los juegos)
 
@@ -61,8 +92,9 @@ el paquete común con `"com.odeilabs.guardianes": "file:../../../cerebro/Guardia
   los eventos estáticos o de los métodos virtuales (`Premiar`, `Celebrar`, `HudJuego.ConstruirEstado`...).
   Si un sistema empieza en un juego y luego lo necesita otro, se sube al cerebro con cuidado de
   conservar los GUID de los componentes que ya usan las escenas.
-- Un cambio en el cerebro **se comprueba en todos los juegos que lo usan** (hoy King Kong y
-  Basiliskos): compilar en batch y una prueba de cada uno. Los comportamientos nuevos que cambian el
+- Un cambio en el cerebro se comprueba compilando en batch en al menos un juego; cada juego lo
+  prueba a fondo cuando lo trae a su copia. Mientras un juego siga enlazando el cerebro (hoy King
+  Kong y Basiliskos), se comprueba en él con una prueba. Los comportamientos nuevos que cambian el
   juego (p. ej. el miedo de los humanos) se activan por juego para no alterar a los demás.
 - Enumeraciones que se guardan en partidas o datos (`TipoZona`, `MotivoPremio`...): los valores
   nuevos van **al final**.
