@@ -69,6 +69,15 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   con funciones, `Descubrir`; `Dice`/`AlAcabar`/`ConPista`) y `Regla` (`SinSerVisto`,
   `SinMatarCiviles`, `CriaturaViva`, `ReglaCondicion`). Los objetivos de cada criatura heredan de
   `Objetivo` en su juego. King Kong aún usa su campaña propia.
+- `Runtime/Sensacion/` — **la sensación de los golpes y del control** (opcional: cada juego la
+  llama; hoy ninguno). `PerfilSensacion` (asset; `Crear(ArquetipoSensacion)`: `Gigante`, `Agil`,
+  `Creciente`, `Volador`, `Acuatico`, `Arcade`), `Sensaciones` (`Perfil`, `Impacto(Golpe)` con
+  `ModoParada` local/global/ninguna, `Golpe.Desde(DatosDanio, Salud)`, `Temblor`, `Vibrar`,
+  `EstaParado` para lo animado a mano, `EscalaTiempoBase`, `Opciones` de accesibilidad, eventos
+  `AlImpacto`/`AlParar`), `TraumaCamara` (en cualquier cámara, después de su controlador),
+  `BufferEntrada` y `MargenApoyo` (coyote time), `AsistenciaPunteria` (`Elegir`, `Corregir`,
+  `BuscarSalud`) y `Medidor` (métricas para las pruebas, `Informe()`). Comprobación sin escena:
+  `Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch`.
 - `Runtime/Efectos/EfectosCombate`, `Runtime/Audio/SonidoJuego` (la voz de cada criatura la pone su
   juego con `Sonar` y los bancos `voces`/`percusion`/`pisadas`...), `Runtime/Camara/CamaraCriatura`
   (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`

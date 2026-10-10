@@ -137,6 +137,38 @@ impacto) y **recuperación** (la vuelta). La sensación se construye sobre todo 
    recompensas (presas, roturas, avisos) y tiempo muerto sin control, escritos en el log de cada
    prueba como un indicador más.
 
+**Hecho (octubre 2026): `Guardianes.Sensacion`**, la base de los puntos 1, 2, 3 y 5, **sin aplicar
+todavía a ningún juego**. No se engancha sola a `Impacto`, `Salud` ni `CamaraCriatura`: cada juego
+decide qué es un golpe y cuánto pesa según sus mecánicas, y lo llama.
+
+- `PerfilSensacion` (ScriptableObject): parada, trauma, sacudida, destello y vibración según la
+  fuerza del golpe (0 roce, 1 fuerte, más de 1 remate). `Crear(arquetipo)` da un punto de partida.
+- `Sensaciones.Impacto(Golpe)`: parada local (Animator y `EstaParado` del atacante y el golpeado) o
+  global (`timeScale`, respetando la pausa y `EscalaTiempoBase`), temblor del golpeado, trauma a las
+  cámaras por distancia en tamaños de la criatura, destello y vibración; `AlImpacto` para los sonidos
+  y partículas de cada juego. `Temblor(punto, trauma)` para pisadas y explosiones. `Opciones` de
+  accesibilidad (sacudida, paradas, vibración, destellos).
+- `TraumaCamara`: se pone en cualquier cámara (seguir, vuelo, buceo) y tiembla con trauma² y Perlin.
+- `BufferEntrada` y `MargenApoyo` (coyote time para cualquier apoyo: suelo, rama, pared, agua).
+- `AsistenciaPunteria`: el mejor blanco en un cono (2D o 3D) y la corrección de la dirección.
+- `Medidor`: latencia, tiempo entre recompensas, tiempo sin control e impactos (`Informe()`).
+- Comprobación: `Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch`.
+
+| Arquetipo | Para quién | Carácter |
+|---|---|---|
+| `Gigante` | King Kong, Behemot, Cerbero, Escorpión Colosal, Smilodon (adulto) | paradas largas, sacudida grande y grave |
+| `Agil` | Noctarion, Fenrir, Manticora, la cría de Basiliskos | paradas cortas y nítidas, sacudida rápida y pequeña |
+| `Creciente` | Basiliskos, Raizmuerta (lo que crece en la partida) | intermedio: lo que cambia lo pone `Criatura.Escala` |
+| `Volador` | Fénix, Grifo, Pájaro del Trueno, Tifón | poca sacudida (la cámara ya se mueve mucho) |
+| `Acuatico` | Leviatán, Jörmungandr, Hidra en el agua | sacudida lenta y amortiguada, vibración grave |
+| `Arcade` | Quimera Flip, Qilin | lo mínimo para no tapar la lectura del juego |
+
+Son puntos de partida: cada juego crea su perfil (un asset) y lo ajusta, y puede cambiarlo en juego
+(Basiliskos, por etapas; una hidra, por cabeza; un ave, al picar). Lo propio de cada criatura (qué
+golpe es un remate, el "apretar" del estrangular, el picado, la embestida desde el agua) queda en su
+juego. Cuando se aplique: King Kong con `Gigante` y Basiliskos con `Creciente`, con `TraumaCamara` en
+`CamaraKong`/la cámara de la serpiente y `Medidor.Informe()` al final de sus pruebas.
+
 **King Kong**: hitstop y trauma en el combo y la palmada; agarrar y lanzar con cámara lenta corta al
 soltar; remates contra helicópteros; cancelar la recuperación de golpes grandes en salto o embestida.
 

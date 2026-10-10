@@ -25,13 +25,20 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 - **Director de misiones común** (`Guardianes.Misiones`): misiones con introducción, objetivos,
   diálogos, reglas, desenlace, balance, fallo y repetición. Lo estrena el Acto I de Basiliskos.
 
+- **Sensación común, la base** (`Guardianes.Sensacion`, ver
+  [Investigacion/Fluidez-y-sensacion.md](Investigacion/Fluidez-y-sensacion.md)): perfiles por
+  arquetipo (gigante, ágil, creciente, volador, acuático, arcade), `Sensaciones.Impacto` (parada,
+  trauma de cámara, temblor del golpeado, destello, vibración), `TraumaCamara`, `BufferEntrada`,
+  `MargenApoyo`, `AsistenciaPunteria` y `Medidor`, con su comprobación en batch. Opcional: ningún
+  juego lo usa todavía.
+
 ## Siguiente
 
-1. **Sensación común** (ver [Investigacion/Fluidez-y-sensacion.md](Investigacion/Fluidez-y-sensacion.md)):
-   un componente de impacto en `Guardianes.Combate` (hitstop por fuerza, trauma de cámara en
-   `CamaraCriatura`, destello, vibración, sonido en capas), buffer de entrada y coyote time para las
-   entradas de cada criatura, asistencia de puntería en cono, y en las pruebas en batch la latencia
-   del input, el tiempo entre recompensas y el tiempo sin control. Aplicarlo en King Kong y Basiliskos.
+1. **Aplicar la sensación común** (cuando lo diga el autor: Basiliskos está en desarrollo): King
+   Kong con un perfil `Gigante` (combo, palmada, lanzar, remates a helicópteros) y Basiliskos con
+   `Creciente` (mordisco con buffer, emboscada, estrangular, sprint que rompe), `TraumaCamara` en sus
+   cámaras y `Medidor.Informe()` en sus pruebas. Después, el sonido en capas sobre `AlImpacto` y la
+   destrucción en cadena en `Estructura` y `Humano`.
 2. **Pasar la campaña de King Kong al director común** (sus objetivos propios como subclases) y
    probar en su modo libre el día y la noche y el miedo.
 3. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
