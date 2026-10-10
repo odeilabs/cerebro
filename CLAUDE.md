@@ -12,6 +12,8 @@ del juego.
 - [Guardianes/CLAUDE.md](Guardianes/CLAUDE.md) — el paquete Unity `com.odeilabs.guardianes`
   sistema por sistema.
 - `../README.md` — el mapa de la saga (todos los juegos y DLC).
+- [Investigacion/Fluidez-y-sensacion.md](Investigacion/Fluidez-y-sensacion.md) — cómo hacer que
+  moverse y atacar sea fluido y divertido (resumen en *Fluidez y sensación*, abajo).
 
 ## Dónde vive cada cosa
 
@@ -85,6 +87,31 @@ el paquete común con `"com.odeilabs.guardianes": "file:../../../cerebro/Guardia
 - Materiales sobre Lit con `Guardianes.EditorTools.MaterialesLit.Crear`.
 - HDRP "ultra" con `ConfiguradorHDRP`; las capturas fuera del modo juego no tienen viento ni
   skinning: para ver criaturas y humanos moverse, pruebas en modo juego.
+
+## Fluidez y sensación (moverse y atacar tiene que ser divertido)
+
+Todo lo que controla el jugador tiene que sentirse bien al primer toque y dar ganas de repetirlo.
+Detalle, valores de partida y fuentes en [Investigacion/Fluidez-y-sensacion.md](Investigacion/Fluidez-y-sensacion.md).
+
+- **Responde ya**: menos de 100 ms del input a una reacción visible. La animación sirve al control,
+  nunca al revés; el peso de las criaturas gigantes va en la presentación (cámara, polvo, sonido, lo
+  que se rompe), no en un control lento.
+- **Nada se pierde ni se atasca**: buffer de entrada (100–200 ms), coyote time (80–150 ms), ayudas
+  invisibles hacia lo que el jugador quería, y ninguna acción sin salida (cancelar la recuperación en
+  otro ataque, en esquiva o en movimiento).
+- **Cada acierto se nota con varias capas a la vez** (los primeros ~100 ms): hitstop proporcional a
+  la fuerza (una vez por impacto), sacudida de cámara por trauma², reacción del golpeado, sonido en
+  capas, destello y partículas, vibración. Todo escala con la fuerza y con `Criatura.Escala`; lo
+  rutinario (pisadas) se nota poco para que lo importante se note mucho.
+- **El golpe cambia el mundo**: romper, tumbar, lanzar, petrificar, asustar. Destrucción en cadena.
+- **Recompensas a tres escalas** (segundos, minutos, sesión) y siempre una a la vista; variación en
+  los resultados (críticos, cadenas, reacciones distintas), nunca cajas de botín.
+- **Crecer se nota**: cada etapa o habilidad nueva cambia cámara, sonido y lo que se rompe; los
+  enemigos nuevos llegan con el poder nuevo para que nada se vuelva trivial.
+- **La maestría se premia** (emboscadas, combos, remates, encadenar sin recibir daño) y **fallar es
+  barato** (reintentar rápido y cerca).
+- Cada mecánica nueva pasa la lista de comprobación del informe y se juega con mando y teclado,
+  además de las pruebas en batch.
 
 ## Verificar (cómo son las pruebas de la saga)
 

@@ -10,6 +10,8 @@ README. Lo que falta está en [ROADMAP.md](ROADMAP.md); el mapa de los juegos, e
 - [Arrancar un juego nuevo de la saga](#arrancar-un-juego-nuevo-de-la-saga)
 - [Herramientas comunes (Tools~)](#herramientas-comunes-tools)
 - [Guía de AssetsCreator](#guía-de-assetscreator)
+- Investigación: [Fluidez y sensación](Investigacion/Fluidez-y-sensacion.md) (mecánicas de movimiento
+  y de ataque divertidas: respuesta, buffer, hitstop, sacudida, recompensas)
 
 ## Qué hay en el cerebro
 

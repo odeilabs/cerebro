@@ -27,15 +27,20 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 
 ## Siguiente
 
-1. **Pasar la campaña de King Kong al director común** (sus objetivos propios como subclases) y
+1. **Sensación común** (ver [Investigacion/Fluidez-y-sensacion.md](Investigacion/Fluidez-y-sensacion.md)):
+   un componente de impacto en `Guardianes.Combate` (hitstop por fuerza, trauma de cámara en
+   `CamaraCriatura`, destello, vibración, sonido en capas), buffer de entrada y coyote time para las
+   entradas de cada criatura, asistencia de puntería en cono, y en las pruebas en batch la latencia
+   del input, el tiempo entre recompensas y el tiempo sin control. Aplicarlo en King Kong y Basiliskos.
+2. **Pasar la campaña de King Kong al director común** (sus objetivos propios como subclases) y
    probar en su modo libre el día y la noche y el miedo.
-2. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
+3. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,
    recuento de eventos) y del piloto que juega las misiones siguiendo el objetivo, para que cada juego
    solo añada sus acciones.
-3. **El HUD en las fotos de las pruebas**: en batch el lienzo va en *Screen Space - Camera* y pasa por
+4. **El HUD en las fotos de las pruebas**: en batch el lienzo va en *Screen Space - Camera* y pasa por
    el posproceso de HDRP (exposición, grano, bloom): el texto sale tenue. Pintarlo después del
    posproceso.
-4. Estrellas y luna con textura en el cielo físico de noche; nubes que se oscurecen.
+5. Estrellas y luna con textura en el cielo físico de noche; nubes que se oscurecen.
 
 ## Después
 
