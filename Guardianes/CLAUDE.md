@@ -22,7 +22,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 - `Runtime/Mundo/` — `MedidasMundo` (lado, teselas, resoluciones, rango de alturas, mar), `Mapa`
   (consultas para todos: altura, agua, profundidad, tierra firme, normal), `DatosMundo` (el mundo
   compacto en `.bytes`: alturas, máscaras, **mapa de agua**, ríos, lagos, rasgos y máscaras extra
-  con nombre; versión 1 = la de la isla de Kong, sin medidas ni agua), `TerrenoMundo` (levanta los
+  con nombre; versión 1 = la de la isla de Koba, sin medidas ni agua), `TerrenoMundo` (levanta los
   Terrain y pinta 8 capas con Burst; `Purificar`), `AguaMundo` (lagos con WaterSurface, cintas de
   río, cascadas), `Rios` (trazado denso con meandros a partir de puntos de control), `Lago`,
   `Zona`/`TipoZona` (los valores son bits de las partidas guardadas: los nuevos van al final),
@@ -40,9 +40,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   (ceiba, dosel, palmera, helecho arbóreo, platanera, bambú, arbusto, helecho, hojas grandes,
   hierba, flores, roca, tronco), `RenderizadorVegetacion` (instancing por cámara con culling/LOD en
   Burst; `Buscar`, `Derribar`), `Derribos`, `DatosVegetacion`.
-- `Runtime/Criaturas/Criatura` — **la criatura del jugador** (Kong, el basilisco...). Los humanos,
+- `Runtime/Criaturas/Criatura` — **la criatura del jugador** (Koba, el basilisco...). Los humanos,
   los helicópteros, la cámara, los efectos, el sonido y el HUD la buscan aquí (`Criatura.Jugador`)
-  y escalan con `Tamano` (17,5 m = Kong = escala 1) y `AlturaBlanco`. Eventos para los demás:
+  y escalan con `Tamano` (17,5 m = Koba = escala 1) y `AlturaBlanco`. Eventos para los demás:
   `Intimidar` (los humanos huyen, los helicópteros cercanos pierden el control), `OndaCono`,
   `Purificar`, `Pisar`. `Premiar` (cada juego decide qué da: furia, crecimiento, afinidad) y
   `Celebrar`. `IEntradaCamara` para que la cámara lea los controles de cada juego.
@@ -90,7 +90,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Capturador`, `Diagnostico`, `ImportadorTexturas`, `Terreno/` (`Relieve` y `PasadasRelieve`:
   erosión, subida con detalle, niveles de los ríos, tallar ríos y lagos, allanar zonas y lugares,
   humedad; el relieve base es de cada juego), `Vegetacion/` (`EspeciesSelva`, `RepartoVegetacion`
-  con reglas por juego; `ReglasSelvaTropical` son las de la isla de Kong), `Agua/MaterialesAgua`,
+  con reglas por juego; `ReglasSelvaTropical` son las de la isla de Koba), `Agua/MaterialesAgua`,
   `Efectos/ConstructorEfectos`, `Audio/ConstructorAudio`, `Enemigos/` (`ConstructorHumanos` desde
   AssetsCreator, `ConstructorHelicoptero`, `ConfiguradorZonas`).
 - `Shaders/` — variantes de HDRP/Lit generadas por `Tools~/generar_shaders_lit.py`:
@@ -115,8 +115,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 - Lo que dependa de una criatura concreta no entra aquí: va en su juego, colgado de `Criatura`,
   de los eventos o de los métodos virtuales.
 - Los componentes que Gorilla Revenge (entonces King Kong) ya usaba conservan su GUID (sus escenas y prefabs siguen valiendo);
-  las clases que cada juego especializa (`TerrenoIsla : TerrenoMundo`, `CamaraKong :
-  CamaraCriatura`, `HudKong : HudJuego`) se quedan en el juego con su GUID.
+  las clases que cada juego especializa (`TerrenoIsla : TerrenoMundo`, `CamaraKoba :
+  CamaraCriatura`, `HudKoba : HudJuego`) se quedan en el juego con su GUID.
 - Los logs del paquete van con `[GD]`.
 
 ## Verificar

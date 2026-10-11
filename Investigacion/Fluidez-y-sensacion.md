@@ -43,7 +43,7 @@ La regla de oro: **el control lo tiene el jugador, la física decora**. La inerc
 | Cámara que acompaña | Se adelanta hacia donde va el jugador, abre el FOV al correr, se aparta de los obstáculos sin saltos | FOV +5–10° al correr; suavizado crítico, nunca lineal |
 | Animación al servicio del control | La animación se adapta al input (mezclas cortas, IK de pies y manos, inclinación en los giros); el input nunca espera a la animación | Mezclas de 0,1–0,2 s |
 
-**Peso sin lentitud (criaturas gigantes).** Kong, el basilisco o Behemot tienen que *parecer*
+**Peso sin lentitud (criaturas gigantes).** Koba, el basilisco o Behemot tienen que *parecer*
 enormes sin *sentirse* torpes. Funciona:
 
 - **Peso en la presentación, no en el control**: pisadas que hacen temblar la cámara y levantan polvo,
@@ -96,10 +96,10 @@ impacto) y **recuperación** (la vuelta). La sensación se construye sobre todo 
 - **El golpe tiene que cambiar el mundo**: romper, tumbar, lanzar, petrificar. La destrucción en cadena
   (un depósito que explota y tumba un barracón) es la recompensa más espectacular para una criatura
   gigante.
-- **Agarrar y lanzar** (Kong), **constreñir** (la serpiente): ataques que convierten a un enemigo en
+- **Agarrar y lanzar** (Koba), **constreñir** (la serpiente): ataques que convierten a un enemigo en
   arma o en espectáculo.
 - **Ritmo de tensión y descarga**: momentos de amenaza (helicópteros, espejos, cazadores) seguidos de
-  momentos de poder absoluto (la Ira de la selva de Kong, la furia de la serpiente). La barra que se
+  momentos de poder absoluto (la Ira de la selva de Koba, la furia de la serpiente). La barra que se
   llena al luchar y se gasta en un ataque enorme es un bucle de dopamina probado.
 - **Recompensa por el estilo**: emboscadas que hacen el doble (Basiliskos), golpes desde el aire,
   remates especiales (una animación corta de remate que da vida o furia), multiplicadores por
@@ -159,7 +159,7 @@ golpe y cuánto pesa según sus mecánicas.
 
 | Arquetipo | Para quién | Carácter |
 |---|---|---|
-| `Gigante` | Gorilla Revenge (Kong), Behemot, Cerbero, Escorpión Colosal, Smilodon (adulto) | paradas largas, sacudida grande y grave |
+| `Gigante` | Gorilla Revenge (Koba), Behemot, Cerbero, Escorpión Colosal, Smilodon (adulto) | paradas largas, sacudida grande y grave |
 | `Agil` | Noctarion, Fenrir, Manticora, la cría de Basiliskos | paradas cortas y nítidas, sacudida rápida y pequeña |
 | `Creciente` | Basiliskos, Raizmuerta (lo que crece en la partida) | intermedio: lo que cambia lo pone `Criatura.Escala` |
 | `Volador` | Fénix, Grifo, Pájaro del Trueno, Tifón | poca sacudida (la cámara ya se mueve mucho) |
@@ -170,7 +170,7 @@ Son puntos de partida: cada juego crea su perfil (un asset) y lo ajusta, y puede
 (Basiliskos, por etapas; una hidra, por cabeza; un ave, al picar). Lo propio de cada criatura (qué
 golpe es un remate, el "apretar" del estrangular, el picado, la embestida desde el agua) queda en su
 juego. Cuando se aplique: Gorilla Revenge con `Gigante` y Basiliskos con `Creciente`, con `TraumaCamara` en
-`CamaraKong`/la cámara de la serpiente y `Medidor.Informe()` al final de sus pruebas.
+`CamaraKoba`/la cámara de la serpiente y `Medidor.Informe()` al final de sus pruebas.
 
 **Gorilla Revenge**: hitstop y trauma en el combo y la palmada; agarrar y lanzar con cámara lenta corta al
 soltar; remates contra helicópteros; cancelar la recuperación de golpes grandes en salto o embestida.

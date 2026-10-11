@@ -103,7 +103,7 @@ tanto, un cambio en el cerebro le llega al abrirlo: hay que comprobarlo en él.
 ## Convenciones del paquete y de los juegos
 
 - Escala real: 1 unidad = 1 m. Mundos centrados en el origen (x este, z norte). La referencia de
-  tamaño de la saga es Kong de pie (`Criatura.TamanoReferencia` = 17,5 m): todo lo que depende del
+  tamaño de la saga es Koba (antes Kong) de pie (`Criatura.TamanoReferencia` = 17,5 m): todo lo que depende del
   tamaño escala con `Criatura.Tamano`.
 - **Nada pesado en los repos**: terreno y vegetación se guardan compactos (`.bytes` en LFS) y se
   reconstruyen al cargar a partir de semillas; texturas y sonidos se generan con los scripts de
