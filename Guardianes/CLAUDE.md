@@ -50,7 +50,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   patrulla, dispara y huye; a una pequeña la buscan a machetazos; detección con luz y escondites;
   `quieto` para centinelas y gente sentada, `ruta` para rondas (con `pausaRuta` en los extremos:
   trabajan un rato y vuelven); los `protegido` miran a la criatura
-  pequeña y no le hacen nada), `ZonaHumana`, `ConstructorInstalaciones` + `Piezas` +
+  pequeña y no le hacen nada; `termica`: visión de calor, la oscuridad no le quita vista), `ZonaHumana`, `ConstructorInstalaciones` + `Piezas` +
   `ConstructorPiezasCampana`, `Estructura`, `Helicoptero` (rotor del BEMT de Lur Aerospace), `Cohete`,
   `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
   `miedo` de 0 a 100 que sube con la oscuridad (sin linterna), lo que ve de reojo, los ojos de la

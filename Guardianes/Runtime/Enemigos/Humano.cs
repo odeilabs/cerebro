@@ -57,6 +57,8 @@ namespace Guardianes.Enemigos
         public float tamanoAmenaza = 2.5f;
         [Tooltip("A cuantas veces el tamano de la criatura la ven (con luz y sin esconderse)")]
         public float visionPorTamano = 12f;
+        [Tooltip("Vision termica (una camara de calor): la oscuridad no le quita vista")]
+        public bool termica;
         [Range(0f, 1f)] public float valor = 0.5f;
         public float alcanceGolpe = 1.3f;
         public float danioGolpe = 30f;
@@ -91,6 +93,13 @@ namespace Guardianes.Enemigos
         public static readonly System.Collections.Generic.List<Humano> Todos = new System.Collections.Generic.List<Humano>();
         /// <summary>Luz en un punto (0 noche cerrada .. 1 dia). La pone el juego; sin ella, siempre de dia.</summary>
         public static System.Func<Vector3, float> Luz;
+        /// <summary>
+        /// Lo que deja ver lo que hay en medio entre los ojos de un humano y la criatura (el relieve, las
+        /// paredes, la selva cerrada): 1 nada, 0 no se ve. Multiplica lo lejos que la ve. La pone el juego;
+        /// sin ella, se ve a traves de todo. Se pregunta unas cinco veces por segundo por humano y solo si
+        /// estaria a tiro.
+        /// </summary>
+        public static System.Func<Vector3, Vector3, float> Visibilidad;
         /// <summary>Ya ha huido alguna vez de la criatura.</summary>
         public bool Asustado { get; private set; }
         public bool Muerto => Actual == Estado.Muerto;
@@ -103,6 +112,7 @@ namespace Guardianes.Enemigos
 
         Animator _anim;
         bool _animAtacar;
+        float _visibilidad = 1f, _relojVisibilidad;
         Salud _salud;
         Criatura _criatura;
         Vector3 _puesto;
@@ -426,9 +436,20 @@ namespace Guardianes.Enemigos
         {
             if (!hay) { Deteccion = Mathf.MoveTowards(Deteccion, 0f, dt * 0.5f); return; }
             float tamano = TamanoCriatura;
-            float luz = Luz != null ? Mathf.Clamp01(Luz(_criatura.transform.position)) : 1f;
+            float luz = termica ? 1f : Luz != null ? Mathf.Clamp01(Luz(_criatura.transform.position)) : 1f;
             float alcance = Mathf.Min(vision, visionPorTamano * tamano * Mathf.Lerp(0.25f, 1f, luz));
             if (_criatura.Escondida) alcance = Mathf.Min(alcance, tamano * 1.2f);
+            // Lo que hay en medio (relieve, paredes, selva), si el juego lo mira: solo si estaria a tiro.
+            if (Visibilidad != null && d < alcance)
+            {
+                _relojVisibilidad -= dt;
+                if (_relojVisibilidad <= 0f)
+                {
+                    _relojVisibilidad = Random.Range(0.15f, 0.25f);
+                    _visibilidad = Mathf.Clamp01(Visibilidad(Ojos, _criatura.PuntoBlanco));
+                }
+                alcance *= _visibilidad;
+            }
             bool grande = tamano >= 8f;
             float frente = grande ? 1f : Mathf.Clamp01((Vector3.Dot(transform.forward, Plano(aCriatura).normalized) + 0.35f) / 0.6f);
             float ve = d < alcance ? frente * (1f - d / Mathf.Max(alcance, 0.01f)) : 0f;
