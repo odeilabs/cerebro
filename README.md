@@ -57,9 +57,11 @@ posteriores en el cerebro no toquen una versión concreta del juego (la regla co
 - Junto a la copia, `ORIGEN.md`: el commit del cerebro del que sale y, en cada sincronización, qué se
   trajo y por qué.
 - **Mientras se desarrolla, se mira el cerebro a menudo** (al empezar cada sesión en el juego y antes
-  de cada versión): `git -C ../cerebro log <commit de ORIGEN.md>..HEAD -- Guardianes` dice qué ha
-  cambiado. Se trae lo que interese, se prueba en el juego (batch y pruebas con fotos) y se apunta en
-  `ORIGEN.md`. Nada llega solo.
+  de cada versión; el editor lo avisa al abrir el juego): desde la carpeta del juego,
+  `python ../cerebro/Guardianes/Tools~/traer_cerebro.py estado` dice qué ha cambiado en el cerebro,
+  qué en la copia y qué en los dos; `traer <rutas>` (o `--todo`) trae con los `.meta`, `subir <rutas>`
+  sube un arreglo de la copia y lo apunta en `ORIGEN.md`. Después se prueba en el juego (batch y
+  pruebas con fotos). Nada llega solo. Detalle en [CLAUDE.md](CLAUDE.md).
 - Lo nuevo común se escribe en el cerebro y luego se trae; un arreglo hecho en la copia de un juego
   se sube también al cerebro. Lo que cada juego especializa (`TerrenoIsla : TerrenoMundo`,
   `HudBasilisco : HudJuego`, sus perfiles y configuraciones) vive en el código del juego, no dentro de

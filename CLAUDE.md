@@ -63,6 +63,31 @@ Gorilla Revenge desde `cca49a1` y Basiliskos desde `aa9c189` (más los cambios d
 aún no estaban commiteados); ver el `Packages/com.odeilabs.guardianes/ORIGEN.md` de cada uno. Desde
 ahora, lo que se cambie en `cerebro/Guardianes` no llega a ningún juego hasta que se trae a su copia.
 
+**Cómo se trae y se sube** (`Guardianes/Tools~/traer_cerebro.py`, desde la carpeta del juego):
+
+```
+python ../cerebro/Guardianes/Tools~/traer_cerebro.py estado            # qué ha cambiado y dónde
+python ../cerebro/Guardianes/Tools~/traer_cerebro.py diferencias <ruta>
+python ../cerebro/Guardianes/Tools~/traer_cerebro.py traer <rutas>     # o traer --todo
+python ../cerebro/Guardianes/Tools~/traer_cerebro.py subir <rutas>     # un arreglo hecho en la copia
+```
+
+Compara fichero a fichero el cerebro, la copia y la foto de la última sincronización
+(`.sincronizacion.json` junto a la copia; Unity no lo importa): lo que solo ha cambiado en el cerebro
+se puede traer, lo que solo ha cambiado en la copia se debería subir, y lo que ha cambiado en los dos
+es un conflicto que se mira a mano (`diferencias`; `--forzar` pisa). Las rutas son ficheros o
+carpetas del paquete (`Runtime/Sensacion`) y los `.meta` van siempre con su fichero. Compara con lo
+que hay en disco en el cerebro (también lo no commiteado); `--confirmado`, solo con lo commiteado.
+`--simular` dice lo que haría. Cada sincronización se apunta sola en `ORIGEN.md`. No hace commits:
+después se prueba el juego en batch y se commitea en su repo (y en el cerebro lo subido). Al abrir el
+juego en el editor, `AvisoCerebro` dice en la consola si hay cambios por traer o por subir (menú
+*Guardianes > Cerebro > Comprobar cambios*).
+
+**Los ficheros nuevos del cerebro necesitan su `.meta`** (con un GUID nuevo): ningún proyecto de
+Unity abre ya el cerebro, así que nadie lo genera solo. O se escribe a mano (copiando el de un
+fichero del mismo tipo con otro GUID), o se crea el fichero en la copia de un juego, se deja que
+Unity haga el `.meta` y se sube con `subir`.
+
 ## Reglas de trabajo (todas las sesiones, todos los juegos)
 
 - **Español** en código, nombres, logs, comentarios, commits y documentación. Sin tildes en el

@@ -85,7 +85,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Runtime/UI/HudJuego` (con `Jefe(nombre, vida)`: la barra de un jefe arriba, en el centro; + `PantallasHud`: cada juego hereda y pinta su estado en
   `ConstruirEstado`/`ActualizarEstado`).
 - `Editor/` — `ConfiguradorHDRP` (ajustes ultra y la atmósfera de selva), `MaterialesLit`,
-  `Capturador`, `Diagnostico`, `ImportadorTexturas`, `Terreno/` (`Relieve` y `PasadasRelieve`:
+  `Capturador`, `Diagnostico`, `AvisoCerebro` (al abrir el editor, avisa de los cambios del cerebro
+  que la copia no tiene y de los de la copia que no se han subido), `ImportadorTexturas`, `Terreno/` (`Relieve` y `PasadasRelieve`:
   erosión, subida con detalle, niveles de los ríos, tallar ríos y lagos, allanar zonas y lugares,
   humedad; el relieve base es de cada juego), `Vegetacion/` (`EspeciesSelva`, `RepartoVegetacion`
   con reglas por juego; `ReglasSelvaTropical` son las de la isla de Koba), `Agua/MaterialesAgua`,
@@ -103,7 +104,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 - `Tools~/` (Unity no lo importa) — `generar_shaders_lit.py --proyecto <proyecto con HDRP>`,
   `arte/terreno`, `arte/vegetacion`, `arte/efectos`, `arte/audio` (texturas y sonidos procedurales
   en Python: numpy/scipy/Pillow; todos con `--proyecto <carpeta del proyecto Unity>` o `--salida`),
-  `vehiculos/sdf_helicoptero.py` (+ `decimar_obj.py` en Blender).
+  `vehiculos/sdf_helicoptero.py` (+ `decimar_obj.py` en Blender) y `traer_cerebro.py` (comparar la
+  copia de un juego con el cerebro, traer y subir cambios: ver `../CLAUDE.md`).
 
 ## Reglas
 

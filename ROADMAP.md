@@ -35,17 +35,16 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 - **Basiliskos con su copia del paquete** (desde `aa9c189` más los cambios de `Humano.cs` sin
   commitear entonces en el cerebro, con `ORIGEN.md`): compila y pasa la prueba `marcha`. Ningún juego
   enlaza ya el cerebro.
+- **Herramienta para traer y subir cambios** (`Tools~/traer_cerebro.py`: estado, diferencias, traer,
+  subir, con la foto `.sincronizacion.json` de cada copia y los `.meta` siempre con su fichero) y
+  **aviso en el editor** de cada juego (`AvisoCerebro`) cuando hay cambios por traer o por subir.
 - **Regla de la copia local** (ver [CLAUDE.md](CLAUDE.md#el-cerebro-es-la-fuente-cada-juego-lleva-su-copia)):
   el cerebro es la fuente y cada juego lleva su propia copia del paquete, para que su build no
   necesite el cerebro y los cambios posteriores no toquen una versión concreta.
 
 ## Siguiente
 
-1. **Herramienta para traer cambios del cerebro**: comparar la
-   copia de un juego con el cerebro (qué commits y ficheros han cambiado desde `ORIGEN.md`) y traer lo elegido
-   (`Tools~/`, un script de PowerShell que copie con los `.meta` y actualice `ORIGEN.md`), y un aviso
-   en el editor de cada juego cuando el cerebro tenga cambios que su copia no tiene. Y probar un build
-   de cada juego sin la carpeta `cerebro` al lado.
+1. **Probar un build de cada juego sin la carpeta `cerebro` al lado.**
 2. **Aplicar la sensación común**, en local en cada juego (traída a su copia y llamada desde su
    código, con su perfil; cuando lo diga el autor: Basiliskos está en desarrollo): Gorilla Revenge con un
    perfil `Gigante` (combo, palmada, lanzar, remates a helicópteros) y Basiliskos con `Creciente`
