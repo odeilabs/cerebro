@@ -36,6 +36,13 @@ namespace Guardianes.EditorTools
         [MenuItem("Guardianes/Cerebro/Comprobar cambios")]
         static void ComprobarMenu() => Comprobar(true);
 
+        /// <summary>Desde batch (-executeMethod Guardianes.EditorTools.AvisoCerebro.ComprobarDesdeBatch): lo mismo en el log.</summary>
+        public static void ComprobarDesdeBatch()
+        {
+            Comprobar(true);
+            EditorApplication.Exit(0);
+        }
+
         /// <summary>Compara copia, foto y cerebro y lo dice en la consola. Devuelve los cambios del cerebro sin traer.</summary>
         public static int Comprobar(bool siempre)
         {
