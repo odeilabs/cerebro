@@ -14,7 +14,7 @@ namespace Guardianes.Juego
     /// caro de HDRP con un volumen por encima (nubes volumetricas, niebla volumetrica, SSGI, SSR,
     /// SSAO, sombras de contacto, distancia de sombras, teselado del agua) y ademas la resolucion
     /// interna (reescalado temporal), la distancia de la vegetacion, el detalle del terreno, la sombra
-    /// del sol y el presupuesto de particulas; lo de cada criatura (las capas del pelaje de Kong) lo
+    /// del sol y el presupuesto de particulas (y en Bajo, sin desenfoque de movimiento); lo de cada criatura (las capas del pelaje de Kong) lo
     /// aplica su juego escuchando AlAplicar.
     /// Al empezar elige segun la grafica (las integradas van en Bajo) o lo guardado; F1-F4 cambian
     /// de nivel y -calidad bajo|medio|alto|ultra lo fuerza desde la linea de comandos.
@@ -180,6 +180,10 @@ namespace Guardianes.Juego
             sombras.cascadeShadowSplitCount.Override(bajo ? 2 : medio ? 3 : 4);
 
             _perfil.Add<WaterRendering>().triangleSize.Override(bajo ? 45f : medio ? 30f : 22f);
+
+            // El desenfoque de movimiento sale de lo que se mueve entre un fotograma y otro: con los pocos
+            // fotogramas de una integrada lo emborrona todo al girar la camara.
+            if (bajo) _perfil.Add<MotionBlur>().intensity.Override(0f);
         }
     }
 }

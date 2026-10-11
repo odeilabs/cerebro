@@ -288,7 +288,8 @@ namespace Guardianes.UI
             _textoNivel = Boton(m, "Nivel", new Vector2(0f, 35f), () => alCambiarNivel?.Invoke(1), 640f);
             Boton(m, textoModoLibre, new Vector2(0f, -40f), () => alLibre?.Invoke(), 640f);
             Boton(m, "Salir", new Vector2(0f, -115f), () => alSalir?.Invoke(), 640f);
-            _textoInicioInfo = Etiqueta(m, "", new Vector2(0f, -200f), 22, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
+            // Bajo "Salir" (de -145 a -85): la etiqueta mide 200 y el texto empieza arriba.
+            _textoInicioInfo = Etiqueta(m, "", new Vector2(0f, -265f), 22, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
             _textoInicioInfo.rectTransform.sizeDelta = new Vector2(1300f, 200f);
             _textoInicioInfo.horizontalOverflow = HorizontalWrapMode.Wrap;
             _inicio.SetActive(false);
@@ -310,7 +311,8 @@ namespace Guardianes.UI
             Boton(m, "Reiniciar nivel", new Vector2(0f, -40f), () => alReiniciar?.Invoke());
             Boton(m, "Menu principal", new Vector2(0f, -110f), () => alMenuPrincipal?.Invoke());
             Boton(m, "Salir", new Vector2(0f, -180f), () => alSalir?.Invoke());
-            _textoControlesMenu = Etiqueta(m, textoControles, new Vector2(0f, -265f), 20, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
+            // Bajo "Salir" (de -210 a -150): la etiqueta mide 120 y el texto empieza arriba.
+            _textoControlesMenu = Etiqueta(m, textoControles, new Vector2(0f, -285f), 20, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
             _textoControlesMenu.rectTransform.sizeDelta = new Vector2(1500f, 120f);
             _textoControlesMenu.horizontalOverflow = HorizontalWrapMode.Wrap;
             _menu.SetActive(false);
