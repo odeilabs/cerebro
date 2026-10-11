@@ -31,8 +31,8 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
   `MargenApoyo`, `AsistenciaPunteria` y `Medidor`, con su comprobación en batch. Opcional: ningún
   juego lo usa todavía.
 - **Gorilla Revenge (antes King Kong) con su copia del paquete** en `Packages/com.odeilabs.guardianes/`
-  (desde `cca49a1`, con `ORIGEN.md`): ya no enlaza el cerebro; compila y pasa sus pruebas en batch.
-- **Basiliskos con su copia del paquete** (desde `aa9c189` más los cambios de `Humano.cs` sin
+  (desde `cbf8b2f`, con `ORIGEN.md`): ya no enlaza el cerebro; compila y pasa sus pruebas en batch.
+- **Basiliskos con su copia del paquete** (desde `6a44531` más los cambios de `Humano.cs` sin
   commitear entonces en el cerebro, con `ORIGEN.md`): compila y pasa la prueba `marcha`. Ningún juego
   enlaza ya el cerebro.
 - **Herramienta para traer y subir cambios** (`Tools~/traer_cerebro.py`: estado, diferencias, traer,

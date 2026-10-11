@@ -21,7 +21,7 @@ del juego.
 Odei Labs/
 ├── AssetsCreator/            generador de assets (NO se modifica su código; se usa lo que genera)
 └── Gaia's Response/
-    ├── cerebro/              ESTE repo: paquete Guardianes + instrucciones comunes
+    ├── cerebro/              ESTE repo (remoto github.com/odeilabs/cerebro): paquete + instrucciones
     ├── Gorilla Revenge/      juego 1, antes King Kong (repo, remoto github.com/odeilabs/KingKong)
     ├── Basiliskos/           juego 2 (repo, remoto github.com/odeilabs/Basiliskos)
     ├── <18 juegos futuros>/  de momento portada + README/ROADMAP con la propuesta
@@ -59,7 +59,7 @@ beben los juegos, no algo de lo que dependan**. Cada juego implementa en local l
   y teniendo en cuenta los juegos que aún no han empezado (vuelo, nado, varias cabezas, arcade).
 
 Estado (octubre 2026): **los dos juegos llevan su copia** y ninguno enlaza ya el cerebro:
-Gorilla Revenge desde `cca49a1` y Basiliskos desde `aa9c189` (más los cambios de `Humano.cs` que
+Gorilla Revenge desde `cbf8b2f` y Basiliskos desde `6a44531` (más los cambios de `Humano.cs` que
 aún no estaban commiteados); ver el `Packages/com.odeilabs.guardianes/ORIGEN.md` de cada uno. Desde
 ahora, lo que se cambie en `cerebro/Guardianes` no llega a ningún juego hasta que se trae a su copia.
 
@@ -97,6 +97,11 @@ Unity haga el `.meta` y se sube con `subir`.
   ej. en el directorio temporal) y `git commit -F <fichero>`; los here-strings chocan con el filtro
   de comandos.
 - **No hacer `push` ni crear repos remotos sin preguntar.**
+- Todos los repos de la saga son de **odeilabs**: remoto `https://odeilabs@github.com/odeilabs/<repo>.git`
+  (con el usuario en la URL, el gestor de credenciales de Windows y Git LFS usan siempre la cuenta
+  odeilabs guardada, sin preguntar aunque haya otras cuentas) e identidad local `odeilabs
+  <odeistudios@gmail.com>` (`git config --local user.name/user.email` y
+  `credential.https://github.com.username odeilabs`), nunca la global. Un repo nuevo se configura igual.
 - **No modificar AssetsCreator** (`Odei Labs/AssetsCreator`): ni código ni configuración. Se usa
   lo que genera; los assets nuevos se generan con sus comandos y parámetros (ver la guía del
   README).

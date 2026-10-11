@@ -16,7 +16,7 @@ README. Lo que falta está en [ROADMAP.md](ROADMAP.md); el mapa de los juegos, e
 ## Qué hay en el cerebro
 
 ```
-cerebro/                      repo git propio (sin remoto todavía)
+cerebro/                      repo git propio (remoto github.com/odeilabs/cerebro)
 ├── CLAUDE.md                 instrucciones comunes para los agentes de todos los juegos
 ├── README.md / ROADMAP.md
 ├── portada.png
@@ -68,7 +68,7 @@ posteriores en el cerebro no toquen una versión concreta del juego (la regla co
   la copia.
 
 **Estado (octubre 2026)**: los dos juegos llevan su copia y ninguno enlaza el cerebro: **Gorilla
-Revenge** (desde `cca49a1`) y **Basiliskos** (desde `aa9c189` más los cambios de `Humano.cs` aún sin
+Revenge** (desde `cbf8b2f`) y **Basiliskos** (desde `6a44531` más los cambios de `Humano.cs` aún sin
 commitear en el cerebro); el `ORIGEN.md` de cada copia lo detalla. Un cambio en el cerebro no llega a
 ningún juego hasta que se trae.
 
