@@ -57,7 +57,7 @@ namespace Guardianes.Enemigos
         public float tamanoAmenaza = 2.5f;
         [Tooltip("A cuantas veces el tamano de la criatura la ven (con luz y sin esconderse)")]
         public float visionPorTamano = 12f;
-        [Tooltip("Vision termica (una camara de calor): la oscuridad no le quita vista")]
+        [Tooltip("Vision termica (una camara de calor): la oscuridad le quita poca vista, pero es un visor: solo ve de frente")]
         public bool termica;
         [Range(0f, 1f)] public float valor = 0.5f;
         public float alcanceGolpe = 1.3f;
@@ -436,7 +436,9 @@ namespace Guardianes.Enemigos
         {
             if (!hay) { Deteccion = Mathf.MoveTowards(Deteccion, 0f, dt * 0.5f); return; }
             float tamano = TamanoCriatura;
-            float luz = termica ? 1f : Luz != null ? Mathf.Clamp01(Luz(_criatura.transform.position)) : 1f;
+            float luz = Luz != null ? Mathf.Clamp01(Luz(_criatura.transform.position)) : 1f;
+            // La termica: de noche ve casi como de dia (el calor), pero no del todo.
+            if (termica) luz = Mathf.Max(luz, 0.6f);
             float alcance = Mathf.Min(vision, visionPorTamano * tamano * Mathf.Lerp(0.25f, 1f, luz));
             if (_criatura.Escondida) alcance = Mathf.Min(alcance, tamano * 1.2f);
             // Lo que hay en medio (relieve, paredes, selva), si el juego lo mira: solo si estaria a tiro.
@@ -451,7 +453,9 @@ namespace Guardianes.Enemigos
                 alcance *= _visibilidad;
             }
             bool grande = tamano >= 8f;
-            float frente = grande ? 1f : Mathf.Clamp01((Vector3.Dot(transform.forward, Plano(aCriatura).normalized) + 0.35f) / 0.6f);
+            float hacia = Vector3.Dot(transform.forward, Plano(aCriatura).normalized);
+            // A una criatura grande se la ve en cualquier direccion; por el visor de la termica, solo de frente.
+            float frente = termica ? Mathf.Clamp01((hacia - 0.6f) / 0.3f) : grande ? 1f : Mathf.Clamp01((hacia + 0.35f) / 0.6f);
             float ve = d < alcance ? frente * (1f - d / Mathf.Max(alcance, 0.01f)) : 0f;
             if (ve > 0f)
             {
