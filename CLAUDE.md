@@ -22,7 +22,7 @@ Odei Labs/
 ├── AssetsCreator/            generador de assets (NO se modifica su código; se usa lo que genera)
 └── Gaia's Response/
     ├── cerebro/              ESTE repo (remoto github.com/odeilabs/cerebro): paquete + instrucciones
-    ├── Gorilla Revenge/      juego 1, antes King Kong (repo, remoto github.com/odeilabs/KingKong)
+    ├── Gorilla Revenge/      juego 1, antes King Kong (repo, remoto github.com/odeilabs/GorillaRevenge)
     ├── Basiliskos/           juego 2 (repo, remoto github.com/odeilabs/Basiliskos)
     ├── <18 juegos futuros>/  de momento portada + README/ROADMAP con la propuesta
     └── DLCs/<18 DLC>/        expansiones, cada una propone su juego base
