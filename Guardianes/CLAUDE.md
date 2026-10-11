@@ -10,9 +10,7 @@ crossover final, *Primal Legends*). Vive en el cerebro de la saga (`Gaia's Respo
 cerebro del que sale), para que su build no necesite el cerebro y los cambios de aquí no toquen una
 versión ya hecha. Durante el desarrollo, cada juego mira aquí si hay cambios y trae a su copia lo que
 le interese, probándolo. Por eso todo lo de aquí es opcional y configurable por juego, sin suponer
-las mecánicas de ninguna criatura. (Gorilla Revenge ya lleva su copia; Basiliskos aún lo
-enlaza con `"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasarlo a su copia está
-en el roadmap del cerebro.)
+las mecánicas de ninguna criatura. (Gorilla Revenge y Basiliskos ya llevan la suya.)
 
 Unity 6000.5.2f1, HDRP 17.5, Input System 1.19, Burst + Collections + Mathematics. Código y nombres
 en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
@@ -123,5 +121,5 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 
 El paquete no tiene proyecto propio: se compila y se prueba dentro de los juegos (sus
 `Tools/Unity-Batch.ps1` y `Tools/Unity-Pruebas.ps1`, con el editor cerrado). Un cambio aquí se
-compila al menos en un juego; mientras Basiliskos siga enlazando el cerebro, se prueba en
-él. Los juegos con su copia lo prueban cuando lo traen.
+prueba trayéndolo a la copia de un juego (ninguno enlaza ya el cerebro) y compilando allí con
+sus pruebas.

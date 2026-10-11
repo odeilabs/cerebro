@@ -58,11 +58,10 @@ beben los juegos, no algo de lo que dependan**. Cada juego implementa en local l
   (perfiles, flags como `Humano.ConMiedo`, eventos), sin suponer las mecánicas de ninguna criatura,
   y teniendo en cuenta los juegos que aún no han empezado (vuelo, nado, varias cabezas, arcade).
 
-Estado (octubre 2026): **Gorilla Revenge** ya lleva su copia (desde `cca49a1`, ver su
-`Packages/com.odeilabs.guardianes/ORIGEN.md`). **Basiliskos** aún enlaza el cerebro con
-`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"`; pasarlo a su copia está en el
-[ROADMAP](ROADMAP.md) y se hace cuando su autor lo diga (no a mitad de su desarrollo). Mientras
-tanto, un cambio en el cerebro le llega al abrirlo: hay que comprobarlo en él.
+Estado (octubre 2026): **los dos juegos llevan su copia** y ninguno enlaza ya el cerebro:
+Gorilla Revenge desde `cca49a1` y Basiliskos desde `aa9c189` (más los cambios de `Humano.cs` que
+aún no estaban commiteados); ver el `Packages/com.odeilabs.guardianes/ORIGEN.md` de cada uno. Desde
+ahora, lo que se cambie en `cerebro/Guardianes` no llega a ningún juego hasta que se trae a su copia.
 
 ## Reglas de trabajo (todas las sesiones, todos los juegos)
 
@@ -94,8 +93,8 @@ tanto, un cambio en el cerebro le llega al abrirlo: hay que comprobarlo en él.
   Si un sistema empieza en un juego y luego lo necesita otro, se sube al cerebro con cuidado de
   conservar los GUID de los componentes que ya usan las escenas.
 - Un cambio en el cerebro se comprueba compilando en batch en al menos un juego; cada juego lo
-  prueba a fondo cuando lo trae a su copia. Mientras un juego siga enlazando el cerebro (hoy
-  Basiliskos), se comprueba en él con una prueba. Los comportamientos nuevos que cambian el
+  prueba a fondo cuando lo trae a su copia. Como ningún juego enlaza el cerebro, un cambio
+  se comprueba trayéndolo a la copia de un juego (o a un proyecto de prueba) y compilando allí. Los comportamientos nuevos que cambian el
   juego (p. ej. el miedo de los humanos) se activan por juego para no alterar a los demás.
 - Enumeraciones que se guardan en partidas o datos (`TipoZona`, `MotivoPremio`...): los valores
   nuevos van **al final**.

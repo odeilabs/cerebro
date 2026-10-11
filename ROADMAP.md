@@ -32,21 +32,20 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
   juego lo usa todavía.
 - **Gorilla Revenge (antes King Kong) con su copia del paquete** en `Packages/com.odeilabs.guardianes/`
   (desde `cca49a1`, con `ORIGEN.md`): ya no enlaza el cerebro; compila y pasa sus pruebas en batch.
+- **Basiliskos con su copia del paquete** (desde `aa9c189` más los cambios de `Humano.cs` sin
+  commitear entonces en el cerebro, con `ORIGEN.md`): compila y pasa la prueba `marcha`. Ningún juego
+  enlaza ya el cerebro.
 - **Regla de la copia local** (ver [CLAUDE.md](CLAUDE.md#el-cerebro-es-la-fuente-cada-juego-lleva-su-copia)):
   el cerebro es la fuente y cada juego lleva su propia copia del paquete, para que su build no
   necesite el cerebro y los cambios posteriores no toquen una versión concreta.
 
 ## Siguiente
 
-1. **Basiliskos con su copia del paquete** (cuando lo diga su autor, no a mitad de su desarrollo),
-   como ya tiene Gorilla Revenge: copiar `cerebro/Guardianes` con sus `.meta` a `<Proyecto>/Packages/com.odeilabs.guardianes/`,
-   quitar la línea `file:` del `manifest.json` (y su entrada de `packages-lock.json`), escribir
-   `ORIGEN.md` con el commit del cerebro, comprobar que compila y que las escenas no pierden
-   referencias (batch y sus pruebas con fotos), y probar un build sin la carpeta `cerebro` al lado.
-   Con ello, una herramienta común para comparar la
-   copia con el cerebro (qué commits y ficheros han cambiado desde `ORIGEN.md`) y traer lo elegido
+1. **Herramienta para traer cambios del cerebro**: comparar la
+   copia de un juego con el cerebro (qué commits y ficheros han cambiado desde `ORIGEN.md`) y traer lo elegido
    (`Tools~/`, un script de PowerShell que copie con los `.meta` y actualice `ORIGEN.md`), y un aviso
-   en el editor de cada juego cuando el cerebro tenga cambios que su copia no tiene.
+   en el editor de cada juego cuando el cerebro tenga cambios que su copia no tiene. Y probar un build
+   de cada juego sin la carpeta `cerebro` al lado.
 2. **Aplicar la sensación común**, en local en cada juego (traída a su copia y llamada desde su
    código, con su perfil; cuando lo diga el autor: Basiliskos está en desarrollo): Gorilla Revenge con un
    perfil `Gigante` (combo, palmada, lanzar, remates a helicópteros) y Basiliskos con `Creciente`

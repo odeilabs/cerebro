@@ -65,11 +65,10 @@ posteriores en el cerebro no toquen una versión concreta del juego (la regla co
   `HudBasilisco : HudJuego`, sus perfiles y configuraciones) vive en el código del juego, no dentro de
   la copia.
 
-**Estado (octubre 2026)**: **Gorilla Revenge** ya lleva su copia (`Gorilla Revenge/Packages/
-com.odeilabs.guardianes/`, desde `cca49a1`; es el ejemplo a seguir). **Basiliskos** todavía enlaza el
-cerebro como paquete local (`"com.odeilabs.guardianes": "file:../../../cerebro/Guardianes"` en su
-`manifest.json`), así que un cambio en el cerebro le llega en cuanto se abre y hay que comprobarlo en
-él. Pasarlo a su copia está en el [ROADMAP](ROADMAP.md), cuando lo diga su autor.
+**Estado (octubre 2026)**: los dos juegos llevan su copia y ninguno enlaza el cerebro: **Gorilla
+Revenge** (desde `cca49a1`) y **Basiliskos** (desde `aa9c189` más los cambios de `Humano.cs` aún sin
+commitear en el cerebro); el `ORIGEN.md` de cada copia lo detalla. Un cambio en el cerebro no llega a
+ningún juego hasta que se trae.
 
 ## Arrancar un juego nuevo de la saga
 
