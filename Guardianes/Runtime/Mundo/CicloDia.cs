@@ -11,6 +11,7 @@ namespace Guardianes.Mundo
     /// cuando se pone, baja los limites de la exposicion para que la noche sea noche (oscura, azulada,
     /// pero jugable) y da a los humanos la luz que ven en cada punto (Humano.Luz: el cielo mas las
     /// FuenteLuz). Un dia de juego dura 'minutosPorDia' minutos; las misiones fijan la hora.
+    /// 'nublado' (lo pone la Lluvia) quita sol, luna y luz para la IA, y algo de color.
     /// Sin un CicloDia en la escena todo sigue como antes (siempre de dia).
     /// </summary>
     [DefaultExecutionOrder(-50)]
@@ -56,6 +57,10 @@ namespace Guardianes.Mundo
         [Header("Luz para la IA (0 noche cerrada .. 1 dia)")]
         [Tooltip("La que queda con luna")]
         public float luzNoche = 0.12f;
+
+        [Header("Nubes")]
+        [Tooltip("Cielo cubierto (0 despejado .. 1 tormenta): menos sol, luna y luz para la IA, y menos color. Lo pone la Lluvia")]
+        [Range(0f, 1f)] public float nublado;
 
         /// <summary>0 de noche .. 1 de dia (crepusculo civil entre medias).</summary>
         public float Dia { get; private set; } = 1f;
@@ -211,7 +216,7 @@ namespace Guardianes.Mundo
             DireccionAlSol = aSol;
             Dia = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(-0.1f, 0.1f, aSol.y));
             float lunaArriba = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(-0.02f, 0.12f, aLuna.y));
-            LuzCielo = Mathf.Max(Dia, luzNoche * lunaArriba);
+            LuzCielo = Mathf.Max(Dia, luzNoche * lunaArriba) * (1f - 0.45f * nublado);
 
             if (sol != null)
             {
@@ -219,7 +224,7 @@ namespace Guardianes.Mundo
                 // hace el crepusculo con el y la atmosfera ya le quita la luz directa.
                 float f = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(-0.11f, -0.06f, aSol.y));
                 sol.enabled = f > 0.001f;
-                sol.intensity = _luxSol * f;
+                sol.intensity = _luxSol * f * (1f - 0.7f * nublado);
                 sol.transform.rotation = Quaternion.LookRotation(-aSol, Vector3.up);
                 sol.shadows = sol.enabled ? LightShadows.Soft : LightShadows.None;
             }
@@ -227,7 +232,7 @@ namespace Guardianes.Mundo
             {
                 float f = lunaArriba * (1f - Dia);
                 luna.enabled = f > 0.001f;
-                luna.intensity = luxLuna * f;
+                luna.intensity = luxLuna * f * (1f - 0.6f * nublado);
                 luna.transform.rotation = Quaternion.LookRotation(-aLuna, Vector3.up);
                 // HDRP solo da sombra a una direccional: la luna cuando no hay sol.
                 luna.shadows = luna.enabled && (sol == null || !sol.enabled) ? LightShadows.Soft : LightShadows.None;
@@ -236,7 +241,7 @@ namespace Guardianes.Mundo
             {
                 float f = 1f - Dia;
                 _cieloNoche.enabled = f > 0.001f && luxCieloNoche > 0f;
-                _cieloNoche.intensity = luxCieloNoche * f;
+                _cieloNoche.intensity = luxCieloNoche * f * (1f - 0.25f * nublado);
             }
             if (_exposicion != null)
             {
@@ -244,7 +249,7 @@ namespace Guardianes.Mundo
                 _exposicion.limitMax.value = Mathf.Lerp(exposicionNoche.y, exposicionDia.y, Dia);
                 _exposicion.compensation.value = Mathf.Lerp(compensacionNoche, compensacionDia, Dia);
                 _exposicion.adaptationMode.overrideState = Time.unscaledTime < _adaptarDeGolpeHasta;
-                _color.saturation.value = Mathf.Lerp(saturacionNoche, 0f, Dia);
+                _color.saturation.value = Mathf.Lerp(saturacionNoche, 0f, Dia) - 15f * nublado;
                 _balance.temperature.value = Mathf.Lerp(temperaturaNoche, 0f, Dia);
             }
             bool noche = EsDeNoche;

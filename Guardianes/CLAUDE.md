@@ -33,7 +33,11 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   a los humanos la luz de cada punto (`Humano.Luz = CicloDia.Luz`: el cielo más las fuentes);
   `FijarHora`, `avanzar`, `minutosPorDia`, `EsDeNoche`, `Dia`, `Reloj`. Sin un `CicloDia` en la
   escena todo sigue siendo de día. `FuenteLuz`: luces que cuentan para la IA (hogueras, faroles,
-  linternas con cono, focos): `Aporte`/`Total`, `Apagar` (asusta a los de alrededor), parpadeo de llama.
+  linternas con cono, focos): `Aporte`/`Total`, `Apagar` (asusta a los de alrededor), parpadeo de llama. **Lluvia** (opcional:
+  la pone cada juego o cada misión con `Lluvia.Poner(intensidad, segundos)`): gotas alrededor de la
+  cámara (bajo el agua no), el cielo cubierto (`CicloDia.nublado`: menos sol, luna, luz para la IA y
+  color) y `Lluvia.Intensidad` (0..1) para lo que cada juego quiera hacer con ella (tapar el olor,
+  cegar un sentido).
 - `Runtime/Vegetacion/` — `Viento` (+ interactores), `EspecieVegetal`, `Generacion/Plantas`
   (ceiba, dosel, palmera, helecho arbóreo, platanera, bambú, arbusto, helecho, hojas grandes,
   hierba, flores, roca, tronco), `RenderizadorVegetacion` (instancing por cámara con culling/LOD en

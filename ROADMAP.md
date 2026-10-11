@@ -38,6 +38,10 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 - **Herramienta para traer y subir cambios** (`Tools~/traer_cerebro.py`: estado, diferencias, traer,
   subir, con la foto `.sincronizacion.json` de cada copia y los `.meta` siempre con su fichero) y
   **aviso en el editor** de cada juego (`AvisoCerebro`) cuando hay cambios por traer o por subir.
+- **Lluvia** (`Lluvia`, con el cielo cubierto en `CicloDia.nublado`): gotas alrededor de la cámara,
+  menos luz para la IA y `Lluvia.Intensidad` para cada juego (Basiliskos la estrena en la noche de las
+  Comadrejas: tapa el olor a los perros y ciega las fosetas). Y **lo que tapa la vista** a los humanos
+  (`Humano.Visibilidad`) con la **visión térmica** de visor (solo de frente).
 - **Regla de la copia local** (ver [CLAUDE.md](CLAUDE.md#el-cerebro-es-la-fuente-cada-juego-lleva-su-copia)):
   el cerebro es la fuente y cada juego lleva su propia copia del paquete, para que su build no
   necesite el cerebro y los cambios posteriores no toquen una versión concreta.
@@ -63,7 +67,8 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 
 ## Después
 
-- Lluvia y tormenta (tapan ruido y olor, oscurecen, suben los ríos) y viento que cambia.
+- La tormenta completa (ya hay `Lluvia`): que tape el ruido, que suban los ríos, charcos y suelo
+  mojado, relámpagos, nubes que se oscurecen; y viento que cambia.
 - Vibración (las pisadas y los motores como ondas en el borde de la pantalla), útil para criaturas
   que sienten el suelo (Basiliskos, Jörmungandr, Behemot, Escorpión Colosal).
 - Más humanos de Ferrox desde AssetsCreator (madereros, mineros, petroleros, pilotos, cazadores de
