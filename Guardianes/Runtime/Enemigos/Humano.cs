@@ -49,6 +49,8 @@ namespace Guardianes.Enemigos
         [Header("Civil")]
         [Tooltip("Trabajador o aldeano desarmado: no dispara, sigue con lo suyo y huye de las criaturas grandes")]
         public bool civil;
+        [Tooltip("Si muere siendo civil, cuenta como inocente (un villano desarmado, no)")]
+        public bool inocente = true;
         [Tooltip("No se le puede matar (el juego no lo permite): los aldeanos protegidos")]
         public bool protegido;
 

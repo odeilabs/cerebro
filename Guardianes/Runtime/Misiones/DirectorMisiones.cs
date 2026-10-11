@@ -103,7 +103,7 @@ namespace Guardianes.Misiones
             if (!EnMision || Criatura == null) return;
             var s = h.GetComponent<Combate.Salud>();
             if (s == null || !Regla.CulpaDeLaCriatura(s.UltimoDanio, Criatura)) return;
-            if (h.civil || h.protegido) CivilesMuertos++;
+            if ((h.civil && h.inocente) || h.protegido) CivilesMuertos++;
             else Bajas++;
         }
 

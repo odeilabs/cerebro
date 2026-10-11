@@ -88,7 +88,7 @@ namespace Guardianes.Misiones
 
         void Muerto(Humano h)
         {
-            if (h == null || !(h.civil || h.protegido)) return;
+            if (h == null || !((h.civil && h.inocente) || h.protegido)) return;
             var s = h.GetComponent<Salud>();
             if (s != null && CulpaDeLaCriatura(s.UltimoDanio, D.Criatura)) _muertos++;
         }
