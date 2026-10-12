@@ -67,6 +67,12 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 
 ## Después
 
+- **Texturas de criaturas que AssetsCreator no cubre** (ver
+  [Investigacion/Texturas-PBR-criaturas.md](Investigacion/Texturas-PBR-criaturas.md)): plumas, perfil de
+  difusión y `_grosor` de animal (y membranas), lava con máscara de enfriamiento, hielo y jade
+  translúcidos, ojo de cuadrúpedo con córnea, y los estados (mojado, sangre, petrificado, quemado,
+  contaminado) como máscaras en el shader.
+
 - La tormenta completa (ya hay `Lluvia`): que tape el ruido, que suban los ríos, charcos y suelo
   mojado, relámpagos, nubes que se oscurecen; y viento que cambia.
 - Vibración (las pisadas y los motores como ondas en el borde de la pantalla), útil para criaturas

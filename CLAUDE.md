@@ -12,6 +12,8 @@ del juego.
 - [Guardianes/CLAUDE.md](Guardianes/CLAUDE.md) — el paquete Unity `com.odeilabs.guardianes`
   sistema por sistema.
 - `../README.md` — el mapa de la saga (todos los juegos y DLC).
+- [Investigacion/Texturas-PBR-criaturas.md](Investigacion/Texturas-PBR-criaturas.md) — qué texturas
+  PBR necesita cada criatura (según AssetsCreator) y qué falta por hacer en el cerebro.
 - [Investigacion/Fluidez-y-sensacion.md](Investigacion/Fluidez-y-sensacion.md) — cómo hacer que
   moverse y atacar sea fluido y divertido (resumen en *Fluidez y sensación*, abajo).
 

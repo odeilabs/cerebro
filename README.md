@@ -10,7 +10,9 @@ README. Lo que falta está en [ROADMAP.md](ROADMAP.md); el mapa de los juegos, e
 - [Arrancar un juego nuevo de la saga](#arrancar-un-juego-nuevo-de-la-saga)
 - [Herramientas comunes (Tools~)](#herramientas-comunes-tools)
 - [Guía de AssetsCreator](#guía-de-assetscreator)
-- Investigación: [Fluidez y sensación](Investigacion/Fluidez-y-sensacion.md) (mecánicas de movimiento
+- Investigación: [Texturas PBR para las criaturas](Investigacion/Texturas-PBR-criaturas.md) (qué mapas
+  necesita cada criatura de la saga según la lógica PBR de AssetsCreator y qué falta);
+  [Fluidez y sensación](Investigacion/Fluidez-y-sensacion.md) (mecánicas de movimiento
   y de ataque divertidas: respuesta, buffer, hitstop, sacudida, recompensas)
 
 ## Qué hay en el cerebro
@@ -146,6 +148,9 @@ personajes con rig y animación, animales, materiales PBR, audio, cielos, agua, 
 con salida para Unity HDRP. Esta guía dice lo que la saga necesita saber para que **ningún juego
 tenga que volver a explorarlo**. Su README completo (`AssetsCreatorWin\README.md`, unas 6400
 líneas) está ordenado por secciones; aquí se citan por su título.
+
+Qué texturas necesita cada criatura (pelo, escamas, plumas, piel con SSS, lava, ojos...) y cómo
+llegan a HDRP: [Investigacion/Texturas-PBR-criaturas.md](Investigacion/Texturas-PBR-criaturas.md).
 
 > **Regla de la saga: no se modifica AssetsCreator** (ni código, ni `config.json`, ni lo que otros
 > proyectos tienen en `proyectos\`). Se usa lo que genera con sus comandos y parámetros. Si algo
