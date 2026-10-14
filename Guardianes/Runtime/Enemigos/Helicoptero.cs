@@ -347,11 +347,22 @@ namespace Guardianes.Enemigos
         }
 
         // ------------------------------------------------------------------ IA
+        float _visibilidad = 1f, _relojVisibilidad;
+
         bool CriaturaA(float distancia)
         {
             if (_criatura == null) _criatura = Criatura.Jugador;
-            return !Retirado && _criatura != null && !_criatura.Salud.Muerto && !_criatura.Escondida &&
-                   (_kong.position - _pos).sqrMagnitude < distancia * distancia;
+            if (Retirado || _criatura == null || _criatura.Salud.Muerto || _criatura.Escondida ||
+                (_kong.position - _pos).sqrMagnitude >= distancia * distancia) return false;
+            // Lo que hay en medio (el relieve, la selva cerrada): la misma vista que los humanos, si el juego la da.
+            // Solo a una criatura pequena (como los humanos: una grande se ve desde arriba aunque este en la selva).
+            if (_criatura.Tamano >= 8f) return true;
+            if (Humano.Visibilidad != null && Time.time >= _relojVisibilidad)
+            {
+                _relojVisibilidad = Time.time + 0.3f;
+                _visibilidad = Mathf.Clamp01(Humano.Visibilidad(_pos, _criatura.PuntoBlanco));
+            }
+            return Humano.Visibilidad == null || _visibilidad > 0.25f;
         }
 
         void Cerebro(float dt)

@@ -14,6 +14,11 @@ namespace Guardianes.Enemigos
     ///   escondida); los armados y los civiles valientes van a por ella a machetazos y pisotones, los
     ///   demas se apartan.
     ///   Muere aplastado, de un golpe o volando por los aires (sale despedido con fisica).
+    /// Recuerda donde la vio por ultima vez y, al perderla, va alli (Investigar) y busca alrededor (Buscar);
+    /// lo mismo con lo que oye (Ruidos: la criatura al moverse o romper, los disparos) y con lo que le
+    /// mandan (Investigar). Si lleva radio y la ve, avisa (unos segundos: si lo callan antes, no llega;
+    /// AlAvisar). Al andar rodea lo que le corta el paso (agua honda, cuestas, y lo que este en
+    /// CapasObstaculo). Lejos de la criatura piensa menos a menudo.
     /// El Animator lo monta el editor (ConstructorHumanos) con estos parametros:
     ///   velocidad (float), apuntar (bool), disparar (bool), miedo (bool), golpe (trigger), muerto (trigger)
     ///   y, si lo tiene, atacar (trigger: el machetazo).
@@ -21,7 +26,7 @@ namespace Guardianes.Enemigos
     [RequireComponent(typeof(Salud))]
     public class Humano : MonoBehaviour
     {
-        public enum Estado { Patrulla, Alerta, Disparo, Huida, Muerto, Acoso }
+        public enum Estado { Patrulla, Alerta, Disparo, Huida, Muerto, Acoso, Investigar, Buscar }
 
         [Header("Comportamiento")]
         public float vision = 160f;
@@ -66,6 +71,16 @@ namespace Guardianes.Enemigos
         public float danioGolpe = 30f;
         public float pausaGolpes = 1.1f;
 
+        [Header("Oido, memoria y radio")]
+        [Tooltip("Multiplica lo lejos que oye (1: lo que dice el ruido)")]
+        public float oido = 1f;
+        [Tooltip("Segundos que busca alrededor de la pista antes de volver a lo suyo")]
+        public float segundosBusqueda = 14f;
+        [Tooltip("Lleva radio: si la ve, avisa a los demas (los civiles no)")]
+        public bool radio = true;
+        [Tooltip("Lo que tarda en dar el aviso (s): si lo callan antes, no llega")]
+        public float segundosLlamada = 3.5f;
+
         [Header("Miedo (solo si el juego activa Humano.ConMiedo)")]
         [Tooltip("0..100: sube con siseos y gritos, mordiscos, cuerpos, la oscuridad, lo que se ve de reojo y las marcas de leyenda; se contagia")]
         [Range(0f, 100f)] public float miedo;
@@ -107,6 +122,16 @@ namespace Guardianes.Enemigos
         public bool Muerto => Actual == Estado.Muerto;
         /// <summary>0..1: lo que lleva visto de la criatura (1 = la ha visto y da la voz).</summary>
         public float Deteccion { get; private set; }
+        /// <summary>La pista que sigue (Investigar, Buscar): donde la vio u oyo por ultima vez, o a donde lo mandaron.</summary>
+        public Vector3? Pista => _pista;
+        /// <summary>0..1: lo que lleva del aviso por radio (1 = dado).</summary>
+        public float Llamada { get; private set; }
+        /// <summary>Ha dado el aviso por radio (vale hasta que vuelve a lo suyo).</summary>
+        public bool Avisado { get; private set; }
+        /// <summary>Da el aviso por radio: quien y donde la vio. Cada juego decide que pasa (refuerzos, alarma).</summary>
+        public static event System.Action<Humano, Vector3> AlAvisar;
+        /// <summary>Capas de lo que corta el paso al andar (rocas, paredes): las rodea. La pone el juego; 0, nada.</summary>
+        public static int CapasObstaculo;
         /// <summary>Disparo (origen, impacto) para trazadoras, fogonazos y sonido.</summary>
         public static event System.Action<Vector3, Vector3, Humano> AlDisparar;
         /// <summary>Machetazo o pisoton contra una criatura pequena (donde).</summary>
@@ -140,11 +165,13 @@ namespace Guardianes.Enemigos
             _salud.AlMorir += Morir;
             _puesto = transform.position;
             _destino = _puesto;
+            _desfase = s_humanos++ & 3;
         }
 
         void OnEnable()
         {
             Criatura.AlIntimidar += OirIntimidacion;
+            Ruidos.AlOir += Oir;
             AlMorir += OtroMuere;
             AlSerAtacado += OtroAtacado;
             FuenteLuz.AlApagarse += LuzApagada;
@@ -154,6 +181,7 @@ namespace Guardianes.Enemigos
         void OnDisable()
         {
             Criatura.AlIntimidar -= OirIntimidacion;
+            Ruidos.AlOir -= Oir;
             AlMorir -= OtroMuere;
             AlSerAtacado -= OtroAtacado;
             FuenteLuz.AlApagarse -= LuzApagada;
@@ -176,6 +204,55 @@ namespace Guardianes.Enemigos
             _destino = puesto;
             radioPatrulla = radio;
             _relojEstado = 0f;
+        }
+
+        /// <summary>
+        /// Que vaya a mirar a un sitio (un ruido, un aviso por radio, donde la vio): va (corriendo si es
+        /// urgente), busca alrededor un rato y vuelve a lo suyo. Los civiles, los protegidos y los quietos
+        /// (centinelas) no se mueven de su sitio: solo miran hacia alli.
+        /// </summary>
+        public void Investigar(Vector3 punto, bool urgente)
+        {
+            if (Muerto || Ahuyentado || protegido) return;
+            // Una pista menos urgente no pisa a una urgente reciente.
+            if (_pista.HasValue && _pistaUrgente && !urgente && Time.time < _pistaHasta - 40f) return;
+            _sombras = punto;
+            if (civil || quieto) { _quietoHasta = Time.time + 2.5f; return; }
+            _pista = punto;
+            _pistaUrgente = urgente;
+            _pistaHasta = Time.time + 60f;
+            _atascado = 0f;
+            if (Actual == Estado.Buscar) Cambiar(Estado.Investigar);
+        }
+
+        void OlvidarPista()
+        {
+            _pista = null;
+            _pistaUrgente = false;
+            Avisado = false;
+            Llamada = 0f;
+        }
+
+        void Oir(Sonido r)
+        {
+            if (Muerto || Ahuyentado || protegido || r.origen == gameObject) return;
+            float d = Vector3.Distance(r.donde, transform.position);
+            float alcance = r.radio * oido;
+            if (d > alcance) return;
+            float cerca = 1f - d / alcance;
+            if (r.deCriatura)
+            {
+                // Lo que hace la criatura: de noche asusta; los que buscan van a ver (lejos, con error).
+                if (ConMiedo) SumarMiedo((EsDeNoche ? 8f : 3f) * cerca + (r.tipo >= TipoRuido.Golpe ? 6f : 0f));
+                if (Deteccion >= 1f) return;
+                Vector3 error = Random.insideUnitSphere * d * 0.15f;
+                Investigar(r.donde + new Vector3(error.x, 0f, error.z), r.tipo >= TipoRuido.Rotura);
+            }
+            else if (r.tipo >= TipoRuido.Disparo && !civil && Deteccion < 1f)
+            {
+                // Tiros o explosiones de los suyos: van a ver que pasa.
+                Investigar(r.donde, true);
+            }
         }
 
         static Transform BuscarHijo(Transform t, string nombre)
@@ -202,13 +279,19 @@ namespace Guardianes.Enemigos
         void Update()
         {
             if (Actual == Estado.Muerto) return;
-            float dt = Time.deltaTime;
-            _relojEstado -= dt;
             if (_criatura == null) _criatura = Criatura.Jugador;
             bool hay = _criatura != null && !_criatura.Salud.Muerto;
             Vector3 aCriatura = hay ? _criatura.PuntoBlanco - Ojos : Vector3.forward * 9999f;
             float dCriatura = new Vector2(aCriatura.x, aCriatura.z).magnitude;
+            // Lejos de la criatura (fuera de lo que podria verla u oirla) piensa uno de cada cuatro fotogramas.
+            _acumulado += Time.deltaTime;
+            if (dCriatura > Mathf.Max(vision * 1.5f, 300f) && Actual != Estado.Huida && !Ahuyentado && (++_fotograma + _desfase) % 4 != 0) return;
+            float dt = _acumulado;
+            _acumulado = 0f;
+            _relojEstado -= dt;
             Ver(hay, aCriatura, dCriatura, dt);
+            if (Deteccion >= 1f && hay) _ultimaVista = _criatura.transform.position;
+            Avisar(hay, dt);
             if (ConMiedo)
             {
                 Temer(hay, dCriatura, dt);
@@ -218,8 +301,14 @@ namespace Guardianes.Enemigos
             float panico = CriaturaPequena ? 0f : distanciaPanico * Mathf.Min(1f, TamanoCriatura / Criatura.TamanoReferencia);
 
             // Cambios de estado.
+            if (_pista.HasValue && Time.time > _pistaHasta) { OlvidarPista(); if (Actual == Estado.Investigar || Actual == Estado.Buscar) Cambiar(Estado.Patrulla); }
             if (Time.time < _miedoHasta || (hay && dCriatura < panico)) Cambiar(Estado.Huida);
-            else if (Actual == Estado.Huida) Cambiar(laVe && !civil && !CriaturaPequena ? Estado.Alerta : Estado.Patrulla);
+            else if (Actual == Estado.Huida)
+            {
+                // Pasado el susto, si ya no la ve, va (con cuidado) a donde la vio.
+                if (!laVe && !civil && _ultimaVista != Vector3.zero) Investigar(_ultimaVista, false);
+                Cambiar(laVe && !civil && !CriaturaPequena ? Estado.Alerta : Estado.Patrulla);
+            }
             else if (CriaturaPequena && laVe)
             {
                 // A una criatura pequena: los armados y los valientes van a por ella; los demas se apartan.
@@ -229,10 +318,20 @@ namespace Guardianes.Enemigos
                 else if (!civil || valor > 0.5f) { if (Actual != Estado.Acoso) Cambiar(Estado.Acoso); }
                 else if (dCriatura < 4f) Asustar(Random.Range(2f, 4f));
             }
-            else if (Actual == Estado.Acoso && (!laVe || !CriaturaPequena)) Cambiar(Estado.Patrulla);
+            else if (Actual == Estado.Acoso && (!laVe || !CriaturaPequena))
+            {
+                // La ha perdido: a donde la vio por ultima vez.
+                if (!laVe && _ultimaVista != Vector3.zero) Investigar(_ultimaVista, true);
+                Cambiar(Estado.Patrulla);
+            }
             else if (civil) { if (Actual != Estado.Patrulla) Cambiar(Estado.Patrulla); }
-            else if (laVe && dCriatura < vision && Actual == Estado.Patrulla) Cambiar(Estado.Alerta);
-            else if ((!laVe || dCriatura > vision * 1.3f) && Actual != Estado.Patrulla && Actual != Estado.Acoso) Cambiar(Estado.Patrulla);
+            else if (laVe && dCriatura < vision && (Actual == Estado.Patrulla || Actual == Estado.Investigar || Actual == Estado.Buscar)) Cambiar(Estado.Alerta);
+            else if ((!laVe || dCriatura > vision * 1.3f) && (Actual == Estado.Alerta || Actual == Estado.Disparo))
+            {
+                if (!laVe && _ultimaVista != Vector3.zero) Investigar(_ultimaVista, true);
+                Cambiar(Estado.Patrulla);
+            }
+            else if (_pista.HasValue && Actual == Estado.Patrulla && !laVe && !(ConMiedo && miedo >= Aterrado)) Cambiar(Estado.Investigar);
 
             float velocidad = 0f;
             switch (Actual)
@@ -289,6 +388,12 @@ namespace Guardianes.Enemigos
                 case Estado.Acoso:
                     velocidad = Acosar(aCriatura, dCriatura, dt);
                     break;
+                case Estado.Investigar:
+                    velocidad = IrAPista(dt);
+                    break;
+                case Estado.Buscar:
+                    velocidad = BuscarAlrededor(dt);
+                    break;
             }
 
             if (_anim != null)
@@ -298,6 +403,67 @@ namespace Guardianes.Enemigos
                 _anim.SetBool(PDisparar, _enRafaga);
                 _anim.SetBool(PMiedo, Actual == Estado.Huida);
             }
+        }
+
+        // ------------------------------------------------------------------ Pistas, busqueda y radio
+        Vector3? _pista;
+        bool _pistaUrgente;
+        float _pistaHasta, _buscarHasta, _atascado, _acumulado;
+        int _fotograma;
+        int _desfase;
+        static int s_humanos;
+        Vector3 _ultimaVista;
+
+        /// <summary>Va hacia la pista; al llegar (o si no puede seguir) se pone a buscar alrededor.</summary>
+        float IrAPista(float dt)
+        {
+            if (!_pista.HasValue) { Cambiar(Estado.Patrulla); return 0f; }
+            Vector3 p = _pista.Value;
+            float v = Andar(p, _pistaUrgente ? velocidadCorrer * 0.8f : velocidadAndar * 1.25f, dt);
+            _atascado = v <= 0f ? _atascado + dt : 0f;
+            if (Plano(p - transform.position).magnitude < 2.5f || _atascado > 2.5f)
+            {
+                _buscarHasta = Time.time + segundosBusqueda * Random.Range(0.8f, 1.2f);
+                _destino = p;
+                _relojEstado = 0f;
+                Cambiar(Estado.Buscar);
+            }
+            return v;
+        }
+
+        /// <summary>Busca alrededor de la pista: va de un punto a otro mirando; al rato, vuelve a lo suyo.</summary>
+        float BuscarAlrededor(float dt)
+        {
+            if (!_pista.HasValue || Time.time > _buscarHasta)
+            {
+                OlvidarPista();
+                Cambiar(Estado.Patrulla);
+                return 0f;
+            }
+            if (_relojEstado <= 0f || Plano(_destino - transform.position).magnitude < 1.2f)
+            {
+                var r = Random.insideUnitCircle * Random.Range(3f, 9f);
+                _destino = _pista.Value + new Vector3(r.x, 0f, r.y);
+                _relojEstado = Random.Range(2f, 4f);
+            }
+            return Andar(_destino, velocidadAndar, dt);
+        }
+
+        /// <summary>Si la ve y lleva radio, avisa: unos segundos al habla; si lo callan antes (muerto, ahuyentado, ciego), no llega.</summary>
+        void Avisar(bool hay, float dt)
+        {
+            // Por una criatura pequena no se llama a nadie: se la busca a machetazos.
+            if (civil || !radio || Ahuyentado || Avisado || CriaturaPequena) return;
+            if (hay && Deteccion >= 1f)
+            {
+                Llamada = Mathf.Min(1f, Llamada + dt / Mathf.Max(0.1f, segundosLlamada));
+                if (Llamada >= 1f)
+                {
+                    Avisado = true;
+                    AlAvisar?.Invoke(this, _ultimaVista != Vector3.zero ? _ultimaVista : _criatura.transform.position);
+                }
+            }
+            else Llamada = Mathf.MoveTowards(Llamada, 0f, dt * 0.2f);
         }
 
         // ------------------------------------------------------------------ Miedo
@@ -493,21 +659,61 @@ namespace Guardianes.Enemigos
             _enRafaga = false;
         }
 
+        float _rodeo, _rodeoHasta;
+        static readonly float[] Rodeos = { 35f, -35f, 70f, -70f, 105f, -105f, 150f, -150f };
+
         float Andar(Vector3 hacia, float velocidad, float dt)
         {
             Vector3 d = Plano(hacia - transform.position);
             if (d.magnitude < 0.3f) return 0f;
-            Girar(transform.position + d, dt * 6f);
-            Vector3 p = transform.position + transform.forward * velocidad * dt;
+            Vector3 dir = d.normalized;
+            float paso = velocidad * dt;
+            // Rodeando: sigue el rumbo desviado un rato; si el directo ya esta libre, lo deja.
+            if (Time.time < _rodeoHasta)
+            {
+                if (Libre(dir, paso)) _rodeoHasta = 0f;
+                else dir = Quaternion.Euler(0f, _rodeo, 0f) * dir;
+            }
+            if (!Libre(dir, paso))
+            {
+                // Algo corta el paso (agua honda, una cuesta, una roca): el primer rumbo libre a un lado o al otro.
+                bool hay = false;
+                foreach (float a in Rodeos)
+                {
+                    var alt = Quaternion.Euler(0f, a, 0f) * d.normalized;
+                    if (!Libre(alt, paso)) continue;
+                    _rodeo = a;
+                    _rodeoHasta = Time.time + Random.Range(0.8f, 1.6f);
+                    dir = alt;
+                    hay = true;
+                    break;
+                }
+                if (!hay) return 0f;
+            }
+            Girar(transform.position + dir, dt * 6f);
+            Vector3 p = transform.position + dir * paso;
+            if (TerrenoMundo.Instancia != null) p.y = Mapa.Altura(p.x, p.z);
+            transform.position = p;
+            return velocidad;
+        }
+
+        /// <summary>Se puede dar el paso en esa direccion: sin agua honda, sin pared y sin obstaculo delante.</summary>
+        bool Libre(Vector3 dir, float paso)
+        {
+            Vector3 p = transform.position + dir * paso;
             if (TerrenoMundo.Instancia != null)
             {
                 float y = Mapa.Altura(p.x, p.z);
                 // No se mete en el agua profunda ni trepa paredes.
-                if (Mapa.Profundidad(p.x, p.z) > 0.5f || Mathf.Abs(y - transform.position.y) > velocidad * dt * 2.5f + 0.4f) return 0f;
-                p.y = y;
+                if (Mapa.Profundidad(p.x, p.z) > 0.5f || Mathf.Abs(y - transform.position.y) > paso * 2.5f + 0.4f) return false;
+                // Un poco mas adelante: el agua honda, antes de llegar a la orilla.
+                Vector3 q = transform.position + dir * 1.2f;
+                if (Mapa.Profundidad(q.x, q.z) > 0.8f) return false;
             }
-            transform.position = p;
-            return velocidad;
+            if (CapasObstaculo != 0 &&
+                Physics.Raycast(transform.position + Vector3.up * 0.6f, dir, 0.9f, CapasObstaculo, QueryTriggerInteraction.Ignore))
+                return false;
+            return true;
         }
 
         void Girar(Vector3 hacia, float rapidez)
@@ -551,7 +757,15 @@ namespace Guardianes.Enemigos
                 }
                 AlDisparar?.Invoke(origen, impacto, this);
             }
+            // La rafaga se oye (los suyos van a ver que pasa; los animales huyen).
+            if (Time.time - _ultimoRuido > 0.8f)
+            {
+                _ultimoRuido = Time.time;
+                Ruidos.Emitir(transform.position, 180f, TipoRuido.Disparo, false, gameObject);
+            }
         }
+
+        float _ultimoRuido = -100f;
 
         /// <summary>Va a por una criatura pequena y le da machetazos o pisotones cuando la alcanza.</summary>
         float Acosar(Vector3 aCriatura, float d, float dt)
@@ -611,6 +825,7 @@ namespace Guardianes.Enemigos
         void Morir(DatosDanio d)
         {
             Actual = Estado.Muerto;
+            Llamada = 0f;
             if (_anim != null) _anim.SetTrigger(PMuerto);
             AlMorir?.Invoke(this);
             // Un golpe fuerte los lanza por los aires: cuerpo rigido que vuela y rueda.

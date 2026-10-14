@@ -52,11 +52,20 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   derribo de vegetación), `Lanzable`.
 - `Runtime/Enemigos/` — **Ferrox**: `Humano` (IA según el tamaño de la criatura: con una gigante
   patrulla, dispara y huye; a una pequeña la buscan a machetazos; detección con luz y escondites;
+  **investiga y busca** —`Investigar(punto, urgente)`, estados `Investigar` y `Buscar`: va a la pista y
+  rastrea alrededor `segundosBusqueda`; la pista es donde la vio por última vez al perderla, lo que oye o
+  lo que le mandan—; **oye** (`Ruidos`, con `oido`); **avisa por radio** (`radio`: el armado que ve a una
+  criatura grande tarda `segundosLlamada` en dar el aviso, `Llamada`; si lo callan antes no llega;
+  `AlAvisar`, y cada juego decide qué pasa); **rodea** lo que le corta el paso al andar (agua honda,
+  cuestas y lo que esté en `CapasObstaculo`, que pone el juego); lejos de la criatura piensa uno de cada
+  cuatro fotogramas; sus ráfagas hacen ruido);
   `quieto` para centinelas y gente sentada, `ruta` para rondas (con `pausaRuta` en los extremos:
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
-  inocente (un villano desarmado); `termica`: visión de calor, la oscuridad le quita poca vista, pero es un visor que solo ve de frente), `ZonaHumana`, `ConstructorInstalaciones` + `Piezas` +
-  `ConstructorPiezasCampana`, `Estructura`, `Helicoptero` (rotor del BEMT de Lur Aerospace), `Cohete`,
+  inocente (un villano desarmado); `termica`: visión de calor, la oscuridad le quita poca vista, pero es un visor que solo ve de frente), `Ruidos` (el oído del mundo: `Emitir(donde, radio, TipoRuido, deCriatura)` y `AlOir`; cada juego dice
+  qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia), `ConstructorInstalaciones` + `Piezas` +
+  `ConstructorPiezasCampana`, `Estructura`, `Helicoptero` (rotor del BEMT de Lur Aerospace; ve a una criatura pequeña (menos de 8 m)
+  con la misma `Humano.Visibilidad` que los humanos: la selva y el relieve la tapan), `Cohete`,
   `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
   `miedo` de 0 a 100 que sube con la oscuridad (sin linterna), lo que ve de reojo, los ojos de la
   criatura cuando les da una luz de noche, siseos y rugidos (se oyen a 4 veces su radio), mordiscos,

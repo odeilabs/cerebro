@@ -45,6 +45,8 @@ namespace Guardianes.Enemigos
 
         public static event System.Action<ZonaHumana> AlLiberar;
         public static event System.Action<ZonaHumana> AlDescubrir;
+        /// <summary>Despierta su guardia (la criatura se acerca): cada juego le puede dar puestos y rondas.</summary>
+        public static event System.Action<ZonaHumana> AlActivar;
         public static readonly List<ZonaHumana> Todas = new List<ZonaHumana>();
 
         readonly List<Humano> _vivos = new List<Humano>();
@@ -102,6 +104,7 @@ namespace Guardianes.Enemigos
                 if (i < Mathf.RoundToInt(faltan * proporcionCiviles)) h.HacerCivil();
                 _vivos.Add(h);
             }
+            AlActivar?.Invoke(this);
         }
 
         /// <summary>
