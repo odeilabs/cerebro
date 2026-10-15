@@ -695,6 +695,22 @@ namespace Guardianes.Efectos
                    tamano * Random.Range(0.8f, 1.5f), Random.Range(1.2f, 2.2f), Variar(c, 0.1f));
         }
 
+        /// <summary>
+        /// Una rociada de gotas de un color (la sangre o el veneno de un mordisco): sale de 'p' hacia 'dir' en
+        /// cono y cae; tamano en metros (el del bocado).
+        /// </summary>
+        public void Gotas(Vector3 p, Vector3 dir, float tamano, Color color, int cuantas = 10)
+        {
+            if (!Cerca(p)) return;
+            Vector3 d0 = dir.sqrMagnitude > 1e-6f ? dir.normalized : Vector3.up;
+            for (int i = 0; i < cuantas; i++)
+            {
+                Vector3 d = (d0 + Random.insideUnitSphere * 0.6f + Vector3.up * 0.3f).normalized;
+                Emitir(_polvo, p + Random.insideUnitSphere * tamano * 0.15f, d * tamano * Random.Range(2f, 5f),
+                       tamano * Random.Range(0.18f, 0.45f), Random.Range(0.35f, 0.8f), Variar(color, 0.12f));
+            }
+        }
+
         /// <summary>Salpicadura en el agua (algo que entra, una criatura que nada): tamano en metros.</summary>
         public void Salpicadura(Vector3 p, float tamano, int cuantas = 12)
         {

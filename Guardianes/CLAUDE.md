@@ -60,7 +60,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   cuestas y lo que esté en `CapasObstaculo`, que pone el juego); lejos de la criatura piensa uno de cada
   cuatro fotogramas; sus ráfagas hacen ruido; **se enfrenta a un animal** —`Enfrentar(transform, segundos)`:
   mientras no vea a la criatura, el armado se vuelve y le dispara a ráfagas, el civil huye; `Enfrentando`;
-  cada juego decide cuándo, p. ej. el animal que la criatura le lleva con un cebo—);
+  cada juego decide cuándo, p. ej. el animal que la criatura le lleva con un cebo—; `AlCambiarEstado`
+  (antes, ahora: para las voces); al buscar, en cada punto se para y mira a un lado y a otro; el cuerpo
+  dura `SegundosCuerpo` —25 de serie; cada juego lo pone— salvo `conservarCuerpo`, `MuertoDesde`);
   `quieto` para centinelas y gente sentada, `ruta` para rondas (con `pausaRuta` en los extremos:
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
@@ -94,7 +96,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `BufferEntrada` y `MargenApoyo` (coyote time), `AsistenciaPunteria` (`Elegir`, `Corregir`,
   `BuscarSalud`) y `Medidor` (métricas para las pruebas, `Informe()`). Comprobación sin escena:
   `Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch`.
-- `Runtime/Efectos/EfectosCombate`, `Runtime/Audio/SonidoJuego` (la voz de cada criatura la pone su
+- `Runtime/Efectos/EfectosCombate` (`Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—), `Runtime/Audio/SonidoJuego` (la voz de cada criatura la pone su
   juego con `Sonar` y los bancos `voces`/`percusion`/`pisadas`...), `Runtime/Camara/CamaraCriatura`
   (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`
   (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero),

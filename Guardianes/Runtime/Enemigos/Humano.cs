@@ -107,6 +107,14 @@ namespace Guardianes.Enemigos
         public static event System.Action<Humano> AlHuir;
         /// <summary>Ve a la criatura por primera vez (sigilo).</summary>
         public static event System.Action<Humano> AlVer;
+        /// <summary>Cambia de estado (antes, ahora): para las voces, los avisos y lo que cada juego quiera.</summary>
+        public static event System.Action<Humano, Estado, Estado> AlCambiarEstado;
+        /// <summary>Segundos que queda el cuerpo de un muerto en el suelo (cada juego lo pone).</summary>
+        public static float SegundosCuerpo = 25f;
+        /// <summary>El cuerpo no se borra (alguien se lo lleva: un cebo, una mision).</summary>
+        [System.NonSerialized] public bool conservarCuerpo;
+        /// <summary>Cuando murio (Time.time).</summary>
+        public float MuertoDesde { get; private set; } = -1f;
         public static readonly System.Collections.Generic.List<Humano> Todos = new System.Collections.Generic.List<Humano>();
         /// <summary>Luz en un punto (0 noche cerrada .. 1 dia). La pone el juego; sin ella, siempre de dia.</summary>
         public static System.Func<Vector3, float> Luz;
@@ -278,7 +286,11 @@ namespace Guardianes.Enemigos
 
         void Update()
         {
-            if (Actual == Estado.Muerto) return;
+            if (Actual == Estado.Muerto)
+            {
+                if (!conservarCuerpo && Time.time - MuertoDesde > SegundosCuerpo) Destroy(gameObject);
+                return;
+            }
             if (_criatura == null) _criatura = Criatura.Jugador;
             bool hay = _criatura != null && !_criatura.Salud.Muerto;
             Vector3 aCriatura = hay ? _criatura.PuntoBlanco - Ojos : Vector3.forward * 9999f;
@@ -452,8 +464,25 @@ namespace Guardianes.Enemigos
                 Cambiar(Estado.Patrulla);
                 return 0f;
             }
-            if (_relojEstado <= 0f || Plano(_destino - transform.position).magnitude < 1.2f)
+            // Parado, mira a un lado y a otro (la linterna barre con el).
+            if (Time.time < _mirarHasta)
             {
+                float a = Mathf.Sin((Time.time - _mirarDesde) * 1.7f) * 70f;
+                Girar(transform.position + Quaternion.Euler(0f, a, 0f) * _mirarFrente * 5f, dt * 4f);
+                return 0f;
+            }
+            bool llego = Plano(_destino - transform.position).magnitude < 1.2f;
+            if (llego && !_mirado)
+            {
+                _mirado = true;
+                _mirarDesde = Time.time;
+                _mirarHasta = Time.time + Random.Range(1.6f, 3.2f);
+                _mirarFrente = transform.forward;
+                return 0f;
+            }
+            if (_relojEstado <= 0f || llego)
+            {
+                _mirado = false;
                 // A una pequena, por encima de donde estaba; a una grande, en un anillo a su distancia.
                 var r = CriaturaPequena ? Random.insideUnitCircle * Random.Range(3f, 9f)
                                         : Random.insideUnitCircle.normalized * (LlegadaPista + Random.Range(0.5f, 6f));
@@ -462,6 +491,10 @@ namespace Guardianes.Enemigos
             }
             return Andar(_destino, velocidadAndar, dt);
         }
+
+        float _mirarHasta, _mirarDesde;
+        Vector3 _mirarFrente = Vector3.forward;
+        bool _mirado;
 
         /// <summary>Si la ve y lleva radio, avisa: unos segundos al habla; si lo callan antes (muerto, ahuyentado, ciego), no llega.</summary>
         void Avisar(bool hay, float dt)
@@ -660,7 +693,9 @@ namespace Guardianes.Enemigos
         void Cambiar(Estado e)
         {
             if (Actual == e) return;
+            var antes = Actual;
             Actual = e;
+            AlCambiarEstado?.Invoke(this, antes, e);
             if (e == Estado.Huida)
             {
                 AlHuir?.Invoke(this);
@@ -871,7 +906,10 @@ namespace Guardianes.Enemigos
 
         void Morir(DatosDanio d)
         {
+            var antes = Actual;
             Actual = Estado.Muerto;
+            MuertoDesde = Time.time;
+            AlCambiarEstado?.Invoke(this, antes, Estado.Muerto);
             Llamada = 0f;
             if (_anim != null) _anim.SetTrigger(PMuerto);
             AlMorir?.Invoke(this);
@@ -888,7 +926,6 @@ namespace Guardianes.Enemigos
             {
                 transform.localScale = new Vector3(1.2f, 0.25f, 1.2f);
             }
-            Destroy(gameObject, 25f);
         }
     }
 }
