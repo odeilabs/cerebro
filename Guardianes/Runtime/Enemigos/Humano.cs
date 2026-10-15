@@ -414,6 +414,12 @@ namespace Guardianes.Enemigos
         static int s_humanos;
         Vector3 _ultimaVista;
 
+        /// <summary>
+        /// Hasta donde se acerca a la pista: a una criatura pequena, encima (la busca entre la hierba); a una
+        /// grande, a un par de largos (se acercan con cuidado y miran desde ahi).
+        /// </summary>
+        float LlegadaPista => CriaturaPequena ? 2.5f : Mathf.Clamp(TamanoCriatura * 2f, 2.5f, 40f);
+
         /// <summary>Va hacia la pista; al llegar (o si no puede seguir) se pone a buscar alrededor.</summary>
         float IrAPista(float dt)
         {
@@ -421,7 +427,7 @@ namespace Guardianes.Enemigos
             Vector3 p = _pista.Value;
             float v = Andar(p, _pistaUrgente ? velocidadCorrer * 0.8f : velocidadAndar * 1.25f, dt);
             _atascado = v <= 0f ? _atascado + dt : 0f;
-            if (Plano(p - transform.position).magnitude < 2.5f || _atascado > 2.5f)
+            if (Plano(p - transform.position).magnitude < LlegadaPista || _atascado > 2.5f)
             {
                 _buscarHasta = Time.time + segundosBusqueda * Random.Range(0.8f, 1.2f);
                 _destino = p;
@@ -442,7 +448,9 @@ namespace Guardianes.Enemigos
             }
             if (_relojEstado <= 0f || Plano(_destino - transform.position).magnitude < 1.2f)
             {
-                var r = Random.insideUnitCircle * Random.Range(3f, 9f);
+                // A una pequena, por encima de donde estaba; a una grande, en un anillo a su distancia.
+                var r = CriaturaPequena ? Random.insideUnitCircle * Random.Range(3f, 9f)
+                                        : Random.insideUnitCircle.normalized * (LlegadaPista + Random.Range(0.5f, 6f));
                 _destino = _pista.Value + new Vector3(r.x, 0f, r.y);
                 _relojEstado = Random.Range(2f, 4f);
             }

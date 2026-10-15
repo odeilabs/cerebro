@@ -52,8 +52,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   derribo de vegetación), `Lanzable`.
 - `Runtime/Enemigos/` — **Ferrox**: `Humano` (IA según el tamaño de la criatura: con una gigante
   patrulla, dispara y huye; a una pequeña la buscan a machetazos; detección con luz y escondites;
-  **investiga y busca** —`Investigar(punto, urgente)`, estados `Investigar` y `Buscar`: va a la pista y
-  rastrea alrededor `segundosBusqueda`; la pista es donde la vio por última vez al perderla, lo que oye o
+  **investiga y busca** —`Investigar(punto, urgente)`, estados `Investigar` y `Buscar`: va a la pista —a una criatura
+  grande se acerca solo a un par de largos— y rastrea alrededor `segundosBusqueda`; la pista es donde la vio por última vez al perderla, lo que oye o
   lo que le mandan—; **oye** (`Ruidos`, con `oido`); **avisa por radio** (`radio`: el armado que ve a una
   criatura grande tarda `segundosLlamada` en dar el aviso, `Llamada`; si lo callan antes no llega;
   `AlAvisar`, y cada juego decide qué pasa); **rodea** lo que le corta el paso al andar (agua honda,
