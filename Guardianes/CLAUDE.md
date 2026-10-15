@@ -58,7 +58,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   criatura grande tarda `segundosLlamada` en dar el aviso, `Llamada`; si lo callan antes no llega;
   `AlAvisar`, y cada juego decide qué pasa); **rodea** lo que le corta el paso al andar (agua honda,
   cuestas y lo que esté en `CapasObstaculo`, que pone el juego); lejos de la criatura piensa uno de cada
-  cuatro fotogramas; sus ráfagas hacen ruido);
+  cuatro fotogramas; sus ráfagas hacen ruido; **se enfrenta a un animal** —`Enfrentar(transform, segundos)`:
+  mientras no vea a la criatura, el armado se vuelve y le dispara a ráfagas, el civil huye; `Enfrentando`;
+  cada juego decide cuándo, p. ej. el animal que la criatura le lleva con un cebo—);
   `quieto` para centinelas y gente sentada, `ruta` para rondas (con `pausaRuta` en los extremos:
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como

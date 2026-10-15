@@ -298,6 +298,12 @@ namespace Guardianes.Enemigos
                 if (Ahuyentado) { Escapar(aCriatura, hay, dt); return; }
             }
             bool laVe = Deteccion >= 1f;
+            // Un animal que se les mete en el campamento (Enfrentar): mientras no vean a la criatura, le disparan.
+            if (Enfrentando && !laVe && Actual != Estado.Huida && Time.time >= _miedoHasta)
+            {
+                PelearCon(_amenaza.position + Vector3.up * 0.4f, dt);
+                return;
+            }
             float panico = CriaturaPequena ? 0f : distanciaPanico * Mathf.Min(1f, TamanoCriatura / Criatura.TamanoReferencia);
 
             // Cambios de estado.
@@ -799,6 +805,39 @@ namespace Guardianes.Enemigos
                     });
             }
             return 0f;
+        }
+
+        Transform _amenaza;
+        float _amenazaHasta;
+
+        /// <summary>Esta disparando a un animal (Enfrentar).</summary>
+        public bool Enfrentando => _amenaza != null && _amenaza.gameObject.activeInHierarchy && Time.time < _amenazaHasta;
+
+        /// <summary>
+        /// Un animal peligroso cerca (un jaguar en el campamento, una piara): los armados se vuelven y le disparan
+        /// a rafagas unos segundos (los tiros se oyen: los demas vienen a ver); los civiles huyen. Si ven a la
+        /// criatura, lo primero es ella.
+        /// </summary>
+        public void Enfrentar(Transform amenaza, float segundos)
+        {
+            if (Muerto || protegido || amenaza == null) return;
+            if (civil) { Asustar(segundos * 0.6f); return; }
+            if (_amenaza != amenaza) _enRafaga = false;
+            _amenaza = amenaza;
+            _amenazaHasta = Mathf.Max(_amenazaHasta, Time.time + segundos);
+        }
+
+        void PelearCon(Vector3 p, float dt)
+        {
+            Girar(p, dt * 8f);
+            if (_anim != null)
+            {
+                _anim.SetFloat(PVelocidad, 0f, 0.15f, dt);
+                _anim.SetBool(PApuntar, true);
+                _anim.SetBool(PDisparar, _enRafaga);
+                _anim.SetBool(PMiedo, false);
+            }
+            Disparar(dt, p);
         }
 
         /// <summary>Huye durante unos segundos.</summary>
