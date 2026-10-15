@@ -64,6 +64,16 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
    el posproceso de HDRP (exposición, grano, bloom): el texto sale tenue. Pintarlo después del
    posproceso.
 6. Estrellas y luna con textura en el cielo físico de noche; nubes que se oscurecen.
+7. **El splash de Odei Labs, en el cerebro, para que todos los juegos lo lleven desde su 1.0.0**: el
+   logo del estudio animado con su sonido, de la sección de splash de AssetsCreator (15 de octubre de
+   2026: `creador.py splash --logo "..\..\Web Odei Labs\Emblema futurista ODEI LABS.png" --nombre
+   odei_labs`, que deja en `proyectos\splash\odei_labs\` el vídeo que abre Unity —`_unity.mp4`/`.webm`; el
+   VP9 no— y el póster, y `ultra\medir_splash.py` para medirlo). Al paquete: el componente
+   (`AssetsCreatorSplash.cs` de AssetsCreator, como `SplashOdei` o similar, con el salto con el Input
+   System y el póster de plan B si falla el vídeo), los vídeos y el póster como recursos del paquete, y
+   en el editor lo que pone la escena de arranque la primera de las del build. Cada juego lo trae a su
+   copia y lo usa en su primera build 1.0.0 (Basiliskos lo tiene apuntado en su `ROADMAP.md`). Lo que
+   AssetsCreator aún no ha probado: que se reproduzca en una build, el salto y el póster.
 
 ## Después
 

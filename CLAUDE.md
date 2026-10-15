@@ -130,6 +130,10 @@ Unity haga el `.meta` y se sube con `subir`.
   juego (p. ej. el miedo de los humanos) se activan por juego para no alterar a los demás.
 - Enumeraciones que se guardan en partidas o datos (`TipoZona`, `MotivoPremio`...): los valores
   nuevos van **al final**.
+- **El splash de Odei Labs** (el logo del estudio animado con su sonido, de la sección de splash de
+  AssetsCreator) va en el cerebro y **todos los juegos lo llevan al arrancar desde su versión 1.0.0**: se
+  trae a la copia de cada juego antes de su primera build 1.0.0 (pendiente de subir al paquete: ver el
+  punto 7 de *Siguiente* en el `ROADMAP.md`).
 
 ## Convenciones del paquete y de los juegos
 
