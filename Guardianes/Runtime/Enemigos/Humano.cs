@@ -460,7 +460,14 @@ namespace Guardianes.Enemigos
             Vector3 p = _pista.Value;
             float v = Andar(p, _pistaUrgente ? velocidadCorrer * 0.8f : velocidadAndar * 1.25f, dt);
             _atascado = v <= 0f ? _atascado + dt : 0f;
-            if (Plano(p - transform.position).magnitude < LlegadaPista || _atascado > 2.5f)
+            // Atascado (parado, o sin acercarse): antes de rendirse, un camino de verdad.
+            float faltaPista = Plano(p - transform.position).magnitude;
+            if ((_atascado > 2.5f || _sinAvanzar > 2.5f) && !ConCamino && faltaPista > LlegadaPista)
+            {
+                PedirCamino(p, faltaPista);
+                if (ConCamino) _atascado = 0f;
+            }
+            if (faltaPista < LlegadaPista || _atascado > 2.5f || (!ConCamino && _sinAvanzar > 6f))
             {
                 _buscarHasta = Time.time + segundosBusqueda * Random.Range(0.8f, 1.2f);
                 _destino = p;
@@ -727,12 +734,58 @@ namespace Guardianes.Enemigos
         float _rodeo, _rodeoHasta;
         static readonly float[] Rodeos = { 35f, -35f, 70f, -70f, 105f, -105f, 150f, -150f };
 
+        // El camino (Navegacion) cuando rodear no basta: los puntos que quedan, a donde lleva y cuando se pidio.
+        readonly System.Collections.Generic.List<Vector3> _ruta = new System.Collections.Generic.List<Vector3>();
+        Vector3 _rutaMeta, _metaAnterior, _metaPrevia;
+        float _proximaRuta, _sinAvanzar, _mejorDistancia = float.MaxValue, _sinAvanzarRuta, _mejorRuta = float.MaxValue;
+        int _atascosRuta;
+
+        /// <summary>Va siguiendo un camino calculado (las pruebas).</summary>
+        public bool ConCamino => _ruta.Count > 0;
+
         float Andar(Vector3 hacia, float velocidad, float dt)
         {
-            Vector3 d = Plano(hacia - transform.position);
+            // Si la meta se ha movido mucho, el camino ya no vale (y se mide de nuevo lo que avanza).
+            if ((hacia - _metaAnterior).sqrMagnitude > 9f) { _metaAnterior = hacia; _mejorDistancia = float.MaxValue; _sinAvanzar = 0f; _atascosRuta = 0; }
+            if (_ruta.Count > 0 && Plano(hacia - _rutaMeta).sqrMagnitude > 16f) _ruta.Clear();
+            Vector3 destino = hacia;
+            if (_ruta.Count > 0)
+            {
+                // Los puntos de en medio, de cerca: son las esquinas (dejarlos antes es cortarlas contra la pared).
+                float aPunto = Plano(_ruta[0] - transform.position).magnitude;
+                if (aPunto < (_ruta.Count > 1 ? 0.6f : 1.3f)) { _ruta.RemoveAt(0); _mejorRuta = float.MaxValue; _sinAvanzarRuta = 0f; }
+                else if (aPunto < _mejorRuta - 0.3f) { _mejorRuta = aPunto; _sinAvanzarRuta = 0f; }
+                else if ((_sinAvanzarRuta += dt) > 2.5f)
+                {
+                    // No se acerca al punto del camino (algo que el camino no vio): otro desde aqui.
+                    string choca = "";
+                    var dirP = Plano(_ruta[0] - transform.position).normalized;
+                    if (Physics.Raycast(transform.position + Vector3.up * 0.6f, dirP, out var hP, 2f, CapasObstaculo, QueryTriggerInteraction.Ignore))
+                        choca = $" (choca con {hP.collider.name}, capa {hP.collider.gameObject.layer}, alto {hP.collider.bounds.max.y - transform.position.y:F2} m)";
+                    var puntoP = _ruta[0];
+                    _ruta.Clear();
+                    // Una vez, otro camino desde aqui; si tambien se atasca, lo deja un rato (y el que va a una pista
+                    // se rinde y busca alrededor).
+                    bool otro = ++_atascosRuta < 2;
+                    Debug.Log($"[GD] {name} se atasca siguiendo su camino en {transform.position} hacia {puntoP}{choca}: {(otro ? "pide otro" : "lo deja")}");
+                    _proximaRuta = otro ? 0f : Time.time + 10f;
+                    _sinAvanzar = otro ? 3f : 0f;
+                }
+                if (_ruta.Count > 0) destino = _ruta[0];
+            }
+            float falta = Plano(hacia - transform.position).magnitude;
+            // No acercarse solo es atascarse si la meta esta quieta (una que se mueve con el, como el punto de
+            // delante al que va el que dispara, nunca se alcanza).
+            bool fija = (hacia - _metaPrevia).sqrMagnitude < 0.25f;
+            _metaPrevia = hacia;
+            if (!fija) { _sinAvanzar = 0f; _mejorDistancia = falta; }
+            else if (falta < _mejorDistancia - 0.5f) { _mejorDistancia = falta; _sinAvanzar = 0f; }
+            else _sinAvanzar += dt;
+            Vector3 d = Plano(destino - transform.position);
             if (d.magnitude < 0.3f) return 0f;
             Vector3 dir = d.normalized;
-            float paso = velocidad * dt;
+            // Sin pasarse del punto (a pocos fps, un paso es mas que el radio de llegada).
+            float paso = Mathf.Min(velocidad * dt, d.magnitude);
             // Rodeando: sigue el rumbo desviado un rato; si el directo ya esta libre, lo deja.
             if (Time.time < _rodeoHasta)
             {
@@ -753,13 +806,28 @@ namespace Guardianes.Enemigos
                     hay = true;
                     break;
                 }
-                if (!hay) return 0f;
+                if (!hay) { PedirCamino(hacia, falta); return 0f; }
             }
+            // Atascado (no se acerca en un rato): un camino de verdad.
+            if (_sinAvanzar > 2.5f) PedirCamino(hacia, falta);
             Girar(transform.position + dir, dt * 6f);
             Vector3 p = transform.position + dir * paso;
             if (TerrenoMundo.Instancia != null) p.y = Mapa.Altura(p.x, p.z);
             transform.position = p;
             return velocidad;
+        }
+
+        void PedirCamino(Vector3 hacia, float falta)
+        {
+            if (_ruta.Count > 0 || Time.time < _proximaRuta || falta < 3f || !Navegacion.Puede) return;
+            _proximaRuta = Time.time + 3f;
+            bool llega = Navegacion.Camino(transform.position, hacia, CapasObstaculo, _ruta, 2f, Mathf.Clamp(falta * 0.5f, 15f, 40f));
+            Debug.Log($"[GD] Camino de {name} desde {transform.position}: {_ruta.Count} puntos hacia {hacia} ({(llega ? "llega" : "no llega")}, a {falta:F1} m): {string.Join(" ", _ruta)}; {Navegacion.Ultimo}");
+            _rutaMeta = hacia;
+            _sinAvanzar = 0f;
+            _sinAvanzarRuta = 0f;
+            _mejorRuta = float.MaxValue;
+            _mejorDistancia = falta;
         }
 
         /// <summary>Se puede dar el paso en esa direccion: sin agua honda, sin pared y sin obstaculo delante.</summary>

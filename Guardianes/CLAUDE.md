@@ -64,7 +64,14 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   (antes, ahora: para las voces); al buscar, en cada punto se para y mira a un lado y a otro; el cuerpo
   dura `SegundosCuerpo` —25 de serie; cada juego lo pone— salvo `conservarCuerpo`, `MuertoDesde`; **duerme**
   —`Dormir`/`Despertar`, `Dormido`, `AlDespertar`: tumbado, quieto, solo ve lo que tiene encima, y despierta
-  con un ruido, un golpe, un aviso o si la ve; muerto dormido se queda tumbado; cada juego decide cuándo—);
+  con un ruido, un golpe, un aviso o si la ve; muerto dormido se queda tumbado; cada juego decide cuándo—;
+  **caminos**: si se atasca —no se acerca en 2,5 s o no hay rumbo libre—, pide uno a `Navegacion` (A* en
+  rejilla de 2 m: agua honda, cuestas y `CapasObstaculo`; recortado por líneas de visión con 0,65 m de holgura,
+  para que al desviarse no acabe con una esquina delante; uno por fotograma; desde donde está pegado a una pared,
+  el primer paso no cuenta lo que ya toca; `Ultimo` dice por qué falla y `Depurar`, con qué choca) y lo sigue,
+  `ConCamino`; las esquinas del camino las pisa —a 0,6 m— en vez de cortarlas; si no se acerca al punto del
+  camino en 2,5 s, pide otro una vez y, si vuelve a atascarse, lo deja: el que va a una pista se rinde y busca
+  alrededor, también si en 6 s no se acerca);
   `quieto` para centinelas y gente sentada, `ruta` para rondas (con `pausaRuta` en los extremos:
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
