@@ -115,6 +115,10 @@ namespace Guardianes.Enemigos
         [System.NonSerialized] public bool conservarCuerpo;
         /// <summary>Cuando murio (Time.time).</summary>
         public float MuertoDesde { get; private set; } = -1f;
+        /// <summary>Duerme (las rutinas de cada juego): tumbado, quieto y casi sin ver; lo despiertan un ruido, un golpe o la criatura encima.</summary>
+        public bool Dormido { get; private set; }
+        Quaternion _rotDespierto;
+        Vector3 _posDespierto;
         public static readonly System.Collections.Generic.List<Humano> Todos = new System.Collections.Generic.List<Humano>();
         /// <summary>Luz en un punto (0 noche cerrada .. 1 dia). La pone el juego; sin ella, siempre de dia.</summary>
         public static System.Func<Vector3, float> Luz;
@@ -222,6 +226,7 @@ namespace Guardianes.Enemigos
         public void Investigar(Vector3 punto, bool urgente)
         {
             if (Muerto || Ahuyentado || protegido) return;
+            if (Dormido) Despertar();
             // Una pista menos urgente no pisa a una urgente reciente.
             if (_pista.HasValue && _pistaUrgente && !urgente && Time.time < _pistaHasta - 40f) return;
             _sombras = punto;
@@ -247,6 +252,7 @@ namespace Guardianes.Enemigos
             float d = Vector3.Distance(r.donde, transform.position);
             float alcance = r.radio * oido;
             if (d > alcance) return;
+            if (Dormido) Despertar();
             float cerca = 1f - d / alcance;
             if (r.deCriatura)
             {
@@ -310,6 +316,15 @@ namespace Guardianes.Enemigos
                 if (Ahuyentado) { Escapar(aCriatura, hay, dt); return; }
             }
             bool laVe = Deteccion >= 1f;
+            if (Dormido)
+            {
+                if (Deteccion > 0.45f || Ahuyentado || Actual == Estado.Huida) Despertar();
+                else
+                {
+                    if (_anim != null) _anim.SetFloat(PVelocidad, 0f, 0.15f, dt);
+                    return;
+                }
+            }
             // Un animal que se les mete en el campamento (Enfrentar): mientras no vean a la criatura, le disparan.
             if (Enfrentando && !laVe && Actual != Estado.Huida && Time.time >= _miedoHasta)
             {
@@ -656,6 +671,7 @@ namespace Guardianes.Enemigos
             if (termica) luz = Mathf.Max(luz, 0.6f);
             float alcance = Mathf.Min(vision, visionPorTamano * tamano * Mathf.Lerp(0.25f, 1f, luz));
             if (_criatura.Escondida) alcance = Mathf.Min(alcance, tamano * 1.2f);
+            if (Dormido) alcance = Mathf.Min(alcance, 2f + tamano * 0.6f);
             // Lo que hay en medio (relieve, paredes, selva), si el juego lo mira: solo si estaria a tiro.
             if (Visibilidad != null && d < alcance)
             {
@@ -875,6 +891,33 @@ namespace Guardianes.Enemigos
             Disparar(dt, p);
         }
 
+        /// <summary>Se echa a dormir donde esta (tumbado; la linterna apagada). Los protegidos y los muertos no.</summary>
+        public void Dormir()
+        {
+            if (Dormido || Muerto || Ahuyentado || Actual != Estado.Patrulla) return;
+            Dormido = true;
+            _rotDespierto = transform.rotation;
+            _posDespierto = transform.position;
+            // Tumbado boca arriba desde los pies.
+            transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f) * Quaternion.Euler(-88f, 0f, 0f);
+            transform.position = _posDespierto + Vector3.up * 0.12f;
+            if (linterna != null && linterna.Encendida) linterna.Apagar();
+            AlCambiarEstado?.Invoke(this, Actual, Actual);
+        }
+
+        /// <summary>Se despierta (y se levanta): un ruido, un golpe, un aviso o la criatura encima.</summary>
+        public void Despertar()
+        {
+            if (!Dormido) return;
+            Dormido = false;
+            transform.SetPositionAndRotation(_posDespierto, _rotDespierto);
+            if (Humano.ConMiedo) SumarMiedo(8f);
+            AlDespertar?.Invoke(this);
+        }
+
+        /// <summary>Se despierta uno que dormia.</summary>
+        public static event System.Action<Humano> AlDespertar;
+
         /// <summary>Huye durante unos segundos.</summary>
         public void Asustar(float segundos)
         {
@@ -896,6 +939,7 @@ namespace Guardianes.Enemigos
 
         void RecibirDanio(DatosDanio d)
         {
+            if (Dormido && !Muerto) Despertar();
             if (_anim != null) _anim.SetTrigger(PGolpe);
             if (d.origen != null && d.origen.GetComponentInParent<Criatura>() != null)
             {
@@ -907,6 +951,8 @@ namespace Guardianes.Enemigos
         void Morir(DatosDanio d)
         {
             var antes = Actual;
+            // Muerto en la hamaca: se queda tumbado.
+            Dormido = false;
             Actual = Estado.Muerto;
             MuertoDesde = Time.time;
             AlCambiarEstado?.Invoke(this, antes, Estado.Muerto);

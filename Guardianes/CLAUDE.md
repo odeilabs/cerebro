@@ -62,7 +62,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   mientras no vea a la criatura, el armado se vuelve y le dispara a ráfagas, el civil huye; `Enfrentando`;
   cada juego decide cuándo, p. ej. el animal que la criatura le lleva con un cebo—; `AlCambiarEstado`
   (antes, ahora: para las voces); al buscar, en cada punto se para y mira a un lado y a otro; el cuerpo
-  dura `SegundosCuerpo` —25 de serie; cada juego lo pone— salvo `conservarCuerpo`, `MuertoDesde`);
+  dura `SegundosCuerpo` —25 de serie; cada juego lo pone— salvo `conservarCuerpo`, `MuertoDesde`; **duerme**
+  —`Dormir`/`Despertar`, `Dormido`, `AlDespertar`: tumbado, quieto, solo ve lo que tiene encima, y despierta
+  con un ruido, un golpe, un aviso o si la ve; muerto dormido se queda tumbado; cada juego decide cuándo—);
   `quieto` para centinelas y gente sentada, `ruta` para rondas (con `pausaRuta` en los extremos:
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
