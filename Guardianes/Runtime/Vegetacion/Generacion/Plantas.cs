@@ -17,6 +17,8 @@ namespace Guardianes.Vegetacion.Generacion
         public enum Forma
         {
             Ceiba, Dosel, Palmera, HelechoArboreo, Platanera, Bambu, Arbusto, Helecho, HojasGrandes, Hierba, Flores, Roca, TroncoCaido,
+            // Las nuevas, al final (los assets guardan el numero).
+            Herbazal,
         }
 
         public const int SubMadera = 0;
@@ -41,6 +43,7 @@ namespace Guardianes.Vegetacion.Generacion
                 case Forma.Flores: Flores(m, ref r, detalle); break;
                 case Forma.Roca: Roca(m, ref r, detalle); break;
                 case Forma.TroncoCaido: TroncoCaido(m, ref r, detalle); break;
+                case Forma.Herbazal: Herbazal(m, ref r, detalle); break;
             }
             return m.Construir(nombre);
         }
@@ -470,6 +473,36 @@ namespace Guardianes.Vegetacion.Generacion
                 var uv = new Rect(c * 0.25f + 0.003f, 0.003f, 0.244f, 0.994f);
                 m.Tarjeta(SubHojas, (Vector3)r.NextFloat2Direction().x0y() * 0.15f, dir, Vector3.Cross(lado, Vector3.up), alto * r.NextFloat(0.8f, 1.1f), alto * 0.55f,
                     uv, r.NextFloat(0.05f, 0.25f), Pesos(0f, 0.4f, r.NextFloat()), centro, 0.35f);
+            }
+        }
+
+        // ================================================================== Herbazal
+        /// <summary>
+        /// Un trozo de herbazal cerrado (capim, canarana): varias matas de hierba alta repartidas en un circulo de algo
+        /// mas de un metro, para que plantadas a unos dos metros se toquen y no se vea el suelo entre ellas.
+        /// </summary>
+        static void Herbazal(ConstructorMalla m, ref Random r, int detalle)
+        {
+            int matas = detalle == 0 ? r.NextInt(6, 9) : 3;
+            float alto = r.NextFloat(1.1f, 1.6f);
+            var centro = Vector3.up * alto * 0.45f;
+            for (int j = 0; j < matas; j++)
+            {
+                // La primera en el centro; las demas, en el circulo (de lejos, menos y mas anchas).
+                Vector3 donde = j == 0 ? Vector3.zero : (Vector3)(r.NextFloat2Direction() * math.sqrt(r.NextFloat(0.15f, 1f)) * 1.1f).x0y();
+                int tarjetas = detalle == 0 ? r.NextInt(3, 5) : 4;
+                float altoMata = alto * r.NextFloat(0.8f, 1.1f);
+                for (int k = 0; k < tarjetas; k++)
+                {
+                    float az = k / (float)tarjetas * Mathf.PI + r.NextFloat(-0.4f, 0.4f);
+                    var lado = new Vector3(Mathf.Cos(az), 0f, Mathf.Sin(az));
+                    var dir = (Vector3.up + (Vector3)r.NextFloat2Direction().x0y() * 0.3f).normalized;
+                    int c = r.NextInt(4);
+                    var uv = new Rect(c * 0.25f + 0.003f, 0.003f, 0.244f, 0.994f);
+                    m.Tarjeta(SubHojas, donde + (Vector3)r.NextFloat2Direction().x0y() * 0.12f, dir, Vector3.Cross(lado, Vector3.up),
+                        altoMata * r.NextFloat(0.85f, 1.1f), altoMata * (detalle == 0 ? 0.55f : 0.8f),
+                        uv, r.NextFloat(0.08f, 0.28f), Pesos(0f, 0.45f, r.NextFloat()), centro, 0.3f);
+                }
             }
         }
 

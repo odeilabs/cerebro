@@ -40,7 +40,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   cegar un sentido).
 - `Runtime/Vegetacion/` — `Viento` (+ interactores), `EspecieVegetal`, `Generacion/Plantas`
   (ceiba, dosel, palmera, helecho arbóreo, platanera, bambú, arbusto, helecho, hojas grandes,
-  hierba, flores, roca, tronco), `RenderizadorVegetacion` (instancing por cámara con culling/LOD en
+  hierba, flores, roca, tronco y herbazal —un trozo de hierba alta cerrada: varias matas en un círculo de algo más de
+  un metro, que plantadas a 1,7 m no dejan ver el suelo; las formas nuevas van al final del enum, los assets guardan
+  el número—), `RenderizadorVegetacion` (instancing por cámara con culling/LOD en
   Burst; `Buscar`, `Derribar`), `Derribos`, `DatosVegetacion`.
 - `Runtime/Criaturas/Criatura` — **la criatura del jugador** (Koba, el basilisco...). Los humanos,
   los helicópteros, la cámara, los efectos, el sonido y el HUD la buscan aquí (`Criatura.Jugador`)

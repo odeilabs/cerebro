@@ -145,6 +145,9 @@ namespace Guardianes.EditorTools.Vegetacion
                     Roca(), null, 1.5f, 2f, false, 9999f),
                 Especie("TroncoCaido", TipoVegetal.Roca, Plantas.Forma.TroncoCaido, 3, 191, new[] { 80f, 260f }, null,
                     cortezaTropical, frondaHelecho, 0f, 1f, true, 30f),
+                // El herbazal cerrado (las manchas de hierba alta donde se esconde lo pequeno): sin sombras, es mucha.
+                Especie("Herbazal", TipoVegetal.Suelo, Plantas.Forma.Herbazal, 3, 211, new[] { 40f, 90f }, new[] { ShadowCastingMode.Off, ShadowCastingMode.Off },
+                    bambu, Hojas("hierba_alta"), 0f, 1f, true, 1f),
             };
         }
 
