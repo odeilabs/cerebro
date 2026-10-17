@@ -115,7 +115,10 @@ namespace Guardianes.Camara
             // En pausa (escala de tiempo 0) el raton mueve el menu, no la camara.
             if (_entrada != null && Time.timeScale > 0f)
             {
-                Vector2 m = _entrada.Mirar(sensibilidadRaton, sensibilidadMando);
+                // La sensibilidad y el eje vertical, de las opciones del jugador.
+                float sens = Guardianes.Juego.OpcionesJuego.Sensibilidad;
+                Vector2 m = _entrada.Mirar(sensibilidadRaton * sens, sensibilidadMando * sens);
+                if (Guardianes.Juego.OpcionesJuego.InvertirY) m.y = -m.y;
                 _yaw += m.x;
                 _pitch = Mathf.Clamp(_pitch - m.y, limitesInclinacion.x, limitesInclinacion.y);
                 float z = _entrada.Zoom;

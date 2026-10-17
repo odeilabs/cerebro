@@ -170,16 +170,16 @@ namespace Guardianes.UI
             if (!visible) return;
             _mision.SetActive(true);
             _mision.transform.SetAsLastSibling();
-            _misionTitulo.text = titulo;
-            _misionSubtitulo.text = subtitulo;
+            _misionTitulo.text = Guardianes.Juego.Textos.T(titulo);
+            _misionSubtitulo.text = Guardianes.Juego.Textos.T(subtitulo);
             for (int i = 0; i < _misionEtiquetas.Length; i++)
             {
                 bool hay = filas != null && i < filas.Length;
-                _misionEtiquetas[i].text = hay ? filas[i].Item1 : "";
+                _misionEtiquetas[i].text = hay ? Guardianes.Juego.Textos.T(filas[i].Item1) : "";
                 _misionValores[i].text = hay ? filas[i].Item2 : "";
             }
-            _misionValoracion.text = valoracion;
-            _misionPie.text = pie;
+            _misionValoracion.text = Guardianes.Juego.Textos.T(valoracion);
+            _misionPie.text = Guardianes.Juego.Textos.T(pie);
         }
 
         void ActualizarPantallas()

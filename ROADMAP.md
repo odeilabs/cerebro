@@ -5,6 +5,11 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 
 ## Hecho (octubre 2026)
 
+- **Las opciones, los controles y los idiomas comunes** (17 oct 2026, desde Basiliskos): `OpcionesJuego` (pantalla,
+  volumen, cámara, subtítulos, daltonismo, dificultad, idioma, consejos; las acciones de cada juego se reasignan),
+  `Textos` (las tablas `Resources/Textos/*.<idioma>.txt`), el panel de opciones y de controles de `HudJuego`, los
+  subtítulos con tamaño y fondo, y el herbazal (`Plantas.Forma.Herbazal`).
+
 - Paquete `com.odeilabs.guardianes` extraído de King Kong (hoy Gorilla Revenge) y usado por Gorilla Revenge y Basiliskos:
   mundo (relieve, agua, ríos, lagos, vegetación instanciada con viento, derribos), `Criatura`,
   combate, humanos de Ferrox (detección con luz y escondites, criaturas pequeñas y gigantes),
@@ -74,6 +79,9 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
    en el editor lo que pone la escena de arranque la primera de las del build. Cada juego lo trae a su
    copia y lo usa en su primera build 1.0.0 (Basiliskos lo tiene apuntado en su `ROADMAP.md`). Lo que
    AssetsCreator aún no ha probado: que se reproduzca en una build, el salto y el póster.
+   **En marcha (17 oct 2026)**: ya está en `Guardianes/Runtime/Splash` (el componente sin tocar, `OdeiLabs.mp4` y
+   el póster); Basiliskos lo usa en su escena `Arranque` con su salto del Input System (`SaltarSplash`, del juego).
+   Falta: el constructor común de la escena de arranque (hoy, el de Basiliskos) y probarlo en una build.
 
 ## Después
 

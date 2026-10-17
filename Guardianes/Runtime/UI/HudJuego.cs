@@ -163,7 +163,13 @@ namespace Guardianes.UI
             ConstruirPantallas(r);
             ConstruirMenu(r);
             ConstruirInicio(r);
+            ConstruirOpciones(r);
+            PrepararSubtitulos();
+            ConstruirExtras(r);
         }
+
+        /// <summary>Lo que cada juego anade a los menus (sus botones y paneles), al final del montaje.</summary>
+        protected virtual void ConstruirExtras(Transform r) { }
 
         /// <summary>La esquina de la criatura: nombre y vida. Cada juego anade sus barras.</summary>
         protected virtual void ConstruirEstado(Transform r)
@@ -229,7 +235,7 @@ namespace Guardianes.UI
             if (ver && !_jefe.activeSelf) _jefeMostrada = Mathf.Clamp01(fraccion);
             _jefe.SetActive(ver);
             if (!ver) return;
-            _jefeNombre.text = nombre;
+            _jefeNombre.text = Guardianes.Juego.Textos.T(nombre);
             fraccion = Mathf.Clamp01(fraccion);
             _jefeMostrada = fraccion > _jefeMostrada ? fraccion : Mathf.MoveTowards(_jefeMostrada, fraccion, Time.unscaledDeltaTime * 0.3f);
             Llenar(_jefeVida, fraccion);
@@ -287,9 +293,10 @@ namespace Guardianes.UI
             _textoCampana = Boton(m, "Campana", new Vector2(0f, 105f), () => alCampana?.Invoke(), 640f);
             _textoNivel = Boton(m, "Nivel", new Vector2(0f, 35f), () => alCambiarNivel?.Invoke(1), 640f);
             Boton(m, textoModoLibre, new Vector2(0f, -40f), () => alLibre?.Invoke(), 640f);
-            Boton(m, "Salir", new Vector2(0f, -115f), () => alSalir?.Invoke(), 640f);
-            // Bajo "Salir" (de -145 a -85): la etiqueta mide 200 y el texto empieza arriba.
-            _textoInicioInfo = Etiqueta(m, "", new Vector2(0f, -265f), 22, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
+            Boton(m, "Opciones", new Vector2(0f, -115f), AbrirOpciones, 640f);
+            Boton(m, "Salir", new Vector2(0f, -190f), () => alSalir?.Invoke(), 640f);
+            // Bajo "Salir" (de -220 a -160): la etiqueta mide 200 y el texto empieza arriba.
+            _textoInicioInfo = Etiqueta(m, "", new Vector2(0f, -340f), 22, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
             _textoInicioInfo.rectTransform.sizeDelta = new Vector2(1300f, 200f);
             _textoInicioInfo.horizontalOverflow = HorizontalWrapMode.Wrap;
             _inicio.SetActive(false);
@@ -306,13 +313,13 @@ namespace Guardianes.UI
             Etiqueta(m, "PAUSA", new Vector2(0f, 330f), 64, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f));
             Boton(m, "Continuar", new Vector2(0f, 240f), () => alContinuar?.Invoke());
             Boton(m, "Guardar partida", new Vector2(0f, 170f), () => alGuardar?.Invoke());
-            _textoCalidad = Boton(m, "Calidad", new Vector2(0f, 100f), () => alCambiarCalidad?.Invoke());
-            _textoVolumen = Boton(m, "Volumen", new Vector2(0f, 30f), () => alCambiarVolumen?.Invoke(0.25f));
-            Boton(m, "Reiniciar nivel", new Vector2(0f, -40f), () => alReiniciar?.Invoke());
-            Boton(m, "Menu principal", new Vector2(0f, -110f), () => alMenuPrincipal?.Invoke());
-            Boton(m, "Salir", new Vector2(0f, -180f), () => alSalir?.Invoke());
-            // Bajo "Salir" (de -210 a -150): la etiqueta mide 120 y el texto empieza arriba.
-            _textoControlesMenu = Etiqueta(m, textoControles, new Vector2(0f, -285f), 20, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
+            // La calidad y el volumen, en Opciones.
+            Boton(m, "Opciones", new Vector2(0f, 100f), AbrirOpciones);
+            Boton(m, "Reiniciar nivel", new Vector2(0f, 30f), () => alReiniciar?.Invoke());
+            Boton(m, "Menu principal", new Vector2(0f, -40f), () => alMenuPrincipal?.Invoke());
+            Boton(m, "Salir", new Vector2(0f, -110f), () => alSalir?.Invoke());
+            // Bajo "Salir" (de -140 a -80): la etiqueta mide 120 y el texto empieza arriba.
+            _textoControlesMenu = Etiqueta(m, textoControles, new Vector2(0f, -215f), 20, TextAnchor.UpperCenter, new Vector2(0.5f, 0.5f));
             _textoControlesMenu.rectTransform.sizeDelta = new Vector2(1500f, 120f);
             _textoControlesMenu.horizontalOverflow = HorizontalWrapMode.Wrap;
             _menu.SetActive(false);
@@ -355,7 +362,9 @@ namespace Guardianes.UI
             t.fontSize = tam;
             t.alignment = ancla;
             t.color = new Color(0.95f, 0.92f, 0.85f);
-            t.text = texto;
+            // Traducido; los fijos se vuelven a traducir al cambiar de idioma (si nadie los ha cambiado).
+            t.text = Guardianes.Juego.Textos.T(texto);
+            if (!string.IsNullOrEmpty(texto)) _traducibles.Add((t, texto, t.text));
             t.raycastTarget = false;
             t.horizontalOverflow = HorizontalWrapMode.Overflow;
             var rt = t.rectTransform;
@@ -399,7 +408,7 @@ namespace Guardianes.UI
         }
 
         // ------------------------------------------------------------------ API de pantallas
-        public void Avisar(string texto) => _cola.Enqueue(texto);
+        public void Avisar(string texto) => _cola.Enqueue(Guardianes.Juego.Textos.T(texto));
 
         /// <summary>Funde la pantalla a negro (alfa 1) o la aclara (alfa 0) en tiempo real.</summary>
         public void Fundido(float alfa, float segundos)
@@ -413,15 +422,15 @@ namespace Guardianes.UI
         /// <summary>Una linea de narracion en el centro (aparece y se desvanece).</summary>
         public void Narrar(string texto, float segundos)
         {
-            _narracion.text = texto;
+            _narracion.text = Guardianes.Juego.Textos.T(texto);
             _narracionDesde = Time.unscaledTime;
             _narracionHasta = Time.unscaledTime + segundos;
         }
 
         public void Titulo(string titulo, string subtitulo, float segundos)
         {
-            _titulo.text = titulo;
-            _subtitulo.text = subtitulo;
+            _titulo.text = Guardianes.Juego.Textos.T(titulo);
+            _subtitulo.text = Guardianes.Juego.Textos.T(subtitulo);
             _tituloDesde = Time.unscaledTime;
             _tituloHasta = Time.unscaledTime + segundos;
         }
@@ -431,7 +440,7 @@ namespace Guardianes.UI
         /// <summary>Una frase de un personaje abajo, como subtitulo (el juego sigue).</summary>
         public void Dialogo(string texto, float segundos)
         {
-            _dialogo.text = texto;
+            _dialogo.text = Guardianes.Juego.Textos.T(texto);
             _dialogoDesde = Time.unscaledTime;
             _dialogoHasta = Time.unscaledTime + segundos;
         }
@@ -488,7 +497,7 @@ namespace Guardianes.UI
         public void MenuInicio(bool visible, string campana = "", string nivel = "", string info = "", string guardada = null)
         {
             _inicio.SetActive(visible);
-            if (!visible) return;
+            if (!visible) { CerrarPaneles(); return; }
             _botonContinuarPartida.SetActive(guardada != null);
             if (guardada != null) _textoContinuarPartida.text = "Continuar: " + guardada;
             _textoCampana.text = campana;
@@ -502,8 +511,9 @@ namespace Guardianes.UI
         public void MenuPausa(bool visible, string calidad, float volumen)
         {
             _menu.SetActive(visible);
-            _textoCalidad.text = "Calidad: " + calidad;
-            _textoVolumen.text = $"Volumen: {Mathf.RoundToInt(volumen * 100f)} %";
+            if (_textoCalidad != null) _textoCalidad.text = "Calidad: " + calidad;
+            if (_textoVolumen != null) _textoVolumen.text = $"Volumen: {Mathf.RoundToInt(volumen * 100f)} %";
+            if (!visible) CerrarPaneles();
             if (visible)
             {
                 var b = _menu.GetComponentInChildren<Button>();
@@ -511,7 +521,16 @@ namespace Guardianes.UI
             }
         }
 
-        public bool MenuAbierto => (_menu != null && _menu.activeSelf) || (_inicio != null && _inicio.activeSelf);
+        public virtual bool MenuAbierto => (_menu != null && _menu.activeSelf) || (_inicio != null && _inicio.activeSelf) || OpcionesAbiertas;
+
+        /// <summary>Cierra las opciones y los controles (al cerrar el menu desde el que se abrieron).</summary>
+        protected virtual void CerrarPaneles()
+        {
+            CancelarReasignar();
+            if (_opciones != null) _opciones.SetActive(false);
+            if (_controles != null) _controles.SetActive(false);
+            _volverA = null;
+        }
 
         static float Aparicion(float desde, float hasta, float entrada)
         {
@@ -552,6 +571,7 @@ namespace Guardianes.UI
             _subtitulo.color = new Color(0.95f, 0.92f, 0.85f, at);
 
             ActualizarPantallas();
+            ActualizarSubtitulos();
             float ar = Mathf.Clamp01((_qteResultadoHasta - Time.unscaledTime) / 0.5f);
             _qteResultado.color = new Color(_qteResultado.color.r, _qteResultado.color.g, _qteResultado.color.b, ar);
             if (_criatura == null) _criatura = Criatura.Jugador;
@@ -562,9 +582,9 @@ namespace Guardianes.UI
 
             int liberadas = 0;
             foreach (var z in ZonaHumana.Todas) if (z.Liberada) liberadas++;
-            string zonas = ZonaHumana.Todas.Count > 0 ? $"Zonas liberadas {liberadas}/{ZonaHumana.Todas.Count}" : "";
+            string zonas = ZonaHumana.Todas.Count > 0 ? Guardianes.Juego.Textos.F("Zonas liberadas {0}/{1}", liberadas, ZonaHumana.Todas.Count) : "";
             int lugares = Descubrimiento.Todos.Count;
-            if (lugares > 0) zonas += $"\nLugares descubiertos {Descubrimiento.Descubiertos()}/{lugares}";
+            if (lugares > 0) zonas += "\n" + Guardianes.Juego.Textos.F("Lugares descubiertos {0}/{1}", Descubrimiento.Descubiertos(), lugares);
             _zonas.text = modoCampana ? "" : zonas;
 
             if (Time.time > _avisoHasta && _cola.Count > 0)

@@ -167,8 +167,9 @@ namespace Guardianes.Misiones
             yield return Cinematica(m.introduccion, true);
             if (Hud != null)
             {
-                Hud.Nivel($"{m.acto}\n{textoMision} {m.numero}: {m.titulo}");
-                Hud.Titulo(m.titulo.ToUpperInvariant(), $"{m.acto}  ·  {textoMision} {m.numero}  {m.Etiquetas}", 4f);
+                string titulo = Guardianes.Juego.Textos.T(m.titulo), acto = Guardianes.Juego.Textos.T(m.acto), mision = Guardianes.Juego.Textos.T(textoMision);
+                Hud.Nivel($"{acto}\n{mision} {m.numero}: {titulo}");
+                Hud.Titulo(titulo.ToUpperInvariant(), $"{acto}  ·  {mision} {m.numero}  {m.Etiquetas}", 4f);
             }
             _inicio = Time.time;
 
@@ -190,7 +191,7 @@ namespace Guardianes.Misiones
                 o.Terminar();
                 Debug.Log($"[GD] Mision {m.numero}: objetivo {NumeroObjetivo + 1} cumplido en {o.Tiempo:F0} s");
                 Decir(o.alCumplir);
-                if (Hud != null && !string.IsNullOrEmpty(o.texto)) Hud.Avisar(textoHecho + o.texto);
+                if (Hud != null && !string.IsNullOrEmpty(o.texto)) Hud.Avisar(Guardianes.Juego.Textos.T(textoHecho) + Guardianes.Juego.Textos.T(o.texto));
                 // Que se lea lo que se dice al acabar antes de seguir (el juego no se para).
                 float espera = Time.time + 25f;
                 while (o.alCumplir.Length > 0 && !DialogoTerminado && Time.time < espera)
@@ -223,8 +224,8 @@ namespace Guardianes.Misiones
         {
             if (Hud == null) return;
             var sb = new System.Text.StringBuilder();
-            sb.Append($"{textoObjetivo} {NumeroObjetivo + 1}/{m.objetivos.Count}\n");
-            if (!string.IsNullOrEmpty(o.texto)) sb.Append(o.texto);
+            sb.Append($"{Guardianes.Juego.Textos.T(textoObjetivo)} {NumeroObjetivo + 1}/{m.objetivos.Count}\n");
+            if (!string.IsNullOrEmpty(o.texto)) sb.Append(Guardianes.Juego.Textos.T(o.texto));
             var p = o.Progreso;
             if (!string.IsNullOrEmpty(p)) sb.Append($"  ({p})");
             foreach (var r in m.reglas)
@@ -293,14 +294,17 @@ namespace Guardianes.Misiones
             (Gamepad.current != null && (Gamepad.current.startButton.wasPressedThisFrame || Gamepad.current.buttonSouth.wasPressedThisFrame));
 
         /// <summary>Lineas en el centro de la pantalla con la criatura quieta (Intro o Espacio las pasan).</summary>
+        /// <summary>Lo que se oscurece la pantalla en las cinematicas (cada juego: con plano de cine, menos).</summary>
+        protected virtual float OscuridadCinematica => 0.6f;
+
         protected IEnumerator Cinematica(string[] lineas, bool desdeNegro)
         {
             EnCinematica = true;
             Bloquear(true);
             if (lineas != null && lineas.Length > 0 && Hud != null)
             {
-                if (desdeNegro) Hud.Fundido(0.6f, 2f);
-                else Hud.Fundido(0.6f, 1.5f);
+                if (desdeNegro) Hud.Fundido(OscuridadCinematica, 2f);
+                else Hud.Fundido(OscuridadCinematica, 1.5f);
                 foreach (var l in lineas)
                 {
                     float s = Rapido ? 1.2f : Lectura(l) + 0.6f;
@@ -330,7 +334,7 @@ namespace Guardianes.Misiones
             Debug.Log($"[GD] Mision {m.numero} '{m.titulo}' COMPLETADA. {sb}{valoracion}");
             AlCompletarMision?.Invoke(this);
             if (Hud != null)
-                Hud.PantallaMision(true, textoCompletada, $"{m.acto}  ·  {textoMision} {m.numero}: {m.titulo}", filas.ToArray(), valoracion, PieCompletada());
+                Hud.PantallaMision(true, textoCompletada, $"{Guardianes.Juego.Textos.T(m.acto)}  ·  {Guardianes.Juego.Textos.T(textoMision)} {m.numero}: {Guardianes.Juego.Textos.T(m.titulo)}", filas.ToArray(), valoracion, PieCompletada());
             yield return Esperar();
             if (Hud != null) Hud.PantallaMision(false);
             Bloquear(false);

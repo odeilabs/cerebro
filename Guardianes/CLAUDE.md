@@ -110,9 +110,22 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 - `Runtime/Efectos/EfectosCombate` (`Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—), `Runtime/Audio/SonidoJuego` (la voz de cada criatura la pone su
   juego con `Sonar` y los bancos `voces`/`percusion`/`pisadas`...), `Runtime/Camara/CamaraCriatura`
   (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`
-  (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero),
+  (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero; `OpcionesJuego`: las
+  opciones del jugador en PlayerPrefs —pantalla completa, resolución, VSync, volumen, sensibilidad e invertir el eje
+  Y de la cámara, tamaño y fondo de los subtítulos, daltonismo con su paleta `Peligro`/`Aviso`/`Bien`, dificultad
+  —`DanioRecibido`, que aplica `Salud` a la criatura del jugador, y `Deteccion`, que aplica `Humano`—, idioma y los
+  consejos; los controles: cada juego `Registrar` sus acciones y las teclas cambiadas se guardan; en batch, las de
+  serie—; `Textos`: los idiomas —`T` traduce un texto con las tablas `Resources/Textos/*.<idioma>.txt` («español»
+  TAB «traducción»), `F` una plantilla con huecos; lo que no está sale en español—),
   `Runtime/UI/HudJuego` (con `Jefe(nombre, vida)`: la barra de un jefe arriba, en el centro; + `PantallasHud`: cada juego hereda y pinta su estado en
-  `ConstruirEstado`/`ActualizarEstado`).
+  `ConstruirEstado`/`ActualizarEstado`; `HudJuego.Opciones`: el panel de opciones y el de controles —reasignar
+  teclas y botones con el Input System—, desde el menú de inicio y el de pausa, con mando; los subtítulos y la
+  narración con su tamaño y un fondo oscuro; los textos fijos y los avisos, narraciones, diálogos, títulos y la
+  pantalla de la misión pasan por `Textos.T` y se vuelven a traducir al cambiar de idioma; `ConstruirExtras`,
+  `RaizInicio`/`RaizPausa` y `CerrarPaneles` para los botones y paneles de cada juego), `Runtime/Splash/` (el
+  splash de Odei Labs: `AssetsCreatorSplash` de AssetsCreator —sin tocar—, su vídeo `OdeiLabs.mp4` y el póster de
+  plan B; cada juego lo pone en su escena de arranque y lo salta con su entrada). `DirectorMisiones.OscuridadCinematica`:
+  lo que se oscurece la pantalla en las cinemáticas (un juego con plano de cine, menos).
 - `Editor/` — `ConfiguradorHDRP` (ajustes ultra y la atmósfera de selva), `MaterialesLit`,
   `Capturador`, `Diagnostico`, `AvisoCerebro` (al abrir el editor, avisa de los cambios del cerebro
   que la copia no tiene y de los de la copia que no se han subido), `ImportadorTexturas`, `Terreno/` (`Relieve` y `PasadasRelieve`:

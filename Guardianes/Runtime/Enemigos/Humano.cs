@@ -699,7 +699,8 @@ namespace Guardianes.Enemigos
             {
                 // Grandes: al instante. Pequenas: mas deprisa cuanto mas cerca, mas grande y mas rapida.
                 float rapidez = grande ? 100f : (0.6f + 2.5f * ve) * Mathf.Lerp(0.6f, 1.8f, Mathf.Clamp01(_criatura.Velocidad.magnitude / Mathf.Max(tamano, 0.3f)));
-                Deteccion = Mathf.Min(1f, Deteccion + rapidez * dt);
+                // La dificultad: lo deprisa que la reconocen (Opciones).
+                Deteccion = Mathf.Min(1f, Deteccion + rapidez * Guardianes.Juego.OpcionesJuego.Deteccion * dt);
             }
             else Deteccion = Mathf.MoveTowards(Deteccion, 0f, dt * (Actual == Estado.Acoso ? 0.15f : 0.35f));
             if (Deteccion >= 1f && !_vista)

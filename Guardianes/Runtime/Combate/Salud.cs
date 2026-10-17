@@ -48,6 +48,9 @@ namespace Guardianes.Combate
                     : d.tipo == TipoDanio.Canon ? resistenciaCanon
                     : d.tipo == TipoDanio.Golpe || d.tipo == TipoDanio.Onda || d.tipo == TipoDanio.Pisoton ? resistenciaGolpes : 1f;
             d.cantidad *= k;
+            // La dificultad: el dano que recibe la criatura del jugador (Opciones).
+            var jugador = Guardianes.Criaturas.Criatura.Jugador;
+            if (jugador != null && jugador.Salud == this) d.cantidad *= Guardianes.Juego.OpcionesJuego.DanioRecibido;
             if (d.cantidad <= 0f) return;
             actual = Mathf.Max(0f, actual - d.cantidad);
             UltimoDanio = d;

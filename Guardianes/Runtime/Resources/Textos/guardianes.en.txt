@@ -1,0 +1,75 @@
+# Guardianes (el paquete comun): espanol TAB ingles. Las lineas con # no cuentan; \n es un salto de linea.
+# Menus
+Continuar partida	Continue game
+Continuar	Continue
+Campaña	Campaign
+Campana	Campaign
+Nivel	Level
+Modo libre	Free roam
+Opciones	Options
+Salir	Quit
+PAUSA	PAUSED
+Guardar partida	Save game
+Reiniciar nivel	Restart level
+Menu principal	Main menu
+Menú principal	Main menu
+Volver	Back
+Controles	Controls
+Restablecer	Reset to defaults
+OPCIONES	OPTIONS
+CONTROLES	CONTROLS
+Acción                                  Teclado y ratón                               Mando	Action                                  Keyboard and mouse                            Gamepad
+# Opciones
+Calidad	Quality
+Pantalla completa	Fullscreen
+Resolución	Resolution
+Sincronía vertical	VSync
+Volumen	Volume
+Idioma	Language
+Sensibilidad de la cámara	Camera sensitivity
+Invertir el eje vertical	Invert vertical axis
+Subtítulos	Subtitles
+Fondo de los subtítulos	Subtitle background
+Consejos de la primera vez	First-time tips
+Daltonismo	Colour blindness
+Dificultad	Difficulty
+sí	yes
+no	no
+la del escritorio	desktop
+normales	normal
+grandes	large
+muy grandes	very large
+deuteranopía	deuteranopia
+protanopía	protanopia
+tritanopía	tritanopia
+fácil	easy
+normal	normal
+difícil	hard
+Baja	Low
+Media	Medium
+Alta	High
+Ultra	Ultra
+Fácil: recibes la mitad de daño y tardan más en reconocerte. Difícil: al revés.	Easy: you take half the damage and they take longer to recognise you. Hard: the opposite.
+Pulsa una tecla…	Press a key…
+Pulsa un botón del mando…	Press a gamepad button…
+(no se puede cambiar)	(cannot be changed)
+# Misiones
+Mision	Mission
+Misión	Mission
+Objetivo	Objective
+MISION COMPLETADA	MISSION COMPLETE
+MISIÓN COMPLETADA	MISSION COMPLETE
+MISION FALLIDA	MISSION FAILED
+MISIÓN FALLIDA	MISSION FAILED
+Intro: reintentar	Enter: retry
+Intro: continuar	Enter: continue
+Hecho: 	Done:
+Tiempo	Time
+Te han visto	Times seen
+Ahuyentados	Scared off
+Bajas	Kills
+Inocentes muertos	Innocents killed
+# HUD
+Zonas liberadas {0}/{1}	Zones freed {0}/{1}
+Lugares descubiertos {0}/{1}	Places discovered {0}/{1}
+Helicoptero derribado	Helicopter down
