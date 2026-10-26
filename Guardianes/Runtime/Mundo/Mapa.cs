@@ -15,6 +15,16 @@ namespace Guardianes.Mundo
 
         public static DatosMundo Datos => TerrenoMundo.Instancia != null ? TerrenoMundo.Instancia.Datos : null;
 
+        /// <summary>
+        /// La crecida (m): lo que han subido los rios y los lagos sobre su cota (la lluvia; la pone cada juego). Sube
+        /// el agua donde ya la habia (el cauce se hace mas hondo y los vados se cierran) y AguaMundo sube con ella las
+        /// cintas de los rios y los lagos. El mar no crece.
+        /// </summary>
+        public static float Crecida;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void Reiniciar() => Crecida = 0f;
+
         /// <summary>Altura del suelo (m) en x, z (el fondo, si hay agua).</summary>
         public static float Altura(float x, float z)
         {
@@ -36,6 +46,7 @@ namespace Guardianes.Mundo
             var d = Datos;
             if (d == null) return Medidas.hayMar ? Medidas.nivelMar : float.NaN;
             float nivel = d.NivelAgua(new float2(x, z));
+            if (Crecida > 0f && !float.IsNaN(nivel) && !(Medidas.hayMar && nivel <= Medidas.nivelMar + 0.01f)) nivel += Crecida;
             // El agua que queda por debajo del suelo (bordes del mapa de agua) no cuenta.
             return !float.IsNaN(nivel) && nivel > d.Altura(new float2(x, z)) ? nivel : float.NaN;
         }

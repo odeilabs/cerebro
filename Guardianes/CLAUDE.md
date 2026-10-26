@@ -18,11 +18,12 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 ## Qué hay
 
 - `Runtime/Mundo/` — `MedidasMundo` (lado, teselas, resoluciones, rango de alturas, mar), `Mapa`
-  (consultas para todos: altura, agua, profundidad, tierra firme, normal), `DatosMundo` (el mundo
+  (consultas para todos: altura, agua, profundidad, tierra firme, normal; `Crecida`: lo que suben los ríos y los lagos
+  —la lluvia, la pone cada juego—, el mar no), `DatosMundo` (el mundo
   compacto en `.bytes`: alturas, máscaras, **mapa de agua**, ríos, lagos, rasgos y máscaras extra
   con nombre; versión 1 = la de la isla de Koba, sin medidas ni agua), `TerrenoMundo` (levanta los
   Terrain y pinta 8 capas con Burst; `Purificar`), `AguaMundo` (lagos con WaterSurface, cintas de
-  río, cascadas), `Rios` (trazado denso con meandros a partir de puntos de control), `Lago`,
+  río, cascadas; todo sube con `Mapa.Crecida`), `Rios` (trazado denso con meandros a partir de puntos de control), `Lago`,
   `Zona`/`TipoZona` (los valores son bits de las partidas guardadas: los nuevos van al final),
   `Ruido` (fBm, crestas, hash, para Burst). **Día y noche**: `CicloDia` mueve el sol según la hora
   con la latitud y la declinación del sitio (sigue encendido hasta ~6° bajo el horizonte: el cielo
@@ -78,8 +79,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
   inocente (un villano desarmado); `termica`: visión de calor, la oscuridad le quita poca vista, pero es un visor que solo ve de frente), `Ruidos` (el oído del mundo: `Emitir(donde, radio, TipoRuido, deCriatura)` y `AlOir`; cada juego dice
-  qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia), `ConstructorInstalaciones` + `Piezas` +
-  `ConstructorPiezasCampana`, `Estructura`, `Helicoptero` (rotor del BEMT de Lur Aerospace; ve a una criatura pequeña (menos de 8 m)
+  qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia; `Reocupar`: la compañía vuelve a una zona liberada con
+  instalaciones nuevas, `AlReocupar`, `Reocupaciones`), `ConstructorInstalaciones` + `Piezas` +
+  `ConstructorPiezasCampana`, `Estructura` (`engullida`: se la traga una criatura, desaparece sin piezas ni explosión), `Helicoptero` (rotor del BEMT de Lur Aerospace; ve a una criatura pequeña (menos de 8 m)
   con la misma `Humano.Visibilidad` que los humanos: la selva y el relieve la tapan), `Cohete`,
   `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
   `miedo` de 0 a 100 que sube con la oscuridad (sin linterna), lo que ve de reojo, los ojos de la

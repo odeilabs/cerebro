@@ -11,7 +11,8 @@ namespace Guardianes.Enemigos
     /// sus guardias (prefabs de humanos repartidos por el puesto), las instalaciones quedan activas
     /// y salen sus helicopteros (del helipuerto de la base o llegando desde fuera del mapa).
     /// La zona se libera al destruir todas sus instalaciones principales: los humanos que quedan
-    /// huyen, la criatura gana su premio y la selva recupera el suelo.
+    /// huyen, la criatura gana su premio y la selva recupera el suelo. La compania puede volver a una
+    /// zona liberada (Reocupar: cada juego decide cuando).
     /// </summary>
     public class ZonaHumana : MonoBehaviour
     {
@@ -36,6 +37,8 @@ namespace Guardianes.Enemigos
         public bool Activa { get; private set; }
         public float Progreso => instalaciones.Count == 0 ? 0f : (float)_destruidas / instalaciones.Count;
         public int Destruidas => _destruidas;
+        /// <summary>Las veces que la compania ha vuelto a ocuparla despues de liberada.</summary>
+        public int Reocupaciones { get; private set; }
         /// <summary>Instalaciones principales que siguen en pie.</summary>
         public IEnumerable<Salud> EnPie()
         {
@@ -47,6 +50,8 @@ namespace Guardianes.Enemigos
         public static event System.Action<ZonaHumana> AlDescubrir;
         /// <summary>Despierta su guardia (la criatura se acerca): cada juego le puede dar puestos y rondas.</summary>
         public static event System.Action<ZonaHumana> AlActivar;
+        /// <summary>La compania vuelve a una zona liberada (Reocupar).</summary>
+        public static event System.Action<ZonaHumana> AlReocupar;
         public static readonly List<ZonaHumana> Todas = new List<ZonaHumana>();
 
         readonly List<Humano> _vivos = new List<Humano>();
@@ -169,6 +174,29 @@ namespace Guardianes.Enemigos
             foreach (var h in _vivos)
                 if (h != null) Destroy(h.gameObject);
             if (TerrenoMundo.Instancia != null) TerrenoMundo.Instancia.Purificar(transform.position, radio * 1.25f, 0.5f);
+        }
+
+        /// <summary>
+        /// La compania vuelve a una zona liberada: levanta otra vez sus instalaciones (otras, con otra semilla; las
+        /// que quedaran de antes se quitan) y, cuando la criatura se acerque, despierta una guardia nueva y vuelve a
+        /// mandar sus helicopteros. Liberarla otra vez da otra vez su premio.
+        /// </summary>
+        public void Reocupar()
+        {
+            if (!Liberada) return;
+            Liberada = false;
+            Activa = false;
+            Reocupaciones++;
+            _destruidas = 0;
+            _helicopterosEnviados = false;
+            _vivos.RemoveAll(h => h == null);
+            // Lo que quedara del campamento de antes (lonas, bidones, troncos) se va: el nuevo se monta en otro orden.
+            foreach (var e in GetComponentsInChildren<Estructura>())
+                if (e != null) { e.name += " (vieja)"; Destroy(e.gameObject); }
+            instalaciones = materiales != null ? ConstructorInstalaciones.Construir(this, materiales, semilla + 7919 * Reocupaciones) : new List<Salud>();
+            foreach (var s in instalaciones)
+                if (s != null) s.AlMorir += _ => InstalacionDestruida();
+            AlReocupar?.Invoke(this);
         }
 
         /// <summary>Quita (sin explosiones ni avisos) 'cuantas' instalaciones que ya estaban rotas en la partida guardada.</summary>

@@ -18,6 +18,8 @@ namespace Guardianes.Enemigos
         [Tooltip("Densidad para la masa de las piezas (kg/m3 de su caja)")]
         public float densidad = 180f;
         public float vidaRestos = 60f;
+        /// <summary>Se la traga una criatura: al romperse no suelta piezas ni explota, desaparece entera.</summary>
+        [System.NonSerialized] public bool engullida;
 
         /// <summary>Se rompe (posicion, radio aproximado). Lo usan los efectos y el sonido.</summary>
         public static event System.Action<Estructura, Vector3, float> AlRomperse;
@@ -48,6 +50,12 @@ namespace Guardianes.Enemigos
         {
             if (_rota) return;
             _rota = true;
+            if (engullida)
+            {
+                AlRomperse?.Invoke(this, transform.position, 1f);
+                Destroy(gameObject);
+                return;
+            }
             var limites = Limites();
             Vector3 centro = limites.center;
             Vector3 origen = d.punto == Vector3.zero ? centro - Vector3.up : d.punto;

@@ -9,7 +9,8 @@ namespace Guardianes.Mundo
     /// Agua del mundo construida a partir de los datos del terreno: los lagos (superficie de agua
     /// HDRP con malla propia que sigue la orilla real), los rios (cintas que bajan con la cota del
     /// agua de cada tramo, con material de rio) y las laminas de las cascadas. El mar, si lo hay, es
-    /// una WaterSurface infinita aparte (la crea el constructor de la escena).
+    /// una WaterSurface infinita aparte (la crea el constructor de la escena). Con la crecida (Mapa.Crecida)
+    /// todo sube a la vez.
     /// </summary>
     [ExecuteAlways]
     [RequireComponent(typeof(TerrenoMundo))]
@@ -32,6 +33,17 @@ namespace Guardianes.Mundo
         public float absorcionLago = 5f;
 
         readonly List<GameObject> _creados = new List<GameObject>();
+        // Lo que sube con la crecida (las piezas de primer nivel) y su sitio sin ella.
+        readonly List<(Transform t, Vector3 y0)> _suben = new List<(Transform, Vector3)>();
+        float _crecida;
+
+        void LateUpdate()
+        {
+            if (!Application.isPlaying || Mathf.Abs(Mapa.Crecida - _crecida) < 0.01f) return;
+            _crecida = Mapa.Crecida;
+            foreach (var (t, y0) in _suben)
+                if (t != null) t.localPosition = y0 + Vector3.up * _crecida;
+        }
 
         void OnEnable()
         {
@@ -59,6 +71,10 @@ namespace Guardianes.Mundo
                 ConstruirRio(datos, datos.rios[r], r);
                 ConstruirCascadas(datos.rios[r], r, terreno);
             }
+            _suben.Clear();
+            foreach (var go in _creados)
+                if (go != null && go.transform.parent == transform) _suben.Add((go.transform, go.transform.localPosition));
+            _crecida = 0f;
         }
 
         // ------------------------------------------------------------------ Cascadas
