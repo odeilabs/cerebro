@@ -91,7 +91,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   más despacio), `Aterrado` (70: los armados disparan a las sombras, los demás se quedan helados, y
   ante una criatura pequeña huyen en vez de atacar; `AlAterrarse`) y `Roto` (95: tira el arma y huye
   para no volver, `Ahuyentar`/`AlAhuyentar`). `AlSerAtacado` cuando la criatura le hace daño.
-- `Runtime/Misiones/` — **el director de misiones común**: `Mision` (número, acto, título,
+- `Runtime/Misiones/` — **el director de misiones común**: `Mision` (número, `rotulo` —lo que se ve en vez de
+  «Misión N»: un encargo, una misión fuera de la cuenta; vacío, el número—, acto, título,
   etiquetas, hora, introducción y desenlace, objetivos, reglas, `preparar`), `DirectorMisiones`
   (monta, pone la hora, cuenta la introducción con la criatura quieta, lleva los objetivos con sus
   diálogos, vigila las reglas, desenlace, balance con la pantalla de misión y, si falla, la pantalla

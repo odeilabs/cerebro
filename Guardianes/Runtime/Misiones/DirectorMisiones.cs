@@ -167,9 +167,9 @@ namespace Guardianes.Misiones
             yield return Cinematica(m.introduccion, true);
             if (Hud != null)
             {
-                string titulo = Guardianes.Juego.Textos.T(m.titulo), acto = Guardianes.Juego.Textos.T(m.acto), mision = Guardianes.Juego.Textos.T(textoMision);
-                Hud.Nivel($"{acto}\n{mision} {m.numero}: {titulo}");
-                Hud.Titulo(titulo.ToUpperInvariant(), $"{acto}  ·  {mision} {m.numero}  {m.Etiquetas}", 4f);
+                string titulo = Guardianes.Juego.Textos.T(m.titulo), acto = Guardianes.Juego.Textos.T(m.acto), rotulo = Rotulo(m);
+                Hud.Nivel($"{acto}\n{rotulo}: {titulo}");
+                Hud.Titulo(titulo.ToUpperInvariant(), $"{acto}  ·  {rotulo}  {m.Etiquetas}", 4f);
             }
             _inicio = Time.time;
 
@@ -264,6 +264,10 @@ namespace Guardianes.Misiones
         protected virtual string Valoracion() => "";
         protected virtual string PieCompletada() => textoContinuar;
 
+        /// <summary>Lo que va delante del titulo (traducido): el rotulo de la mision o, si no tiene, «Mision N».</summary>
+        protected string Rotulo(Mision m) =>
+            string.IsNullOrEmpty(m.rotulo) ? $"{Guardianes.Juego.Textos.T(textoMision)} {m.numero}" : Guardianes.Juego.Textos.T(m.rotulo);
+
         // ------------------------------------------------------------------ Dialogos y cinematicas
         /// <summary>Frases de los personajes como subtitulos, una tras otra (el juego sigue).</summary>
         public void Decir(params string[] lineas)
@@ -334,7 +338,7 @@ namespace Guardianes.Misiones
             Debug.Log($"[GD] Mision {m.numero} '{m.titulo}' COMPLETADA. {sb}{valoracion}");
             AlCompletarMision?.Invoke(this);
             if (Hud != null)
-                Hud.PantallaMision(true, textoCompletada, $"{Guardianes.Juego.Textos.T(m.acto)}  ·  {Guardianes.Juego.Textos.T(textoMision)} {m.numero}: {Guardianes.Juego.Textos.T(m.titulo)}", filas.ToArray(), valoracion, PieCompletada());
+                Hud.PantallaMision(true, textoCompletada, $"{Guardianes.Juego.Textos.T(m.acto)}  ·  {Rotulo(m)}: {Guardianes.Juego.Textos.T(m.titulo)}", filas.ToArray(), valoracion, PieCompletada());
             yield return Esperar();
             if (Hud != null) Hud.PantallaMision(false);
             Bloquear(false);

@@ -7,13 +7,16 @@ namespace Guardianes.Misiones
     /// Una mision: numero, acto, titulo, etiquetas (sigilo, terror...), la hora a la que pasa, lo que
     /// se cuenta antes y despues (pantalla en negro, la criatura quieta), los objetivos en orden y
     /// las reglas que valen para toda ella. 'preparar' monta lo que necesita en el mundo (la llama
-    /// el director antes de la introduccion, con la raiz donde colgarlo).
+    /// el director antes de la introduccion, con la raiz donde colgarlo). 'rotulo' es lo que se ve
+    /// delante del titulo en la HUD y en la pantalla de mision (vacio: «Mision N», con su numero).
     /// </summary>
     public class Mision
     {
         public int numero;
         public string acto = "";
         public string titulo = "";
+        /// <summary>Lo que se ve en vez de «Mision N» (un encargo, una mision fuera de la cuenta); vacio, el numero.</summary>
+        public string rotulo;
         public string[] etiquetas = new string[0];
         /// <summary>Hora del dia (0-24) a la que empieza; negativa = no la toca.</summary>
         public float hora = -1f;
