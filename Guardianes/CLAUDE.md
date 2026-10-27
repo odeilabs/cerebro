@@ -79,7 +79,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
   inocente (un villano desarmado); `termica`: visión de calor, la oscuridad le quita poca vista, pero es un visor que solo ve de frente), `Ruidos` (el oído del mundo: `Emitir(donde, radio, TipoRuido, deCriatura)` y `AlOir`; cada juego dice
-  qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia; `Reocupar`: la compañía vuelve a una zona liberada con
+  qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia; `Helicopteros`, los que ha mandado; `Reocupar`: la compañía vuelve a una zona liberada con
   instalaciones nuevas, `AlReocupar`, `Reocupaciones`), `ConstructorInstalaciones` + `Piezas` (cajas, cilindros,
   prismas y `Tubo`/`Catenaria`: un tubo a lo largo de unos puntos o colgado entre dos —ramas, lianas, cables—,
   `PuntosCatenaria`; la malla del tubo es suya) +

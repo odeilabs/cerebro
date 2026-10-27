@@ -59,6 +59,8 @@ namespace Guardianes.Enemigos
         Criatura _criatura;
         Transform _kong => _criatura != null ? _criatura.transform : null;
         public IReadOnlyList<Humano> Guardia => _vivos;
+        /// <summary>Los helicopteros que ha mandado (los que ya no estan, null): cada juego puede retirarlos.</summary>
+        public IReadOnlyList<Helicoptero> Helicopteros => _helicopteros;
         int _destruidas;
         bool _descubierta, _helicopterosEnviados;
 

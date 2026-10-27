@@ -26,7 +26,7 @@ namespace Guardianes.Misiones
         public string[] desenlace = new string[0];
         public readonly List<Objetivo> objetivos = new List<Objetivo>();
         public readonly List<Regla> reglas = new List<Regla>();
-        /// <summary>Monta el escenario (el director pasa su raiz: lo que cuelga de ella se borra al acabar).</summary>
+        /// <summary>Monta el escenario (el director pasa su raiz: lo que cuelga de ella se borra al empezar otra mision o al repetirla).</summary>
         public Action<DirectorMisiones> preparar;
 
         public Mision Objetivo(Objetivo o) { objetivos.Add(o); return this; }

@@ -42,7 +42,7 @@ namespace Guardianes.Misiones
         public Mision Mision { get; private set; }
         public Criatura Criatura { get; protected set; }
         public HudJuego Hud { get; protected set; }
-        /// <summary>Donde cuelga el escenario de la mision (se borra al acabar o repetir).</summary>
+        /// <summary>Donde cuelga el escenario de la mision (se borra al empezar otra o al repetirla: al acabar, sigue en el mundo).</summary>
         public Transform Raiz { get; private set; }
         public Objetivo Actual { get; private set; }
         public int NumeroObjetivo { get; private set; }
