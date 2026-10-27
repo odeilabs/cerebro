@@ -80,7 +80,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
   inocente (un villano desarmado); `termica`: visión de calor, la oscuridad le quita poca vista, pero es un visor que solo ve de frente), `Ruidos` (el oído del mundo: `Emitir(donde, radio, TipoRuido, deCriatura)` y `AlOir`; cada juego dice
   qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia; `Reocupar`: la compañía vuelve a una zona liberada con
-  instalaciones nuevas, `AlReocupar`, `Reocupaciones`), `ConstructorInstalaciones` + `Piezas` +
+  instalaciones nuevas, `AlReocupar`, `Reocupaciones`), `ConstructorInstalaciones` + `Piezas` (cajas, cilindros,
+  prismas y `Tubo`/`Catenaria`: un tubo a lo largo de unos puntos o colgado entre dos —ramas, lianas, cables—,
+  `PuntosCatenaria`; la malla del tubo es suya) +
   `ConstructorPiezasCampana`, `Estructura` (`engullida`: se la traga una criatura, desaparece sin piezas ni explosión), `Helicoptero` (rotor del BEMT de Lur Aerospace; ve a una criatura pequeña (menos de 8 m)
   con la misma `Humano.Visibilidad` que los humanos: la selva y el relieve la tapan), `Cohete`,
   `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
