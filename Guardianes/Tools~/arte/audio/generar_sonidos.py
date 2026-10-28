@@ -9,7 +9,8 @@ Escribe WAV de 48 kHz y 16 bits en Assets/_Game/Art/Audio/<grupo>/<nombre>_<n>.w
   serpiente/ siseo (aire por la glotis: ruido con formantes y el silbido de la boca), reptar (las
              escamas sobre la hojarasca), mordisco (el golpe del ataque y la mandibula que se cierra)
              (con --criatura serpiente --solo siseo,reptar,mordisco)
-  armas/     disparo de AK (chasquido, cuerpo y eco del bosque)
+  armas/     disparo de AK (chasquido, cuerpo y eco del bosque), rebote (la bala que resbala en una coraza o
+             en las escamas: chasquido metalico, timbre agudo y el silbido que se aleja bajando, el "piiu")
   destruccion/ explosion, madera (crujidos y astillas), metal (chapas que resuenan), arbol (crujido,
              hojas y golpe contra el suelo)
   ambiente/  selva (bucle estereo de 60 s: lecho de hojas, cigarras, grillos, pajaros, aullidos
@@ -308,6 +309,31 @@ def disparo(rng):
         eco[d:] += paso_bajo(x, 1800, 2)[: m - d] * rng.uniform(0.12, 0.25)
     x = x + eco
     return recortar_cola(normalizar(reverb(x, rng, t60=1.3, mezcla=0.22, brillo=3000), -1.0))
+
+
+def rebote(rng):
+    """Bala que rebota: un chasquido de 2-3 ms, dos o tres resonancias de chapa entre 2,4 y 4,2 kHz que se
+    apagan en unos 80 ms y el silbido de la bala desviada, que baja de 3,5 a 1,2 kHz en 0,25 s (el "piiu")."""
+    m = int(0.7 * SR)
+    tt = np.arange(m) / SR
+    chasquido = paso_alto(blanco(rng, m), 1500) * np.exp(-tt / rng.uniform(0.002, 0.003))
+    # La chapa (o la escama) que suena: modos amortiguados que a los 80 ms ya casi no se oyen (-25 dB).
+    timbre = np.zeros(m)
+    for _ in range(rng.integers(2, 4)):
+        f = rng.uniform(2400, 4200)
+        timbre += np.sin(2 * np.pi * f * tt + rng.uniform(0, 2 * np.pi)) * np.exp(-tt / rng.uniform(0.022, 0.03)) * rng.uniform(0.6, 1.0)
+    timbre /= np.max(np.abs(timbre)) + 1e-9
+    # El silbido: barrido exponencial que se apaga al llegar abajo, con el temblor de la bala que gira.
+    t0 = rng.uniform(0.004, 0.012)
+    dur = rng.uniform(0.23, 0.27)
+    f0, f1 = rng.uniform(3300, 3700), rng.uniform(1100, 1300)
+    u = np.clip((tt - t0) / dur, 0, 1)
+    fase = 2 * np.pi * np.cumsum(f0 * (f1 / f0) ** u) / SR
+    temblor = 1 + 0.25 * np.sin(2 * np.pi * rng.uniform(35, 60) * tt)
+    env = np.clip((tt - t0) / 0.008, 0, 1) * (1 - u) ** 1.5
+    silbido = np.sin(fase) * temblor * env * 0.6 + banda(blanco(rng, m), 1000, 4500) * env * 0.06
+    x = saturar(chasquido * 1.2 + timbre * 0.7 + silbido, 1.3)
+    return recortar_cola(normalizar(reverb(x, rng, t60=0.5, mezcla=0.12, brillo=6000), -1.0))
 
 
 # ---------------------------------------------------------------------------- Destruccion
@@ -637,6 +663,9 @@ def main():
     if quiero("disparo"):
         for i in range(5):
             guardar("armas", f"disparo_{i}", disparo(np.random.default_rng(500 + i)))
+    if quiero("rebote"):
+        for i in range(5):
+            guardar("armas", f"rebote_{i}", rebote(np.random.default_rng(1800 + i)))
     if quiero("explosion"):
         for i in range(3):
             guardar("destruccion", f"explosion_{i}", explosion(np.random.default_rng(600 + i)))

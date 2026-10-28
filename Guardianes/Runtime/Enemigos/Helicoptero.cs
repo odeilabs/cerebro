@@ -67,6 +67,8 @@ namespace Guardianes.Enemigos
         public Vector2 esperaPasada = new Vector2(12f, 22f);
         public float alcanceCanon = 280f;
         public float danioBala = 6f;
+        [Tooltip("Lo que penetra cada proyectil del canon (Calibres; el de 30 mm entra en todo)")]
+        public float calibreCanon = Calibres.Canon;
         [Tooltip("Disparos por segundo (canon de 30 mm)")]
         public float cadencia = 10f;
         public float dispersion = 0.02f;
@@ -144,9 +146,11 @@ namespace Guardianes.Enemigos
         Vector3 _bamboleo;
         float _relojRafaga, _relojBala, _proximaSalva, _alturaBlanco = 9f;
         bool _enRafaga, _salvaEnCurso, _ordenDespegue, _explotado, _lanzado;
+        // La rafaga apunta a un punto del cuerpo (Criatura.PuntoDisparo), guardado respecto a la criatura.
+        bool _conPunto;
+        Vector3 _desfase;
         float _yawTorreta, _pitchCanon;
         float _relojCaida;
-        static readonly RaycastHit[] s_Golpes = new RaycastHit[16];
         static readonly List<int> s_Plantas = new List<int>();
 
         void Awake()
@@ -572,7 +576,9 @@ namespace Guardianes.Enemigos
             // Aturdido no dispara: bastante tiene con no estrellarse.
             bool combate = (Actual == Estado.Ataque || Actual == Estado.Pasada) && CriaturaA(alcanceCanon * 1.5f) && _fraccionRpm > 0.9f
                            && Time.time >= _aturdidoHasta;
-            Vector3 blanco = _kong != null ? _kong.position + Vector3.up * _alturaBlanco : _pos + transform.forward * 100f;
+            Vector3 blanco = _kong == null ? _pos + transform.forward * 100f
+                           : _conPunto ? _kong.position + _kong.rotation * _desfase
+                           : _kong.position + Vector3.up * _alturaBlanco;
             bool enLinea = ApuntarTorreta(combate ? blanco : _pos + transform.forward * 100f - transform.up * 20f, dt);
             if (!combate || bocacha == null) { _enRafaga = false; return; }
 
@@ -583,6 +589,10 @@ namespace Guardianes.Enemigos
                 _enRafaga = !_enRafaga && distancia < alcanceCanon;
                 _relojRafaga = _enRafaga ? Random.Range(duracionRafaga.x, duracionRafaga.y) : Random.Range(pausaRafagas.x, pausaRafagas.y);
                 _alturaBlanco = Random.Range(0.55f, 1.45f) * AlturaBlancoCriatura;
+                // Si la criatura dice a donde (el cuerpo que se ve desde el canon), la rafaga va ahi.
+                Vector3 pb = default;
+                _conPunto = _criatura != null && _criatura.PuntoDisparo(bocacha.position, out pb);
+                if (_conPunto) _desfase = Quaternion.Inverse(_kong.rotation) * (pb - _kong.position);
                 // En la pasada no para de disparar.
                 if (Actual == Estado.Pasada && !_enRafaga) _relojRafaga *= 0.3f;
             }
@@ -626,31 +636,10 @@ namespace Guardianes.Enemigos
         {
             Vector3 origen = bocacha.position;
             Vector3 dir = (bocacha.forward + Random.insideUnitSphere * dispersion).normalized;
-            Vector3 impacto = origen + dir * alcanceCanon * 1.3f;
-            if (Rayo(origen, dir, alcanceCanon * 1.3f, out var hit))
-            {
-                impacto = hit.point;
-                var s = hit.collider.GetComponentInParent<Salud>();
-                if (s != null && s != _salud)
-                    s.Danar(new DatosDanio { cantidad = danioBala, punto = hit.point, direccion = dir, empuje = 0.5f, tipo = TipoDanio.Canon, origen = gameObject });
-            }
+            // Por Balas: no se para en el propio helicoptero y ve los blancos sin colisionadores.
+            Vector3 impacto = Balas.Disparar(origen, dir, alcanceCanon * 1.3f, gameObject,
+                new DatosDanio { cantidad = danioBala, direccion = dir, empuje = 0.5f, tipo = TipoDanio.Canon, origen = gameObject, calibre = calibreCanon });
             AlDisparar?.Invoke(origen, impacto);
-        }
-
-        /// <summary>Rayo que no se para en el propio helicoptero.</summary>
-        bool Rayo(Vector3 origen, Vector3 dir, float distancia, out RaycastHit golpe)
-        {
-            int n = Physics.RaycastNonAlloc(origen, dir, s_Golpes, distancia, ~0, QueryTriggerInteraction.Ignore);
-            golpe = default;
-            float mejor = float.MaxValue;
-            for (int i = 0; i < n; i++)
-            {
-                var g = s_Golpes[i];
-                if (g.collider.transform.IsChildOf(transform) || g.distance >= mejor) continue;
-                mejor = g.distance;
-                golpe = g;
-            }
-            return mejor < float.MaxValue;
         }
 
         IEnumerator Salva()
@@ -661,8 +650,9 @@ namespace Guardianes.Enemigos
             {
                 if (!(Actual == Estado.Ataque || Actual == Estado.Pasada) || _kong == null) break;
                 var lanzador = lanzacohetes[i % lanzacohetes.Length];
-                // Salen por los tubos (hacia el morro) y corrigen un poco hacia Kong.
+                // Salen por los tubos (hacia el morro) y corrigen un poco hacia Kong (o hacia el cuerpo que diga la criatura).
                 Vector3 blanco = _kong.position + Vector3.up * Random.Range(0.45f, 1.35f) * AlturaBlancoCriatura;
+                if (_criatura != null && _criatura.PuntoDisparo(lanzador.position, out var alCuerpo)) blanco = alCuerpo;
                 float t = Vector3.Distance(lanzador.position, blanco) / 75f;
                 if (_criatura != null) blanco += _criatura.Velocidad * t;
                 Vector3 dir = Vector3.RotateTowards(transform.forward, (blanco - lanzador.position).normalized, 18f * Mathf.Deg2Rad, 0f);

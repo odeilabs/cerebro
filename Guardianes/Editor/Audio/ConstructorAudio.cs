@@ -38,6 +38,7 @@ namespace Guardianes.EditorTools.Audio
             s.golpes = Clips(criatura, golpe);
             s.aspavientos = Clips(criatura, aspaviento);
             s.disparos = Clips("armas", "disparo");
+            s.rebotes = Clips("armas", "rebote");
             s.cohetes = Clips("armas", "cohete");
             s.explosiones = Clips("destruccion", "explosion");
             s.maderas = Clips("destruccion", "madera");

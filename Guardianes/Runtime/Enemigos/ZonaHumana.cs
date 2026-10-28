@@ -52,6 +52,12 @@ namespace Guardianes.Enemigos
         public static event System.Action<ZonaHumana> AlActivar;
         /// <summary>La compania vuelve a una zona liberada (Reocupar).</summary>
         public static event System.Action<ZonaHumana> AlReocupar;
+        /// <summary>
+        /// El prefab de cada uno de la guardia al despertar (la zona, su puesto en la guardia —los primeros son los
+        /// civiles—, cuantos civiles hay y el que ha salido al azar de prefabsGuardia): cada juego puede repartir sus
+        /// armas (de cada diez, tantos con escopeta...). Sin el, o si devuelve null, el del azar. El azar se tira igual.
+        /// </summary>
+        public static System.Func<ZonaHumana, int, int, GameObject, GameObject> ElegirGuardia;
         public static readonly List<ZonaHumana> Todas = new List<ZonaHumana>();
 
         readonly List<Humano> _vivos = new List<Humano>();
@@ -97,6 +103,7 @@ namespace Guardianes.Enemigos
             if (prefabsGuardia.Length == 0) return;
             _vivos.RemoveAll(h => h == null);
             int faltan = guardias - _vivos.Count;
+            int civiles = Mathf.RoundToInt(faltan * proporcionCiviles);
             for (int i = 0; i < faltan; i++)
             {
                 var r = Random.insideUnitCircle * radio * 0.75f;
@@ -104,11 +111,16 @@ namespace Guardianes.Enemigos
                 p.y = Mapa.Altura(p.x, p.z);
                 if (!Mapa.EsTierra(p)) continue;
                 var prefab = prefabsGuardia[Random.Range(0, prefabsGuardia.Length)];
+                if (ElegirGuardia != null)
+                {
+                    var elegido = ElegirGuardia(this, i, civiles, prefab);
+                    if (elegido != null) prefab = elegido;
+                }
                 var go = Instantiate(prefab, p, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f), transform);
                 var h = go.GetComponent<Humano>();
                 if (h == null) continue;
                 // Los primeros de la guardia son los civiles (reparto fijo, no al azar).
-                if (i < Mathf.RoundToInt(faltan * proporcionCiviles)) h.HacerCivil();
+                if (i < civiles) h.HacerCivil();
                 _vivos.Add(h);
             }
             AlActivar?.Invoke(this);

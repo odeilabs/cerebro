@@ -35,7 +35,6 @@ namespace Guardianes.Enemigos
         Transform _objetivo;
         Vector3 _desplazamiento, _vel;
         float _vida;
-        static readonly RaycastHit[] s_Golpes = new RaycastHit[8];
 
         void OnEnable() => Todos.Add(this);
         void OnDisable() => Todos.Remove(this);
@@ -67,9 +66,11 @@ namespace Guardianes.Enemigos
             _vel = dir * v + Physics.gravity * (0.25f * dt);
 
             Vector3 paso = _vel * dt;
-            if (Rayo(transform.position, paso, out var golpe))
+            // Por Balas: no se para en quien lo lanza y revienta tambien contra un blanco sin colisionadores.
+            float largo = paso.magnitude;
+            if (largo >= 1e-4f && Balas.Rayo(transform.position, paso / largo, largo, _origen, out var golpe))
             {
-                Explotar(golpe.point, golpe.collider is TerrainCollider);
+                Explotar(golpe.punto, golpe.collider is TerrainCollider);
                 return;
             }
             transform.position += paso;
@@ -80,22 +81,6 @@ namespace Guardianes.Enemigos
             if (p.y < suelo) Explotar(new Vector3(p.x, suelo, p.z), true);
             else if (!float.IsNaN(agua) && p.y < agua) Explotar(new Vector3(p.x, agua, p.z), true);
             else if (_vida > vidaMaxima) Explotar(p, false);
-        }
-
-        bool Rayo(Vector3 desde, Vector3 paso, out RaycastHit golpe)
-        {
-            golpe = default;
-            float largo = paso.magnitude;
-            if (largo < 1e-4f) return false;
-            int n = Physics.RaycastNonAlloc(desde, paso / largo, s_Golpes, largo, ~0, QueryTriggerInteraction.Ignore);
-            float mejor = float.MaxValue;
-            for (int i = 0; i < n; i++)
-            {
-                var g = s_Golpes[i];
-                if (_origen != null && g.collider.transform.IsChildOf(_origen.transform)) continue;
-                if (g.distance < mejor) { mejor = g.distance; golpe = g; }
-            }
-            return mejor < float.MaxValue;
         }
 
         void Explotar(Vector3 punto, bool enSuelo)

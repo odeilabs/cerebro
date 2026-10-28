@@ -65,6 +65,15 @@ namespace Guardianes.Criaturas
         public virtual float AltoCuerpo => AlturaBlanco * 1.1f;
         /// <summary>Punto al que miran y disparan los humanos.</summary>
         public virtual Vector3 PuntoBlanco => transform.position + Vector3.up * AlturaBlanco;
+        /// <summary>
+        /// A donde apunta un tirador desde 'desde' (el cuerpo que ve: un humano por disparo, el canon por rafaga,
+        /// cada cohete). Falso: cada tirador apunta como siempre (a la altura de AlturaBlanco, con su reparto).
+        /// </summary>
+        public virtual bool PuntoDisparo(Vector3 desde, out Vector3 punto)
+        {
+            punto = default;
+            return false;
+        }
         /// <summary>Radio del cuerpo (m) en planta.</summary>
         public virtual float Radio => Tamano * 0.35f;
         public virtual bool Corriendo => false;

@@ -34,6 +34,8 @@ namespace Guardianes.Audio
         public AudioClip[] maderas;
         public AudioClip[] metales;
         public AudioClip[] arboles;
+        [Tooltip("Balas que rebotan en una coraza o en las escamas (el piiu); sin ellos, una chapa muy aguda")]
+        public AudioClip[] rebotes;
         [Header("Ambientes (bucles)")]
         public AudioClip selva;
         public AudioClip rio;
@@ -46,16 +48,27 @@ namespace Guardianes.Audio
         public int fuentes = 40;
         [Tooltip("Disparos que pueden sonar por segundo (con un campamento entero disparando)")]
         public int disparosPorSegundo = 14;
+        [Tooltip("Rebotes que pueden sonar por segundo (aparte de los disparos; los perdigones de un tiro cuentan uno)")]
+        public int rebotesPorSegundo = 8;
 
         public static SonidoJuego Instancia { get; private set; }
+        /// <summary>Rebotes que han sonado (las pruebas).</summary>
+        public int RebotesSonados { get; private set; }
 
         readonly List<AudioSource> _libres = new List<AudioSource>();
         readonly List<AudioSource> _todas = new List<AudioSource>();
         AudioSource _selva, _rio;
         readonly List<(AudioSource fuente, float fin)> _fuegos = new List<(AudioSource, float)>();
         Transform _oyente;
-        float _ventanaDisparos;
-        int _disparosEnVentana;
+        float _ventanaDisparos, _ventanaRebotes;
+        int _disparosEnVentana, _rebotesEnVentana;
+        // El ultimo tiro cuyo rebote ha sonado (los demas perdigones de ese tiro no suenan otra vez) y su fuente.
+        int _fotogramaRebote = -1, _perdigonesRebote;
+        GameObject _tiradorRebote;
+        Vector3 _puntoRebote;
+        AudioSource _fuenteRebote;
+        AudioClip _clipRebote;
+        float _volumenRebote;
         float _ultimoArbol;
         float _proximoRio;
 
@@ -112,6 +125,7 @@ namespace Guardianes.Audio
             Helicoptero.AlExplotar += HelicopteroExplota;
             Cohete.AlLanzar += CoheteSale;
             Cohete.AlExplotar += CoheteExplota;
+            Balas.AlImpactar += Bala;
         }
 
         void OnDisable()
@@ -126,6 +140,7 @@ namespace Guardianes.Audio
             Helicoptero.AlExplotar -= HelicopteroExplota;
             Cohete.AlLanzar -= CoheteSale;
             Cohete.AlExplotar -= CoheteExplota;
+            Balas.AlImpactar -= Bala;
             if (Instancia == this) Instancia = null;
         }
 
@@ -222,10 +237,46 @@ namespace Guardianes.Audio
             Sonar(pisadas, punto, v, 25f * e, 700f * Mathf.Max(e, 0.05f), (mano ? 1.08f : 0.95f) / Mathf.Max(0.6f, Mathf.Pow(e, 0.15f)), 0.07f, 90);
         }
 
+        // El tono, el del arma (el fusil de asalto, 1).
         void Disparo(Vector3 origen, Vector3 impacto, Humano h)
         {
             if (!HayHueco()) return;
-            Sonar(disparos, origen, 0.55f, 10f, 800f, 1f, 0.07f, 150);
+            Sonar(disparos, origen, 0.55f, 10f, 800f, h != null ? Arma.Ficha(h.arma).tono : 1f, 0.07f, 150);
+        }
+
+        // Una bala que rebota: el piiu en el punto (de la pistola al fusil, mas fuerte), con su propio tope por segundo.
+        // Los perdigones de un escopetazo rebotan en el mismo fotograma: suena uno por tiro (mismo tirador y fotograma, a
+        // menos de 5 m), que gasta un hueco del tope, y cada perdigon mas que rebota lo sube un 10 % (hasta 1,8 veces).
+        // Mientras no esten los clips, una chapa muy aguda.
+        void Bala(Tiro t)
+        {
+            if (!t.rebote) return;
+            if (t.fotograma == _fotogramaRebote && t.tirador == _tiradorRebote && (t.punto - _puntoRebote).sqrMagnitude < 25f)
+            {
+                _perdigonesRebote++;
+                // La fuente sigue siendo la suya si no se la ha quitado otro sonido (que habria puesto su clip).
+                if (_fuenteRebote != null && _fuenteRebote.isPlaying && _fuenteRebote.clip == _clipRebote)
+                    _fuenteRebote.volume = Mathf.Min(1f, _volumenRebote * Mathf.Min(1.8f, 1f + 0.1f * (_perdigonesRebote - 1))) * volumenGeneral;
+                return;
+            }
+            _fotogramaRebote = t.fotograma;
+            _tiradorRebote = t.tirador;
+            _puntoRebote = t.punto;
+            _perdigonesRebote = 1;
+            _fuenteRebote = null;
+            if (Time.time > _ventanaRebotes + 1f) { _ventanaRebotes = Time.time; _rebotesEnVentana = 0; }
+            if (_rebotesEnVentana >= rebotesPorSegundo) return;
+            _rebotesEnVentana++;
+            bool clips = rebotes != null && rebotes.Length > 0;
+            float v = clips ? Mathf.Lerp(0.22f, 0.4f, Mathf.InverseLerp(Calibres.Pistola, Calibres.FusilAsalto, t.calibre)) : 0.22f;
+            var s = clips
+                ? Sonar(rebotes, t.punto, v, 4f, 220f, 1f, 0.15f, 170)
+                : Sonar(metales, t.punto, v, 4f, 220f, 2.9f, 0.1f, 170);
+            if (s == null) return;
+            RebotesSonados++;
+            _fuenteRebote = s;
+            _clipRebote = s.clip;
+            _volumenRebote = v;
         }
 
         bool HayHueco()

@@ -51,8 +51,24 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Intimidar` (los humanos huyen, los helicópteros cercanos pierden el control), `OndaCono`,
   `Purificar`, `Pisar`. `Premiar` (cada juego decide qué da: furia, crecimiento, afinidad) y
   `Celebrar`. `IEntradaCamara` para que la cámara lea los controles de cada juego.
+  `PuntoDisparo(desde, out punto)`: a dónde apunta un tirador (cada humano por disparo, el cañón por ráfaga,
+  cada cohete); de serie, falso y sin gastar `Random`: apuntan como siempre (a `AlturaBlanco` con su reparto).
 - `Runtime/Combate/` — `Salud` + `DatosDanio`/`TipoDanio`, `Impacto` (daño en área, empuje,
-  derribo de vegetación), `Lanzable`.
+  derribo de vegetación; también a los blancos de `Balas`, una vez por `Salud`, con la distancia y la
+  fracción que da cada uno), `Lanzable`. **Balas** (`Balas.cs`): todos los tiros (humanos, cañón y cohetes)
+  pasan por `Balas.Rayo`/`Impactar`/`Disparar`: el rayo de física de siempre, que se salta lo del propio
+  tirador, y después los **blancos sin colisionadores** (`IBlancoBalas`, `Registrar`/`Quitar`: un cuerpo que
+  un collider no sigue, como la cadena de cápsulas de una serpiente) solo hasta donde llegó ese rayo, así que
+  lo que tiene colisionador delante los tapa; `GolpeBlanco.para` (el agua: el tiro se queda sin dañar).
+  **Calibres** (`Calibres`: perdigón 0,45, pistola y subfusil 1, arcabuz 1,3, fusil de asalto 8, fusil de
+  caza 12, ametralladora 25, cañón 60) frente al **blindaje** de cada `Salud` (0 de serie: nada rebota):
+  `Salud.Penetracion(calibre)` = smoothstep de calibre/blindaje entre 0,6 y 1,4; los dados del rebote los tira
+  `Balas` con un `System.Random` propio (semilla 1542, no mueve el `UnityEngine.Random` de cada juego) solo si
+  puede salir una cosa u otra, y un rebote (`DatosDanio.rebote`) hace el `restoRebote` (0,06) y avisa con
+  `AlDanio`. `DatosDanio.calibre` (0 = sin calibre: entra siempre). `Balas.AlImpactar(Tiro)`, `Ultimo`,
+  `Impactos`, `Rebotes`, `Tiradas` y el `ProfilerMarker` «Balas» para las pruebas. Con lo de serie (sin blancos,
+  sin blindaje) todo da lo mismo que antes, también la secuencia de `Random`. Comprobación sin escena:
+  `Guardianes.EditorTools.PruebaBalas.ComprobarDesdeBatch`.
 - `Runtime/Enemigos/` — **Ferrox**: `Humano` (IA según el tamaño de la criatura: con una gigante
   patrulla, dispara y huye; a una pequeña la buscan a machetazos; detección con luz y escondites;
   **investiga y busca** —`Investigar(punto, urgente)`, estados `Investigar` y `Buscar`: va a la pista —a una criatura
@@ -78,13 +94,36 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `quieto` para centinelas y gente sentada, `ruta` para rondas (con `pausaRuta` en los extremos:
   trabajan un rato y vuelven); los `protegido` miran a la criatura
   pequeña y no le hacen nada; `inocente` en falso para un civil que, si muere, no cuenta como
-  inocente (un villano desarmado); `termica`: visión de calor, la oscuridad le quita poca vista, pero es un visor que solo ve de frente), `Ruidos` (el oído del mundo: `Emitir(donde, radio, TipoRuido, deCriatura)` y `AlOir`; cada juego dice
-  qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia; `Helicopteros`, los que ha mandado; `Reocupar`: la compañía vuelve a una zona liberada con
+  inocente (un villano desarmado); `termica`: visión de calor, la oscuridad le quita poca vista, pero es un visor que solo ve de frente;
+  **el arma** —`arma` (`ClaseArma`), `calibre`, `proyectiles` y `abanico`: en `Awake` reconoce el arma que lleva en la
+  mano (`Arma.DeHumano`) y de su ficha toma solo lo físico; el daño, la cadencia y la dispersión siguen siendo los del
+  prefab y los de las misiones; `Armar(clase)` copia la ficha entera; cada disparo pasa por `Balas` (los perdigones
+  en su abanico, el del centro el último: es el que se ve y el que se avisa por `AlDisparar`, que acaba en la piel)
+  y apunta a donde diga `Criatura.PuntoDisparo`, también al `Enfrentar` a la propia criatura—), `Arma`
+  (`ClaseArma`: `FusilAsalto` —el 0, el de los prefabs de antes—, `Pistola`, `Subfusil`, `Escopeta`, `Arcabuz`,
+  `FusilCaza`, `Ametralladora`, `Canon`, los nuevos al final; `DatosArma` con calibre, daño, cadencia, dispersión,
+  abanico, alcance, fogonazo, tono, proyectiles, ráfaga y pausa; `Ficha`/`Ajustar` —cada juego retoca la tabla al
+  arrancar—; `Prefijos`/`ClaseDe`/`Reconocer`: la clase por el nombre del modelo —`kk_ak47` y los de AssetsCreator, y
+  las ocho del kit de armas del cerebro: `gd_glock17` y `gd_colt_saa` pistola, `gd_mp5` subfusil, `gd_ak47` fusil de
+  asalto, `gd_escopeta` (las dos) escopeta, `gd_remington700` fusil de caza y `gd_m2_browning` ametralladora; gana el
+  prefijo más largo—; `DeHumano`: un `Arma` en los hijos
+  o la malla bajo `AC_arma_r`; `MontajeArma`: el pivote, el eje de giro y el radio de la columna de un arma montada (la M2
+  en su cuna; el poste lo pone el juego), de su ficha; `ManosEnArma` (`Poner(humano, arma, cachaDerecha,
+  cachaIzquierda)`): las manos de quien maneja un arma que no lleva en la mano —las dos cachas de la M2—, después del
+  `Animator` (`LateUpdate`, o `Aplicar` a mano), con los dos huesos de cada brazo del esqueleto de AssetsCreator: el puño
+  —el centro de las falanges— en su cacha, el codo en el plano que tenía en el clip y la mano girada a la cacha (los
+  nudillos hacia el cañón, el índice arriba); muerto, nada; el fusil de asalto, con
+  fogonazo y tono 1, es el de siempre; la escopeta, fogonazo ancho y estampido grave, y el fusil de caza, fogonazo
+  estrecho y chasquido seco, para que se distingan), `Ruidos` (el oído del mundo: `Emitir(donde, radio, TipoRuido, deCriatura)` y `AlOir`; cada juego dice
+  qué ruido hace su criatura), `ZonaHumana` (con `AlActivar` al despertar su guardia; `Helicopteros`, los que ha mandado; `ElegirGuardia`:
+  el prefab de cada uno de la guardia —cada juego reparte sus armas; sin él, el del azar, que se tira igual—; `Reocupar`: la compañía vuelve a una zona liberada con
   instalaciones nuevas, `AlReocupar`, `Reocupaciones`), `ConstructorInstalaciones` + `Piezas` (cajas, cilindros,
   prismas y `Tubo`/`Catenaria`: un tubo a lo largo de unos puntos o colgado entre dos —ramas, lianas, cables—,
   `PuntosCatenaria`; la malla del tubo es suya) +
   `ConstructorPiezasCampana`, `Estructura` (`engullida`: se la traga una criatura, desaparece sin piezas ni explosión), `Helicoptero` (rotor del BEMT de Lur Aerospace; ve a una criatura pequeña (menos de 8 m)
-  con la misma `Humano.Visibilidad` que los humanos: la selva y el relieve la tapan), `Cohete`,
+  con la misma `Humano.Visibilidad` que los humanos: la selva y el relieve la tapan; el cañón y los cohetes pasan por
+  `Balas` —`calibreCanon`, 60 de serie— y apuntan a `Criatura.PuntoDisparo` si da algo: la ráfaga, al punto que dio
+  al empezarla, guardado respecto a la criatura; sin él, a la altura de siempre, que sigue gastando su `Random`), `Cohete`,
   `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
   `miedo` de 0 a 100 que sube con la oscuridad (sin linterna), lo que ve de reojo, los ojos de la
   criatura cuando les da una luz de noche, siseos y rugidos (se oyen a 4 veces su radio), mordiscos,
@@ -112,8 +151,18 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `BufferEntrada` y `MargenApoyo` (coyote time), `AsistenciaPunteria` (`Elegir`, `Corregir`,
   `BuscarSalud`) y `Medidor` (métricas para las pruebas, `Informe()`). Comprobación sin escena:
   `Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch`.
-- `Runtime/Efectos/EfectosCombate` (`Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—), `Runtime/Audio/SonidoJuego` (la voz de cada criatura la pone su
-  juego con `Sonar` y los bancos `voces`/`percusion`/`pisadas`...), `Runtime/Camara/CamaraCriatura`
+- `Runtime/Efectos/EfectosCombate` (`Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—;
+  `Rebote(punto, normal, dir, escala)`: la bala que rebota —chispas en un cono alrededor del reflejo, a veces una
+  trazadora desviada y un destello—, que pinta solo con `Balas.AlImpactar`; un tiro que da en un blanco sin
+  colisionadores o rebota no deja polvillo ni chispas —la sangre la pone el juego—; la trazadora se apaga en lo que
+  toca —a menos de 3 m no hay, sin cambiar el `Random`— y su raya (420 m/s por el `velocityScale` de 0,005: unos 2,2 m) cabe
+  en los 2,5 m a los que sale de la boca: no la cruza ni atraviesa al tirador; el fogonazo de un humano, del
+  tamaño de su arma; `Rebotes`, `Polvillos`, `SinPolvillo` y `AlPolvillo` para las pruebas), `Runtime/Audio/SonidoJuego` (la voz de cada criatura la pone su
+  juego con `Sonar` y los bancos `voces`/`percusion`/`pisadas`...; el disparo de un humano, con el tono de su arma;
+  los rebotes con el banco `rebotes` —`armas/rebote_*`, el «piiu» de `generar_sonidos.py --solo rebote`, que pone
+  `ConstructorAudio`; mientras no estén, una
+  chapa de `metales` muy aguda— y su propio tope, `rebotesPorSegundo`; los perdigones de un tiro que rebotan suenan
+  una vez —mismo tirador y fotograma—, algo más fuerte cuantos más rebotan; `RebotesSonados`), `Runtime/Camara/CamaraCriatura`
   (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`
   (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero; `OpcionesJuego`: las
   opciones del jugador en PlayerPrefs —pantalla completa, resolución, VSync, volumen, sensibilidad e invertir el eje
@@ -138,7 +187,32 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   humedad; el relieve base es de cada juego), `Vegetacion/` (`EspeciesSelva`, `RepartoVegetacion`
   con reglas por juego; `ReglasSelvaTropical` son las de la isla de Koba), `Agua/MaterialesAgua`,
   `Efectos/ConstructorEfectos`, `Audio/ConstructorAudio`, `Enemigos/` (`ConstructorHumanos` desde
-  AssetsCreator, `ConstructorHelicoptero`, `ConfiguradorZonas`).
+  AssetsCreator —`Def.familia`: el prefijo de los clips de quieto, andar, apuntar y disparar, `fusil_ak` de serie, o
+  `pistola`, `escopeta`, `subfusil` de `animar --arma`; `Def.carpeta` y `Def.materialesDe`: una variante con otra arma
+  va en la carpeta del humano de serie y con sus materiales, sin copiar dos veces las texturas; con `danioBala` 0 un
+  armado lleva la ficha entera de su arma; el objeto «Arma» lleva un `Arma` con la clase del proyecto; **las armas del
+  kit de armas del cerebro** (`gd_*`, `Tools~/arte/armas`) traen su **ficha**, `<n>_agarre.json` (`LeerFicha(ruta)` →
+  `FichaArma`: la clase, el `Agarre` ya en el espacio del modelo importado —la x del OBJ cambia de signo: empuñadura
+  `(-agarre.x, agarre.y, agarre.z)` más `DesfaseAgarre(clase)` —de serie ninguno: en los clips el puño cierra en el hueso
+  de la mano, y con el del AK de la regla, (0,06; −0,04; 0), quedaba debajo de la empuñadura—; el cañón a `Vector3.left`,
+  arriba `Vector3.up`, la boca, el guardamanos y, en la M2, el montaje—, la receta de cada material y la rugosidad que
+  pida; `RutaFicha(proyecto)`), y van en la mano con
+  ella y no con la regla: `PonerArma` / `InstanciarArma` (el arma fuera de la mano, para una torreta) le ponen la
+  `Bocacha`, un hijo «Guardamanos» (la mano izquierda) y, si va montada, un `MontajeArma`; **`TraerArma(proyecto,
+  retocar)`** copia de AssetsCreator a `Art/Humanos/Armas/<n>` el OBJ, la ficha, el `.mtl` sin sus `map_`/`norm`/`bump`/
+  `disp` (sin él, el OBJ sale con un solo material, blanco) y, de los mapas, solo el color base de cada material (el que
+  ya está en el arte del juego igual byte a byte no se copia, salvo si está en la carpeta de otra arma: el `TraerArma` de
+  esa la pisaría al cambiar y quitar su carpeta la borraría; esa se copia otra vez, y LFS guarda un solo objeto), y le pone
+  un HDRP/Lit por material del OBJ, remapeado por
+  nombre en su importador (`AcabadoDe`: metal si su receta lo es —el pavonado brillante y la pintura del kit son
+  `pintura_coche`/`pintura_mate`, no metal— o, sin receta, si tiene mapa metallic; suavidad = 1 − la rugosidad de la
+  ficha o, si no la lleva, la `Pr` de su `.mtl`; sin ficha, por el nombre; `retocar`, el tinte de cada juego);
+  `ConstruirTodos` trae así las del kit; `Agarres`: el agarre a mano de las armas en las que ni la regla del 28 % de
+  `EjesFusil` ni una ficha valen (hoy ninguna); `kk_ak47` y lo demás
+  sin ficha, con la regla y su copia de siempre; lo que ya está igual no se vuelve a copiar;
+  `ImportadorArmas`: la malla de los OBJ de `Art/Humanos/Armas` se llama como el modelo —un OBJ de un solo objeto la
+  deja en «default»—, que es por lo que `Arma.DeHumano` reconoce el calibre, también en los prefabs de antes—,
+  `ConstructorHelicoptero`, `ConfiguradorZonas`).
 - `Shaders/` — variantes de HDRP/Lit generadas por `Tools~/generar_shaders_lit.py`:
   `Guardianes/Vegetacion` (+ `Viento.hlsl`), `Guardianes/Pelaje` (+ `Pelaje.hlsl`),
   `Guardianes/Rio` (+ `Rio.hlsl`) y `Guardianes/Escamas` (+ `Escamas.hlsl`: piel de serpiente; la
@@ -171,4 +245,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 El paquete no tiene proyecto propio: se compila y se prueba dentro de los juegos (sus
 `Tools/Unity-Batch.ps1` y `Tools/Unity-Pruebas.ps1`, con el editor cerrado). Un cambio aquí se
 prueba trayéndolo a la copia de un juego (ninguno enlaza ya el cerebro) y compilando allí con
-sus pruebas.
+sus pruebas. Comprobaciones del paquete sin escena (en batch, `-Metodo`):
+`Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch` y
+`Guardianes.EditorTools.PruebaBalas.ComprobarDesdeBatch` (las balas: lo mismo que `Physics.Raycast` sin blancos,
+lo del tirador, los blancos, los rebotes y sus dados, `Impacto.Golpear` con un blanco, la tabla de las armas —también
+las del kit, y que con dos prefijos que se solapan gana el más largo— y su ficha, con los `_agarre.json` que escribe en
+una carpeta temporal: un fusil de caza, una pistola, la M2 montada y tres que no valen del todo).

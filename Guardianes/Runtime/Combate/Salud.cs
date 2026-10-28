@@ -16,6 +16,10 @@ namespace Guardianes.Combate
         public float empuje;
         public TipoDanio tipo;
         public GameObject origen;
+        /// <summary>Lo que penetra el proyectil (Calibres; 0 = sin calibre: entra siempre, como un golpe).</summary>
+        public float calibre;
+        /// <summary>El proyectil ha rebotado en el blindaje (Balas): solo hace el restoRebote del dano.</summary>
+        public bool rebote;
     }
 
     /// <summary>
@@ -30,6 +34,10 @@ namespace Guardianes.Combate
         public float resistenciaBalas = 1f;
         public float resistenciaCanon = 1f;
         public float resistenciaGolpes = 1f;
+        [Tooltip("Escamas o coraza frente a los proyectiles con calibre: 0, nada rebota")]
+        public float blindaje;
+        [Tooltip("Lo que hace un proyectil que rebota (fraccion de su dano)")]
+        [Range(0f, 1f)] public float restoRebote = 0.06f;
         public bool invulnerable;
 
         public event Action<DatosDanio> AlDanio;
@@ -41,9 +49,19 @@ namespace Guardianes.Combate
 
         void Awake() => actual = Mathf.Min(actual, maxima);
 
+        /// <summary>
+        /// Probabilidad de que un proyectil de ese calibre entre (0..1): con calibre / blindaje por debajo de
+        /// 0,6 rebota siempre y por encima de 1,4 entra siempre. Sin blindaje o sin calibre, 1. Los dados los
+        /// tira Balas; aqui no se tira nada.
+        /// </summary>
+        public float Penetracion(float calibre) =>
+            blindaje <= 0f || calibre <= 0f ? 1f : Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.6f, 1.4f, calibre / blindaje));
+
         public void Danar(DatosDanio d)
         {
             if (Muerto || invulnerable) return;
+            // Un rebote solo hace un resto (y siempre avisa: los efectos y la cura lo quieren saber).
+            if (d.rebote) d.cantidad *= restoRebote;
             float k = d.tipo == TipoDanio.Bala ? resistenciaBalas
                     : d.tipo == TipoDanio.Canon ? resistenciaCanon
                     : d.tipo == TipoDanio.Golpe || d.tipo == TipoDanio.Onda || d.tipo == TipoDanio.Pisoton ? resistenciaGolpes : 1f;

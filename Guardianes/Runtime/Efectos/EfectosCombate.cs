@@ -20,7 +20,9 @@ namespace Guardianes.Efectos
     ///   Explosiones: bola de fuego, chispas, escombros, onda, destello de luz y fuego con humo que
     ///   sigue ardiendo un rato.
     ///   Instalaciones que se rompen: nube de polvo y escombros.
-    ///   Disparos: fogonazo, trazadora (no todas las balas) y polvillo en el impacto.
+    ///   Disparos: fogonazo, trazadora (no todas las balas) y polvillo en el impacto (nada si da en un blanco
+    ///   sin colisionadores o rebota: la sangre la pone cada juego). Rebotes (Balas): chispas, una trazadora
+    ///   desviada y un destello.
     ///   Arboles derribados: hojas al caer y polvo a lo largo del tronco al tocar el suelo.
     ///   Purificacion (la selva recupera el suelo, zona liberada): motas de luz y hojas en remolino.
     /// Las particulas usan Guardianes/Particula (iluminadas por el sol y el cielo, o emisivas en nits).
@@ -50,6 +52,13 @@ namespace Guardianes.Efectos
         public float distanciaMaxima = 900f;
 
         public static EfectosCombate Instancia { get; private set; }
+        /// <summary>Rebotes de bala que han llegado a los efectos (las pruebas; los lejanos cuentan aunque no se pinten).</summary>
+        public int Rebotes { get; private set; }
+        /// <summary>Polvillos de bala puestos donde pega el tiro, y tiros que no lo ponen por dar en un blanco o rebotar (las pruebas).</summary>
+        public int Polvillos { get; private set; }
+        public int SinPolvillo { get; private set; }
+        /// <summary>Cada polvillo de bala (donde): las pruebas miran que no salga detras de un cuerpo.</summary>
+        public event System.Action<Vector3> AlPolvillo;
 
         ParticleSystem _polvo, _humo, _bola, _llamas, _chispas, _trazas, _fogonazos, _escombros, _hojas, _anillo, _motas;
         CamaraCriatura _camara;
@@ -146,8 +155,10 @@ namespace Guardianes.Efectos
             });
             _trazas = Emisor("Trazadoras", trazadoras, 600, (ps, r) =>
             {
+                // La raya mide su tamano mas la velocidad por velocityScale: a 420 m/s, unos 2,2 m, menos que la salida de
+                // Disparar (2,5 m), asi que no cruza la boca ni al tirador (con 0,022 era de 9 m y le atravesaba el pecho).
                 r.renderMode = ParticleSystemRenderMode.Stretch;
-                r.velocityScale = 0.022f;
+                r.velocityScale = 0.005f;
                 r.lengthScale = 1f;
             });
             _fogonazos = Emisor("Fogonazos", fogonazos, 300, (ps, r) =>
@@ -334,6 +345,7 @@ namespace Guardianes.Efectos
             Helicoptero.AlExplotar += HelicopteroExplota;
             Cohete.AlLanzar += CoheteSale;
             Cohete.AlExplotar += CoheteExplota;
+            Balas.AlImpactar += Bala;
         }
 
         void OnDisable()
@@ -351,6 +363,7 @@ namespace Guardianes.Efectos
             Helicoptero.AlExplotar -= HelicopteroExplota;
             Cohete.AlLanzar -= CoheteSale;
             Cohete.AlExplotar -= CoheteExplota;
+            Balas.AlImpactar -= Bala;
             if (Instancia == this) Instancia = null;
         }
 
@@ -366,7 +379,9 @@ namespace Guardianes.Efectos
             return cam == null || (cam.transform.position - p).sqrMagnitude < (distanciaMaxima + margen) * (distanciaMaxima + margen);
         }
 
-        bool Emitir(ParticleSystem ps, Vector3 pos, Vector3 vel, float tam, float vida, Color color, bool obligado = false)
+        // pintar falso: gasta lo mismo que una particula (su hueco del presupuesto y el Random del giro) sin emitirla, para
+        // que quitar una no cambie el resto de efectos ni la secuencia de Random.
+        bool Emitir(ParticleSystem ps, Vector3 pos, Vector3 vel, float tam, float vida, Color color, bool obligado = false, bool pintar = true)
         {
             if (Time.frameCount != _ultimoFotograma)
             {
@@ -375,6 +390,8 @@ namespace Guardianes.Efectos
             }
             if (!obligado && _gastado >= presupuesto) return false;
             _gastado++;
+            float giro = Random.Range(0f, 360f);
+            if (!pintar) return false;
             var e = new ParticleSystem.EmitParams
             {
                 position = pos,
@@ -382,7 +399,7 @@ namespace Guardianes.Efectos
                 startSize = tam,
                 startLifetime = vida,
                 startColor = color,
-                rotation = Random.Range(0f, 360f),
+                rotation = giro,
                 applyShapeToPosition = false,
             };
             ps.Emit(e, 1);
@@ -589,7 +606,8 @@ namespace Guardianes.Efectos
             }
         }
 
-        void Disparo(Vector3 origen, Vector3 impacto, Humano h) => Disparar(origen, impacto, 1f);
+        // El fogonazo, del tamano del arma (el fusil de asalto, 1).
+        void Disparo(Vector3 origen, Vector3 impacto, Humano h) => Disparar(origen, impacto, h != null ? Arma.Ficha(h.arma).fogonazo : 1f);
 
         /// <summary>Fogonazo, trazadora y polvillo de un disparo (humanos, helicopteros).</summary>
         public void Disparar(Vector3 origen, Vector3 impacto, float escala)
@@ -602,14 +620,73 @@ namespace Guardianes.Efectos
             Emitir(_fogonazos, origen + dir * 0.35f * escala, dir * 1.5f, Random.Range(0.6f, 1.1f) * escala, 0.055f, Color.white);
             if (Random.value < proporcionTrazadoras)
             {
-                const float Velocidad = 420f;
-                Emitir(_trazas, origen + dir * 2.5f, dir * Velocidad, 0.11f, Mathf.Max(0.02f, (dist - 2.5f) / Velocidad), new Color(1f, 0.82f, 0.5f, 1f));
+                // Sale a 2,5 m de la bocacha y se apaga al llegar a lo que toca (la piel de un blanco, la escama donde
+                // rebota), sin vida minima: con ella, en un tiro cercano pasaba de largo y cruzaba el cuerpo. A menos de
+                // 3 m no le queda recorrido y no se pinta (pero gasta lo mismo: ver Emitir). La raya mide Velocidad por el
+                // velocityScale de las trazadoras (y su tamano) y tiene que caber en Salida: si no, se alarga hacia la
+                // boca y atraviesa al tirador.
+                const float Velocidad = 420f, Salida = 2.5f;
+                Emitir(_trazas, origen + dir * Salida, dir * Velocidad, 0.11f, (dist - Salida) / Velocidad, new Color(1f, 0.82f, 0.5f, 1f),
+                       pintar: dist > Salida + 0.5f);
             }
+            // Si este tiro ha dado en un blanco sin colisionadores (o se ha quedado en su agua) o ha rebotado
+            // (Balas.Ultimo, en este fotograma y en este punto), ni polvillo ni chispas: las pone Rebote, o la
+            // sangre (o la salpicadura) del juego.
+            var u = Balas.Ultimo;
+            if (u.fotograma == Time.frameCount && (u.blanco != null || u.rebote) && (u.punto - impacto).sqrMagnitude < 1e-4f)
+                SinPolvillo++;
             // Polvillo donde pega (si no es en el propio Kong, que no levanta tierra).
-            if (Mathf.Abs(impacto.y - Altura(impacto)) < 1.5f)
+            else if (Mathf.Abs(impacto.y - Altura(impacto)) < 1.5f)
+            {
                 Emitir(_polvo, impacto + Vector3.up * 0.3f, Vector3.up * 1.5f + Random.insideUnitSphere, Random.Range(0.6f, 1.1f), Random.Range(0.8f, 1.4f), Variar(ColorSuelo(impacto), 0.1f));
+                Polvillos++;
+                AlPolvillo?.Invoke(impacto);
+            }
             else if (Random.value < 0.3f)
                 Emitir(_chispas, impacto, (-dir + Random.insideUnitSphere) * 6f, 0.08f, 0.25f, new Color(1f, 0.8f, 0.5f, 1f));
+        }
+
+        void Bala(Tiro t)
+        {
+            if (t.rebote) Rebote(t.punto, t.normal, t.direccion, EscalaRebote(t));
+        }
+
+        /// <summary>Lo grande que se pinta un rebote: con el calibre y, de lejos, mas (que se vea desde la camara de una criatura enorme).</summary>
+        static float EscalaRebote(Tiro t)
+        {
+            var cam = Camera.main;
+            float lejos = cam != null ? Mathf.Clamp(Vector3.Distance(cam.transform.position, t.punto) / 40f, 1f, 3f) : 1f;
+            return Mathf.Clamp(0.5f + 0.15f * Mathf.Sqrt(Mathf.Max(0f, t.calibre)), 0.6f, 1.5f) * lejos;
+        }
+
+        /// <summary>
+        /// Una bala que rebota (en una coraza, en las escamas): chispas en un cono alrededor del reflejo, a veces una
+        /// trazadora desviada y un destello que de noche se ve. Sin polvillo. dir: hacia donde iba la bala.
+        /// </summary>
+        public void Rebote(Vector3 punto, Vector3 normal, Vector3 dir, float escala)
+        {
+            Rebotes++;
+            if (!Cerca(punto)) return;
+            Vector3 n = normal.sqrMagnitude > 1e-6f ? normal.normalized : -dir;
+            Vector3 r = Vector3.Reflect(dir, n);
+            if (Vector3.Dot(r, n) < 0f) r = Vector3.Reflect(r, n);
+            int cuantas = Random.Range(6, 11);
+            for (int i = 0; i < cuantas; i++)
+            {
+                // Cono de unos 35 grados alrededor del reflejo.
+                Vector3 d = (r + Random.insideUnitSphere * 0.7f).normalized;
+                Emitir(_chispas, punto + n * 0.03f, d * Random.Range(8f, 18f), Random.Range(0.05f, 0.09f) * escala, Random.Range(0.12f, 0.35f),
+                       new Color(1f, Random.Range(0.75f, 0.95f), Random.Range(0.45f, 0.7f), 1f));
+            }
+            if (Random.value < 0.6f)
+            {
+                // La bala desviada sigue un poco (de 8 a 25 m, a 300 m/s).
+                const float Velocidad = 300f;
+                Vector3 d = (r + Random.insideUnitSphere * 0.35f).normalized;
+                if (Vector3.Dot(d, n) < 0f) d = Vector3.Reflect(d, n);
+                Emitir(_trazas, punto + d * 0.2f, d * Velocidad, 0.11f * escala, Random.Range(8f, 25f) / Velocidad, new Color(1f, 0.82f, 0.5f, 1f));
+            }
+            Emitir(_fogonazos, punto + n * 0.05f, Vector3.zero, Random.Range(0.15f, 0.3f) * escala, 0.04f, new Color(1f, 0.92f, 0.75f, 1f));
         }
 
         /// <summary>Estela de un cohete: humo que se queda y el resplandor del motor.</summary>

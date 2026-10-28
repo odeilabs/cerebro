@@ -6,7 +6,8 @@ using UnityEngine;
 namespace Guardianes.Combate
 {
     /// <summary>
-    /// Golpes de area: dana todo lo que tenga Salud en la esfera (con caida por distancia), empuja
+    /// Golpes de area: dana todo lo que tenga Salud en la esfera (con caida por distancia), tambien los
+    /// blancos sin colisionadores de Balas (cada uno dice a que distancia y que parte le llega), empuja
     /// los cuerpos fisicos y tumba la vegetacion que no resista el golpe.
     /// </summary>
     public static class Impacto
@@ -14,6 +15,7 @@ namespace Guardianes.Combate
         static readonly Collider[] s_Colliders = new Collider[256];
         static readonly HashSet<Salud> s_Tocados = new HashSet<Salud>();
         static readonly List<int> s_Plantas = new List<int>();
+        static readonly List<(IBlancoBalas blanco, GolpeBlanco golpe)> s_Blancos = new List<(IBlancoBalas, GolpeBlanco)>();
 
         public static event System.Action<Vector3, float, TipoDanio> AlImpactar;
 
@@ -59,6 +61,29 @@ namespace Guardianes.Combate
                 if (rb != null && !rb.isKinematic)
                     rb.AddExplosionForce(empuje * k * rb.mass * 0.6f, centro, radio * 1.2f, 0.6f, ForceMode.Impulse);
             }
+
+            // Los blancos sin colisionadores (una vez cada Salud, como los demas; sin empuje fisico: no hay cuerpo que empujar).
+            Balas.Esfera(centro, radio, danio, tipo, ignorar, s_Blancos);
+            for (int i = 0; i < s_Blancos.Count; i++)
+            {
+                var (b, g) = s_Blancos[i];
+                var salud = b.Salud;
+                if (salud == null || (perdonar != null && perdonar(salud)) || !s_Tocados.Add(salud)) continue;
+                float k = 1f - caida * Mathf.Clamp01(g.distancia / radio);
+                Vector3 dir = g.punto - centro;
+                dir = dir.sqrMagnitude > 1e-4f ? dir.normalized : Vector3.up;
+                salud.Danar(new DatosDanio
+                {
+                    cantidad = danio * k * g.fraccion,
+                    punto = g.punto,
+                    direccion = (dir + Vector3.up * 0.35f).normalized,
+                    empuje = empuje * k,
+                    tipo = tipo,
+                    origen = ignorar,
+                });
+                tocados++;
+            }
+            s_Blancos.Clear();
 
             if (vegetacion) TumbarVegetacion(centro, radio, danio, empuje);
             AlImpactar?.Invoke(centro, radio, tipo);

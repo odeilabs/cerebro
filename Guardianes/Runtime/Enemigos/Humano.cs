@@ -44,12 +44,20 @@ namespace Guardianes.Enemigos
         public float pausaRuta;
 
         [Header("Arma")]
+        [Tooltip("La clase de arma (calibre, perdigones): Awake la reconoce por el modelo que lleva en la mano; si no lo conoce, esta")]
+        public ClaseArma arma;
         public float danioBala = 3.5f;
         public float cadencia = 9f;          // balas por segundo en rafaga
         public float dispersion = 0.035f;    // radianes
         public Vector2 duracionRafaga = new Vector2(0.8f, 1.8f);
         public Vector2 pausaRafagas = new Vector2(0.9f, 2.2f);
         public Transform bocacha;
+        /// <summary>Lo que penetra cada proyectil (Calibres): sale de la ficha del arma en Awake (o en Armar).</summary>
+        [System.NonSerialized] public float calibre = Calibres.FusilAsalto;
+        /// <summary>Proyectiles por disparo (los perdigones de la escopeta): el dano del disparo se reparte entre ellos.</summary>
+        [System.NonSerialized] public int proyectiles = 1;
+        /// <summary>Abanico de los proyectiles alrededor del disparo (radianes).</summary>
+        [System.NonSerialized] public float abanico;
 
         [Header("Civil")]
         [Tooltip("Trabajador o aldeano desarmado: no dispara, sigue con lo suyo y huye de las criaturas grandes")]
@@ -178,6 +186,32 @@ namespace Guardianes.Enemigos
             _puesto = transform.position;
             _destino = _puesto;
             _desfase = s_humanos++ & 3;
+            // El arma que lleva en la mano dice lo fisico (el calibre, los perdigones); el dano, la cadencia y la
+            // dispersion siguen siendo los del prefab y los de las misiones.
+            arma = Arma.DeHumano(transform, arma);
+            var ficha = Arma.Ficha(arma);
+            calibre = ficha.calibre;
+            proyectiles = Mathf.Max(1, ficha.proyectiles);
+            abanico = ficha.abanico;
+        }
+
+        /// <summary>
+        /// Le da un arma de la tabla (Arma.Ficha) entera: calibre, perdigones, dano, cadencia, dispersion, rafagas y
+        /// alcance. El modelo de la mano no cambia. Las misiones pueden pisar los numeros despues, como siempre.
+        /// </summary>
+        public void Armar(ClaseArma c)
+        {
+            var f = Arma.Ficha(c);
+            arma = c;
+            calibre = f.calibre;
+            proyectiles = Mathf.Max(1, f.proyectiles);
+            abanico = f.abanico;
+            danioBala = f.danio;
+            cadencia = f.cadencia;
+            dispersion = f.dispersion;
+            duracionRafaga = f.rafaga;
+            pausaRafagas = f.pausa;
+            distanciaDisparo = f.alcance / 1.5f;
         }
 
         void OnEnable()
@@ -326,9 +360,10 @@ namespace Guardianes.Enemigos
                 }
             }
             // Un animal que se les mete en el campamento (Enfrentar): mientras no vean a la criatura, le disparan.
+            // Si es la propia criatura (una mision que se la pone delante), al cuerpo: a donde diga su PuntoDisparo.
             if (Enfrentando && !laVe && Actual != Estado.Huida && Time.time >= _miedoHasta)
             {
-                PelearCon(_amenaza.position + Vector3.up * 0.4f, dt);
+                PelearCon(_amenaza.position + Vector3.up * 0.4f, _criatura != null && _amenaza.IsChildOf(_criatura.transform), dt);
                 return;
             }
             float panico = CriaturaPequena ? 0f : distanciaPanico * Mathf.Min(1f, TamanoCriatura / Criatura.TamanoReferencia);
@@ -857,8 +892,13 @@ namespace Guardianes.Enemigos
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(d), Mathf.Clamp01(rapidez));
         }
 
-        /// <summary>Rafagas contra la criatura (o, aterrado, contra un punto: las sombras).</summary>
-        void Disparar(float dt, Vector3? punto = null)
+        /// <summary>
+        /// Rafagas contra la criatura (o, aterrado, contra un punto: las sombras; o contra un animal). Apunta a donde
+        /// diga la criatura (PuntoDisparo) o, si no dice nada, a su altura de blanco con su reparto. alCuerpo: el
+        /// punto es la propia criatura (Enfrentar), y tambien se le pregunta. Cada proyectil va por Balas: se para en
+        /// lo primero que toca (tambien en un blanco sin colisionadores), y la trazadora acaba ahi.
+        /// </summary>
+        void Disparar(float dt, Vector3? punto = null, bool alCuerpo = false)
         {
             _relojRafaga -= dt;
             if (_relojRafaga <= 0f)
@@ -873,7 +913,8 @@ namespace Guardianes.Enemigos
                 _relojBala += 1f / cadencia;
                 Vector3 origen = bocacha != null ? bocacha.position : Ojos;
                 Vector3 objetivo;
-                if (punto.HasValue) objetivo = punto.Value + Vector3.up * Random.Range(0f, 1.2f);
+                if ((alCuerpo || !punto.HasValue) && _criatura != null && _criatura.PuntoDisparo(origen, out var alBulto)) objetivo = alBulto;
+                else if (punto.HasValue) objetivo = punto.Value + Vector3.up * Random.Range(0f, 1.2f);
                 else
                 {
                     float medio = _criatura.AltoCuerpo * 0.5f;
@@ -881,14 +922,18 @@ namespace Guardianes.Enemigos
                 }
                 Vector3 dir = (objetivo - origen).normalized;
                 dir = (dir + Random.insideUnitSphere * dispersion).normalized;
-                Vector3 impacto = origen + dir * distanciaDisparo * 1.5f;
-                if (Physics.Raycast(origen, dir, out var hit, distanciaDisparo * 1.5f, ~0, QueryTriggerInteraction.Ignore))
+                float alcance = distanciaDisparo * 1.5f;
+                int n = Mathf.Max(1, proyectiles);
+                var d = new DatosDanio { cantidad = danioBala / n, direccion = dir, tipo = TipoDanio.Bala, origen = gameObject, calibre = calibre };
+                // Los perdigones (la escopeta) en su abanico; el del centro, el ultimo: es el que se ve (trazadora,
+                // polvillo, Balas.Ultimo) y el que se avisa.
+                for (int k = 1; k < n; k++)
                 {
-                    impacto = hit.point;
-                    var s = hit.collider.GetComponentInParent<Salud>();
-                    if (s != null && s != _salud)
-                        s.Danar(new DatosDanio { cantidad = danioBala, punto = hit.point, direccion = dir, tipo = TipoDanio.Bala, origen = gameObject });
+                    d.direccion = (dir + Random.insideUnitSphere * abanico).normalized;
+                    Balas.Disparar(origen, d.direccion, alcance, gameObject, d);
                 }
+                d.direccion = dir;
+                Vector3 impacto = Balas.Disparar(origen, dir, alcance, gameObject, d);
                 AlDisparar?.Invoke(origen, impacto, this);
             }
             // La rafaga se oye (los suyos van a ver que pasa; los animales huyen).
@@ -947,9 +992,10 @@ namespace Guardianes.Enemigos
             _amenazaHasta = Mathf.Max(_amenazaHasta, Time.time + segundos);
         }
 
-        void PelearCon(Vector3 p, float dt)
+        /// <summary>Le dispara a un animal; alCuerpo: el animal es la criatura (se vuelve hacia su blanco y apunta a donde diga).</summary>
+        void PelearCon(Vector3 p, bool alCuerpo, float dt)
         {
-            Girar(p, dt * 8f);
+            Girar(alCuerpo ? _criatura.PuntoBlanco : p, dt * 8f);
             if (_anim != null)
             {
                 _anim.SetFloat(PVelocidad, 0f, 0.15f, dt);
@@ -957,7 +1003,7 @@ namespace Guardianes.Enemigos
                 _anim.SetBool(PDisparar, _enRafaga);
                 _anim.SetBool(PMiedo, false);
             }
-            Disparar(dt, p);
+            Disparar(dt, p, alCuerpo);
         }
 
         /// <summary>Se echa a dormir donde esta (tumbado; la linterna apagada). Los protegidos y los muertos no.</summary>
