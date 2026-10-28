@@ -10,7 +10,7 @@ namespace Guardianes.Enemigos
     /// cacha, y la mano se gira para cogerla como una empunadura de pie: los nudillos hacia el canon y del menique al indice
     /// a lo largo de la cacha (hacia arriba del arma). Lo que no alcanza se estira hacia ella. Muerto, no hace nada (cae con
     /// su clip). 'derecha' e 'izquierda' son las cachas (null: esa mano, con su clip); los ejes, los del arma ('arma': el
-    /// canon a su -X y arriba a su +Y, como los modelos de AssetsCreator y del kit de armas ya importados). Lo pone cada
+    /// canon a su -X y arriba a su +Y, como los modelos de AssetsCreator ya importados, tambien los del kit de armas). Lo pone cada
     /// juego (Poner) con lo que diga la ficha del arma (MontajeArma, el agarre y el guardamanos).
     /// </summary>
     [DisallowMultipleComponent]

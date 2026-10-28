@@ -18,8 +18,8 @@ namespace Guardianes.EditorTools.Enemigos
     /// rafaga, huida, impacto, muerte), el arma en la mano, colision, vida y la IA (Humano).
     /// Genera los humanos antes con creador.py de AssetsCreator. Las variantes de un humano con otra
     /// arma (pistola, escopeta...: los clips de 'animar --arma' de su familia) van en la carpeta del de
-    /// serie y con sus materiales: las texturas no se copian dos veces. Las armas del kit de armas del
-    /// cerebro (gd_glock17, gd_ak47...: Tools~/arte/armas) llegan con su ficha (el _agarre.json: agarre,
+    /// serie y con sus materiales: las texturas no se copian dos veces. Las armas del kit de armas de
+    /// AssetsCreator (gd_glock17, gd_ak47...: generador/armas, creador.py arma) llegan con su ficha (el _agarre.json: agarre,
     /// boca, guardamanos, clase y materiales) y sus materiales (TraerArma) y van en la mano como dice su
     /// ficha; las demas (kk_ak47), con la regla del fusil.
     /// </summary>
@@ -104,7 +104,7 @@ namespace Guardianes.EditorTools.Enemigos
 
         // ------------------------------------------------------------------ La ficha de un arma (_agarre.json)
         /// <summary>
-        /// La ficha de un arma del kit de armas del cerebro (Guardianes/Tools~/arte/armas), su &lt;n&gt;_agarre.json leido con
+        /// La ficha de un arma del kit de armas de AssetsCreator (generador/armas, creador.py arma), su &lt;n&gt;_agarre.json leido con
         /// LeerFicha: su clase (la de 'clase' o, si no la dice, la de su nombre), el agarre ya en el espacio del modelo
         /// importado y con el desfase de su clase, la receta del texturizador de cada material ('metal', 'pintura_coche',
         /// 'madera'...) y la rugosidad que pide cada uno, si la lleva (la M2).
@@ -129,7 +129,8 @@ namespace Guardianes.EditorTools.Enemigos
         /// Lee la ficha de un arma (su _agarre.json, en cualquier ruta); null si no esta o no dice el agarre y la boca. Del OBJ
         /// al modelo importado la x cambia de signo: la empunadura es (-agarre.x, agarre.y, agarre.z) mas el desfase de su
         /// clase (DesfaseAgarre), la boca (-boca.x, boca.y, boca.z), y lo mismo el guardamanos, el pivote del montaje y los
-        /// ejes (el canon '+X' queda en Vector3.left; arriba, '+Y', en Vector3.up).
+        /// ejes (el canon '+X' queda en Vector3.left; arriba, '+Y', en Vector3.up). El gd_mp5.py de AssetsCreator busca su
+        /// firma en este fichero (Tools~/arte/armas/README.md): si se renombra o se mueve, hay que cambiarlo alli.
         /// </summary>
         public static FichaArma LeerFicha(string ruta)
         {
@@ -378,7 +379,7 @@ namespace Guardianes.EditorTools.Enemigos
         {
             string origen = Origen(proyecto);
             string obj = Path.Combine(origen, proyecto + "_pbr.obj");
-            if (!File.Exists(obj)) { Debug.LogWarning($"[GD] Falta {obj} (genera el arma en AssetsCreator o con el kit de armas)"); return null; }
+            if (!File.Exists(obj)) { Debug.LogWarning($"[GD] Falta {obj} (genera el arma en AssetsCreator: creador.py arma <n> las del kit de armas, creador.py objeto arma las demas)"); return null; }
             string carpeta = $"{CarpetaArte}/Armas/{proyecto}";
             Directory.CreateDirectory(carpeta);
             string rutaObj = $"{carpeta}/{proyecto}_pbr.obj";

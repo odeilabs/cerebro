@@ -346,7 +346,7 @@ namespace Guardianes.EditorTools
                         "las clases por el nombre del modelo");
                 Esperar(Arma.ClaseDe("cosa_rara") == ClaseArma.FusilAsalto && !Arma.Reconocer("cosa_rara", out _) && !Arma.Reconocer(null, out _),
                         "lo que no conoce, fusil de asalto (y dice que no lo conoce)");
-                // Las del kit de armas del cerebro, por su nombre y por el de su malla ('<n>_pbr', sin mirar mayusculas): las dos
+                // Las del kit de armas de AssetsCreator, por su nombre y por el de su malla ('<n>_pbr', sin mirar mayusculas): las dos
                 // escopetas, por gd_escopeta.
                 var kit = new (string nombre, ClaseArma clase)[]
                 {
@@ -436,7 +436,7 @@ namespace Guardianes.EditorTools
         }
 
         /// <summary>
-        /// La ficha de las armas del kit de armas del cerebro (ConstructorHumanos.LeerFicha y AcabadoDe), con tres _agarre.json
+        /// La ficha de las armas del kit de armas de AssetsCreator (ConstructorHumanos.LeerFicha y AcabadoDe), con tres _agarre.json
         /// como los del kit escritos aqui, en una carpeta temporal (sin AssetsCreator ni las armas traidas): un fusil de caza con
         /// guardamanos, una pistola sin el y sin clase (la de su nombre) y la M2, montada y con su rugosidad; y tres que no
         /// valen del todo: sin la boca, mal escrita y con una clase que no existe (la de su nombre).

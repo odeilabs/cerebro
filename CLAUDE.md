@@ -21,7 +21,7 @@ del juego.
 
 ```
 Odei Labs/
-├── AssetsCreator/            generador de assets (NO se modifica su código; se usa lo que genera)
+├── AssetsCreator/            generador de assets (NO se modifica su código salvo el kit de armas; se usa lo que genera)
 └── Gaia's Response/
     ├── cerebro/              ESTE repo (remoto github.com/odeilabs/cerebro): paquete + instrucciones
     ├── Gorilla Revenge/      juego 1, antes King Kong (repo, remoto github.com/odeilabs/GorillaRevenge)
@@ -106,7 +106,10 @@ Unity haga el `.meta` y se sube con `subir`.
   `credential.https://github.com.username odeilabs`), nunca la global. Un repo nuevo se configura igual.
 - **No modificar AssetsCreator** (`Odei Labs/AssetsCreator`): ni código ni configuración. Se usa
   lo que genera; los assets nuevos se generan con sus comandos y parámetros (ver la guía del
-  README).
+  README). **Excepción: las armas de fuego realistas** (decidido el 28/10/2026). Su kit vive en
+  AssetsCreator (`AssetsCreatorWin/generador/armas`, `creador.py arma`), que es el original: un arma
+  nueva o un cambio a las `gd_` se hacen allí (solo en esos ficheros), no en el cerebro, que ya no
+  lleva el kit (`Guardianes/Tools~/arte/armas/README.md` dice dónde está).
 - **Verificar en Unity en batch con el editor cerrado** (si el editor está abierto, el proyecto está
   bloqueado y batch falla): `Tools/Unity-Batch.ps1 -Metodo <clase.Metodo>` y
   `Tools/Unity-Pruebas.ps1 -Guion <guion>` de cada juego. **Mira las fotos** de las pruebas (con

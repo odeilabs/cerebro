@@ -104,7 +104,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `FusilCaza`, `Ametralladora`, `Canon`, los nuevos al final; `DatosArma` con calibre, daño, cadencia, dispersión,
   abanico, alcance, fogonazo, tono, proyectiles, ráfaga y pausa; `Ficha`/`Ajustar` —cada juego retoca la tabla al
   arrancar—; `Prefijos`/`ClaseDe`/`Reconocer`: la clase por el nombre del modelo —`kk_ak47` y los de AssetsCreator, y
-  las ocho del kit de armas del cerebro: `gd_glock17` y `gd_colt_saa` pistola, `gd_mp5` subfusil, `gd_ak47` fusil de
+  las ocho del kit de armas de AssetsCreator, `creador.py arma`: `gd_glock17` y `gd_colt_saa` pistola, `gd_mp5` subfusil, `gd_ak47` fusil de
   asalto, `gd_escopeta` (las dos) escopeta, `gd_remington700` fusil de caza y `gd_m2_browning` ametralladora; gana el
   prefijo más largo—; `DeHumano`: un `Arma` en los hijos
   o la malla bajo `AC_arma_r`; `MontajeArma`: el pivote, el eje de giro y el radio de la columna de un arma montada (la M2
@@ -191,7 +191,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `pistola`, `escopeta`, `subfusil` de `animar --arma`; `Def.carpeta` y `Def.materialesDe`: una variante con otra arma
   va en la carpeta del humano de serie y con sus materiales, sin copiar dos veces las texturas; con `danioBala` 0 un
   armado lleva la ficha entera de su arma; el objeto «Arma» lleva un `Arma` con la clase del proyecto; **las armas del
-  kit de armas del cerebro** (`gd_*`, `Tools~/arte/armas`) traen su **ficha**, `<n>_agarre.json` (`LeerFicha(ruta)` →
+  kit de armas** (`gd_*`, de AssetsCreator: `generador\armas`, `creador.py arma`) traen su **ficha**, `<n>_agarre.json` (`LeerFicha(ruta)` →
   `FichaArma`: la clase, el `Agarre` ya en el espacio del modelo importado —la x del OBJ cambia de signo: empuñadura
   `(-agarre.x, agarre.y, agarre.z)` más `DesfaseAgarre(clase)` —de serie ninguno: en los clips el puño cierra en el hueso
   de la mano, y con el del AK de la regla, (0,06; −0,04; 0), quedaba debajo de la empuñadura—; el cañón a `Vector3.left`,
@@ -224,7 +224,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   Las globales llevan el prefijo `_GD_`.
 - `Tools~/` (Unity no lo importa) — `generar_shaders_lit.py --proyecto <proyecto con HDRP>`,
   `arte/terreno`, `arte/vegetacion`, `arte/efectos`, `arte/audio` (texturas y sonidos procedurales
-  en Python: numpy/scipy/Pillow; todos con `--proyecto <carpeta del proyecto Unity>` o `--salida`),
+  en Python: numpy/scipy/Pillow; todos con `--proyecto <carpeta del proyecto Unity>` o `--salida`;
+  `arte/armas` solo dice dónde está el kit de armas, que desde el 28/10/2026 vive en AssetsCreator),
   `vehiculos/sdf_helicoptero.py` (+ `decimar_obj.py` en Blender) y `traer_cerebro.py` (comparar la
   copia de un juego con el cerebro, traer y subir cambios: ver `../CLAUDE.md`).
 

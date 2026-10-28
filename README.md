@@ -154,7 +154,9 @@ llegan a HDRP: [Investigacion/Texturas-PBR-criaturas.md](Investigacion/Texturas-
 
 > **Regla de la saga: no se modifica AssetsCreator** (ni código, ni `config.json`, ni lo que otros
 > proyectos tienen en `proyectos\`). Se usa lo que genera con sus comandos y parámetros. Si algo
-> no se puede hacer así, se hace en el cerebro o en el juego.
+> no se puede hacer así, se hace en el cerebro o en el juego. **La excepción son las armas de fuego
+> realistas** (el 28/10/2026): su kit (`generador\armas`, `creador.py arma`) es de AssetsCreator y
+> es el original, así que un arma nueva o un cambio a una de las `gd_` se hacen allí.
 
 ### Lanzarlo
 
@@ -202,7 +204,7 @@ cd "C:\Users\inigo\Desktop\Odei Labs\AssetsCreator\AssetsCreatorWin"
 | Soldados (uniformes de los años 40) | `humano --vestir ww2_* --equipo ww2_*` | 32 FBX `ww2_{us,de,su}_*` | El soldado de la WW2 |
 | Humanos de fondo sin rig | `objeto personaje --profesion lenador\|minero\|obrero\|soldado\|guardia...` (22) | — | Pack de personajes y ropa por profesión |
 | Armas de fuego (low-poly, PBR) | `objeto arma --preset ak47\|fusil\|escopeta\|subfusil\|pistola`; las de Verdún, más detalladas, con `objeto verdun_armas --preset mauser_g98\|...` | `kk_ak47`, `arma_fusil`, `arma_escopeta`, `arma_subfusil`, `pistola`, armas WW2 | cabecera de `generador\crear_objeto.py` |
-| Armas de fuego realistas de la saga | no salen de `creador.py`: las modela el kit de armas del cerebro (`Guardianes/Tools~/arte/armas`) y las texturiza `ultra\texturizar_obj.py` (ver *Recetas de la saga*) | las ocho `gd_*`: `gd_ak47`, `gd_glock17`, `gd_colt_saa`, `gd_mp5`, `gd_escopeta_corredera`, `gd_escopeta_yuxtapuesta`, `gd_remington700`, `gd_m2_browning` | el `README.md` del kit |
+| Armas de fuego realistas de la saga | `arma <n> [--res 1024] [--solo laminas,modelo,texturas,agarre,comparar]`, `arma --lista`, `arma --hoja a,b`: el kit de armas (`generador\armas`), que las modela en Blender contra sus láminas y las texturiza con `ultra\texturizar_obj.py` (ver *Recetas de la saga*) | las ocho `gd_*`: `gd_ak47`, `gd_glock17`, `gd_colt_saa`, `gd_mp5`, `gd_escopeta_corredera`, `gd_escopeta_yuxtapuesta`, `gd_remington700`, `gd_m2_browning` | Armas de fuego realistas contra sus láminas; `generador\armas\README.md` |
 | Armas cuerpo a cuerpo | `objeto arma --preset espada\|hacha\|lanza\|arco\|escudo\|porra` | — | ídem |
 | Cuernos, colmillos, alas, garrotes | `forma --forma cuerno\|colmillo\|ala_plumas\|garrote\|maza_gigante...` | `ws2_cuerno`, `ws2_colmillo`, `ws2_ala_plumas`, `ws2_garrote` | Armas de criatura, cuernos, alas... |
 | Cuadrúpedos con esqueleto (57 huesos, 23 clips) | `animal --especie X --pbr 1024 [--estado "mojado=1,barro=0.6,sangre=0.3"]` | `animal_*` (caballo, ciervo, conejo, gato, jabalí, león, lobo; pendientes de regenerar) | Animales cuadrúpedos con esqueleto; Animales esculpidos |
@@ -234,10 +236,10 @@ caimán, nutria, tapir, monos, peces y aves con rig; anacondas y boas; flora ama
 (açaí, buriti, paxiúba, *Victoria amazonica*); camiones, excavadoras, motosierras, machetes,
 lanchas, dragas, hidroaviones, tiendas de campaña y barracones; arquetipos de maderero o minero
 (se componen con `--vestir` y colores). El jaguar no tiene rosetas (sirven tigre, león o guepardo
-como base). No hay bioma de selva en `mundo` (la saga tiene el suyo en `PasadasRelieve`). En armas: ni un
-revólver con tambor ni una ametralladora pesada (los hace el kit de armas del cerebro: el Colt `gd_colt_saa` y la M2
-`gd_m2_browning`), ni clips de fusil de cerrojo (el fusil de caza va con los de `fusil_ak`) ni de ametralladora
-montada; el texturizado PBR casi no hace caso a `--color`.
+como base). No hay bioma de selva en `mundo` (la saga tiene el suyo en `PasadasRelieve`). En armas: `objeto arma`
+no tiene ni un revólver con tambor ni una ametralladora pesada (están en el kit de armas, `creador.py arma`: el Colt
+`gd_colt_saa` y la M2 `gd_m2_browning`), ni hay clips de fusil de cerrojo (el fusil de caza va con los de `fusil_ak`)
+ni de ametralladora montada; el texturizado PBR casi no hace caso a `--color`.
 
 ### Llevarlo a un juego
 
@@ -271,8 +273,9 @@ montada; el texturizado PBR casi no hace caso a `--color`.
 ### Crear assets nuevos sin tocar su código
 
 No hay recetas JSON genéricas ni `--params`: todo va por las opciones de cada subcomando. Una
-categoría o un preset nuevos exigirían escribir código en AssetsCreator, y eso no se hace. Lo que sí
-se puede, solo con parámetros:
+categoría o un preset nuevos exigirían escribir código en AssetsCreator, y eso no se hace (salvo un
+arma de fuego realista: es un modelo nuevo en `generador\armas\modelos`, la excepción de la regla de
+arriba). Lo que sí se puede, solo con parámetros:
 
 - **Humanos**: `humano` con sus mandos (sexo, altura, edad, músculo, peso, raza, `--complexion`,
   `--cara-tipo` y 28 mandos de cara, `--vestir` con conjuntos o prendas sueltas y
@@ -333,23 +336,24 @@ ficheros (los colores pueden variar ±1).
 | `kk_mercenario` con subfusil | El mercenario con subfusil (Basiliskos: `MercenarioSubfusil`, `familia` `subfusil`) | lo mismo con `--arma subfusil` y `subfusil_*` en lugar de `escopeta_*` |
 | `bk_ze_dourado` con pistola | Zé Dourado con el revólver (Basiliskos: `ZeDouradoPistola`) | `animar --proyecto bk_ze_dourado --arma pistola` con los 15 clips del mercenario con pistola |
 
-**Las armas de la saga (`gd_`)** no salen de `creador.py`. Las modela el kit de armas del cerebro
-(`Guardianes/Tools~/arte/armas`, ver su README) y las texturiza `ultra\texturizar_obj.py` con `--res 1024 --escala 0.4`.
-Se lanzan desde cualquier carpeta con el `.venv\Scripts\python.exe` de AssetsCreator; `$kit` es
-`...\cerebro\Guardianes\Tools~\arte\armas`. Cada una deja en su `salida\` su `<n>_agarre.json` (agarre, boca,
-guardamanos, ejes, clase, la receta de cada material y, en la M2, el montaje), que `ConstructorHumanos.TraerArma` copia y
-`PonerArma`/`InstanciarArma` usan para montarla.
+**Las armas de la saga (`gd_`)** salen de `creador.py arma` (desde el 28/10/2026; antes, del kit de armas del
+cerebro, que se mudó a AssetsCreator: ver `Guardianes/Tools~/arte/armas/README.md`). El kit de AssetsCreator
+(`generador\armas`, ver su README) las modela en Blender contra sus láminas y las texturiza con
+`ultra\texturizar_obj.py` a `--res 1024 --escala 0.4`; `creador.py arma` decide si cada una va con el kit o con el
+fichero de su modelo (`arma --lista` lo dice). Cada una deja en su `salida\` su `<n>_agarre.json` (agarre, boca, guardamanos, ejes, clase,
+la receta de cada material, en la M2 el montaje, y la receta del arma), que `ConstructorHumanos.TraerArma` copia y
+`PonerArma`/`InstanciarArma` usan para montarla. `arma <n> --solo agarre` rehace solo la ficha, sin Blender.
 
 | Proyecto | Para qué | Receta |
 | --- | --- | --- |
-| `gd_glock17` | Glock 17: capataces y mercenarios de Basiliskos (`MercenarioPistola`; el traficante de ronda de la 9); cualquier pistola moderna | `$kit\construir_arma.py gd_glock17 --res 1024` |
-| `gd_colt_saa` | Colt Single Action Army de 5½": Zé Dourado (Basiliskos: `ZeDouradoPistola`); cualquier revólver de acción simple | `$kit\construir_arma.py gd_colt_saa --res 1024 --solo laminas,modelo,texturas,agarre` y después `$kit\modelos\gd_colt_saa.py comparar` |
-| `gd_mp5` | HK MP5A3: traficantes de Basiliskos (`MercenarioSubfusil`); cualquier subfusil moderno | `$kit\modelos\gd_mp5.py --res 1024` (con `GD_MP5_CULATA=metida`, la culata metida) |
-| `gd_ak47` | AK-47: mercenarios de Ferrox y Comadrejas (sustituye a `kk_ak47`; Basiliskos: el mercenario de las zonas, la Comadreja, Brandão y Zé Dourado de serie) | `$kit\modelos\gd_ak47.py --res 1024` (con `GD_AK47_CARGADOR=no`, sin cargador) |
-| `gd_escopeta_corredera` | Escopeta de corredera (870 Wingmaster de 26"): garimpeiros, cazadores e incendiarios (Basiliskos: `MercenarioEscopeta`) | `$kit\modelos\gd_escopeta_corredera.py --res 1024` |
-| `gd_escopeta_yuxtapuesta` | Escopeta yuxtapuesta del calibre 12: el Vigilante y el furtivo (Basiliskos: `MercenarioYuxtapuesta`) | `$kit\modelos\gd_escopeta_yuxtapuesta.py --res 1024` |
-| `gd_remington700` | Remington 700 BDL con visor: vigías, Comadrejas y Brandão (Basiliskos: `MercenarioCaza`, `ComadrejaCaza`, `BrandaoCaza`) | `$kit\modelos\gd_remington700.py --res 1024` |
-| `gd_m2_browning` | M2HB de 12,7 en su cuna, sin el pie: la torreta del blindado de Brandão (Basiliskos: `Resources/Armas/Ametralladora`, en su afuste del aro de la escotilla) | `$kit\modelos\gd_m2_browning.py --res 1024` (con `GD_M2_BASE=1`, con el pie entero) |
+| `gd_glock17` | Glock 17: capataces y mercenarios de Basiliskos (`MercenarioPistola`; el traficante de ronda de la 9); cualquier pistola moderna | `arma gd_glock17 --res 1024` |
+| `gd_colt_saa` | Colt Single Action Army de 5½": Zé Dourado (Basiliskos: `ZeDouradoPistola`); cualquier revólver de acción simple | `arma gd_colt_saa --res 1024` (el kit sin `comparar` y después la comparación de `modelos\gd_colt_saa.py`, la lámina reflejada: lo hace solo) |
+| `gd_mp5` | HK MP5A3: traficantes de Basiliskos (`MercenarioSubfusil`); cualquier subfusil moderno | `arma gd_mp5 --res 1024` (sin lámina: se compara con la foto del MP5A3 de su `trabajo\` o la de `--foto <png>`; con `GD_MP5_CULATA=metida`, la culata metida) |
+| `gd_ak47` | AK-47: mercenarios de Ferrox y Comadrejas (sustituye a `kk_ak47`; Basiliskos: el mercenario de las zonas, la Comadreja, Brandão y Zé Dourado de serie) | `arma gd_ak47 --res 1024` (con `GD_AK47_CARGADOR=no`, sin cargador) |
+| `gd_escopeta_corredera` | Escopeta de corredera (870 Wingmaster de 26"): garimpeiros, cazadores e incendiarios (Basiliskos: `MercenarioEscopeta`) | `arma gd_escopeta_corredera --res 1024` |
+| `gd_escopeta_yuxtapuesta` | Escopeta yuxtapuesta del calibre 12: el Vigilante y el furtivo (Basiliskos: `MercenarioYuxtapuesta`) | `arma gd_escopeta_yuxtapuesta --res 1024` |
+| `gd_remington700` | Remington 700 BDL con visor: vigías, Comadrejas y Brandão (Basiliskos: `MercenarioCaza`, `ComadrejaCaza`, `BrandaoCaza`) | `arma gd_remington700 --res 1024` |
+| `gd_m2_browning` | M2HB de 12,7 en su cuna, sin el pie: la torreta del blindado de Brandão (Basiliskos: `Resources/Armas/Ametralladora`, en su afuste del aro de la escotilla) | `arma gd_m2_browning --res 1024` (con su anexo de rugosidad y el `montaje` de la ficha; con `GD_M2_BASE=1`, con el pie entero) |
 | `basiliskos/...` (lugares, animales, piel) | Basiliskos: La Madre de piedra, el templo hundido, la maloca yawari, Pintada la jaguar, el caimán negro (Rei) y la piel de cine del basilisco | `basiliskos --madre --render`, `--templo --render`, `--maloca --render`, `--jaguar`, `--caiman --render` y `--basilisco --render`; en Basiliskos, `Tools/arte/traer_rasgos.py --madre --templo --maloca --pintada --caiman --basilisco` y sus constructores |
 | `basiliskos` | Las cuatro formas finales del Rey de Basiliskos (capas de rasgos, piel, ojos) y sus efectos | `basiliskos --forma coronado --render` (y `primordial`, `sierpe`, `regulo`) y `basiliskos --efectos`; en Basiliskos, `Tools/arte/traer_rasgos.py` y `ConstructorRasgos` (sus FBX llegan con el largo en +Y: se giran -90° en X al montar) |
 

@@ -81,15 +81,16 @@ namespace Guardianes.Enemigos
             ("m1_garand", ClaseArma.FusilCaza), ("arma_m1_garand", ClaseArma.FusilCaza),
             ("bk_arcabuz", ClaseArma.Arcabuz), ("arcabuz", ClaseArma.Arcabuz), ("arma_arcabuz", ClaseArma.Arcabuz),
             ("ww2_mg42", ClaseArma.Ametralladora), ("bk_ametralladora", ClaseArma.Ametralladora),
-            // Las del kit de armas del cerebro (Tools~/arte/armas: gd_<arma>, su malla gd_<arma>_pbr): las dos escopetas por
-            // gd_escopeta.
+            // Las del kit de armas de AssetsCreator (creador.py arma: gd_<arma>, su malla gd_<arma>_pbr): las dos escopetas por
+            // gd_escopeta. El gd_mp5.py de AssetsCreator busca en este fichero el prefijo del MP5 entre comillas
+            // (Tools~/arte/armas/README.md): si se mueve de aqui, hay que cambiarlo alli.
             ("gd_glock17", ClaseArma.Pistola), ("gd_colt_saa", ClaseArma.Pistola), ("gd_mp5", ClaseArma.Subfusil),
             ("gd_ak47", ClaseArma.FusilAsalto), ("gd_escopeta", ClaseArma.Escopeta), ("gd_remington700", ClaseArma.FusilCaza),
             ("gd_m2_browning", ClaseArma.Ametralladora),
         };
 
         /// <summary>
-        /// Como empieza el nombre de cada modelo de arma (el proyecto de AssetsCreator o el del kit de armas del cerebro) y
+        /// Como empieza el nombre de cada modelo de arma (su proyecto de AssetsCreator, de creador.py objeto o del kit de armas) y
         /// su clase: gana el prefijo mas largo que encaje, sin mirar mayusculas. Cada juego puede anadir los suyos.
         /// </summary>
         public static readonly List<(string prefijo, ClaseArma clase)> Prefijos = new List<(string, ClaseArma)>(PrefijosSerie);
