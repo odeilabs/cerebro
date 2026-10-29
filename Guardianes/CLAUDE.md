@@ -123,7 +123,10 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `ConstructorPiezasCampana`, `Estructura` (`engullida`: se la traga una criatura, desaparece sin piezas ni explosión), `Helicoptero` (rotor del BEMT de Lur Aerospace; ve a una criatura pequeña (menos de 8 m)
   con la misma `Humano.Visibilidad` que los humanos: la selva y el relieve la tapan; el cañón y los cohetes pasan por
   `Balas` —`calibreCanon`, 60 de serie— y apuntan a `Criatura.PuntoDisparo` si da algo: la ráfaga, al punto que dio
-  al empezarla, guardado respecto a la criatura; sin él, a la altura de siempre, que sigue gastando su `Random`), `Cohete`,
+  al empezarla, guardado respecto a la criatura; sin él, a la altura de siempre, que sigue gastando su `Random`;
+  `Estorbos`: lo que cada juego levanta y no se puede atravesar —un muro, una presa: el aparato es cinemático y no choca
+  con los colisionadores—, lo más alto en un punto, que cuenta como las copas en su techo y en la altura a la que va; sin
+  ninguno, como siempre), `Cohete`,
   `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
   `miedo` de 0 a 100 que sube con la oscuridad (sin linterna), lo que ve de reojo, los ojos de la
   criatura cuando les da una luz de noche, siseos y rugidos (se oyen a 4 veces su radio), mordiscos,

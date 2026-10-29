@@ -111,6 +111,13 @@ namespace Guardianes.Enemigos
         public bool ChorroSobreDosel { get; private set; }
 
         public static readonly List<Helicoptero> Todos = new List<Helicoptero>();
+        /// <summary>
+        /// Lo que el juego levanta por encima del relieve y no se puede atravesar (un muro, una presa: el aparato es cinematico
+        /// y no choca con ningun colisionador): cada uno da lo mas alto que hay en un punto (y del mundo; float.MinValue si alli
+        /// no hay nada). Cuenta como las copas: en su techo (lo de debajo y lo de delante: sube a tiempo) y en la altura de cada
+        /// sitio al que va. Quien lo pone lo quita (sin ninguno, como siempre).
+        /// </summary>
+        public static readonly List<System.Func<Vector3, float>> Estorbos = new List<System.Func<Vector3, float>>();
         /// <summary>Disparo del canon (origen, impacto) para fogonazos, trazadoras y sonido.</summary>
         public static event System.Action<Vector3, Vector3> AlDisparar;
         public static event System.Action<Helicoptero> AlDespegar;
@@ -332,7 +339,16 @@ namespace Guardianes.Enemigos
             return techo;
         }
 
-        /// <summary>Lo mas alto bajo el aparato y un poco por delante (suelo, mar, copas).</summary>
+        /// <summary>Lo mas alto de los Estorbos en un punto (float.MinValue sin ninguno).</summary>
+        static float Estorbo(Vector3 p)
+        {
+            float y = float.MinValue;
+            for (int i = 0; i < Estorbos.Count; i++)
+                if (Estorbos[i] != null) y = Mathf.Max(y, Estorbos[i](p));
+            return y;
+        }
+
+        /// <summary>Lo mas alto bajo el aparato y un poco por delante (suelo, mar, copas, los Estorbos).</summary>
         void Medir()
         {
             if (Time.time < _proximoSuelo) return;
@@ -340,7 +356,7 @@ namespace Guardianes.Enemigos
             Vector3 delante = _pos + Vector3.ClampMagnitude(new Vector3(_vel.x, 0f, _vel.z) * 2.5f, 80f);
             _terreno = Terreno(_pos);
             float dosel = Mathf.Max(Dosel(_pos, radioRotor + 4f), Dosel(delante, radioRotor + 4f));
-            _techo = Mathf.Max(Mathf.Max(_terreno, Terreno(delante)), dosel);
+            _techo = Mathf.Max(Mathf.Max(_terreno, Terreno(delante)), Mathf.Max(dosel, Mathf.Max(Estorbo(_pos), Estorbo(delante))));
             // Chorro del rotor: fuerte a menos de un diametro de lo que tiene debajo.
             float bajo = Mathf.Max(_terreno, Dosel(_pos, radioRotor));
             float h = _pos.y - bajo;
@@ -450,7 +466,7 @@ namespace Guardianes.Enemigos
 
         Vector3 Tangente() => new Vector3(-Mathf.Sin(_anguloOrbita), 0f, Mathf.Cos(_anguloOrbita)) * _sentidoOrbita;
 
-        /// <summary>El punto p a cierta altura sobre el suelo, y siempre por encima del dosel.</summary>
+        /// <summary>El punto p a cierta altura sobre el suelo, y siempre por encima del dosel (y de los Estorbos).</summary>
         Vector3 Altura(Vector3 p, float sobreSuelo, bool rasante = false)
         {
             float suelo = Terreno(p);
@@ -460,7 +476,8 @@ namespace Guardianes.Enemigos
                 _proximoDosel = Time.time + 0.25f;
                 _doselObjetivo = Dosel(p, radioRotor + 3f);
             }
-            p.y = Mathf.Max(suelo + sobreSuelo, _doselObjetivo + (rasante ? 5f : 12f), suelo + 6f);
+            float encima = rasante ? 5f : 12f;
+            p.y = Mathf.Max(Mathf.Max(suelo + sobreSuelo, _doselObjetivo + encima), Mathf.Max(suelo + 6f, Estorbo(p) + encima));
             return p;
         }
 
