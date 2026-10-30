@@ -319,6 +319,12 @@ namespace Guardianes.Vegetacion
             if (_vivo.IsCreated && indice >= 0 && indice < _vivo.Length) _vivo[indice] = 0;
         }
 
+        /// <summary>La vuelve a dibujar (una planta que rebrota; Derribos.Restaurar).</summary>
+        public void Restaurar(int indice)
+        {
+            if (_vivo.IsCreated && indice >= 0 && indice < _vivo.Length) _vivo[indice] = 1;
+        }
+
         // ------------------------------------------------------------------ Job
         [BurstCompile(CompileSynchronously = true, FloatMode = FloatMode.Fast)]
         struct JobCulling : IJob

@@ -44,7 +44,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   hierba, flores, roca, tronco y herbazal —un trozo de hierba alta cerrada: varias matas en un círculo de algo más de
   un metro, que plantadas a 1,7 m no dejan ver el suelo; las formas nuevas van al final del enum, los assets guardan
   el número—), `RenderizadorVegetacion` (instancing por cámara con culling/LOD en
-  Burst; `Buscar`, `Derribar`), `Derribos`, `DatosVegetacion`.
+  Burst; `Buscar`, `Derribar`, `Restaurar`), `Derribos` (el resto tumbado se quita cuando lleva un rato sin verse y
+  lejos de la cámara; el hueco queda —`Huecos`— y la planta no vuelve sola: `Restaurar(centro, radio)` la hace
+  rebrotar, con `AlRestaurar`; cada juego decide con qué —Gorilla Revenge, con la Ira de Koba—), `DatosVegetacion`.
 - `Runtime/Criaturas/Criatura` — **la criatura del jugador** (Koba, el basilisco...). Los humanos,
   los helicópteros, la cámara, los efectos, el sonido y el HUD la buscan aquí (`Criatura.Jugador`)
   y escalan con `Tamano` (17,5 m = Koba = escala 1) y `AlturaBlanco`. Eventos para los demás:
@@ -127,7 +129,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Estorbos`: lo que cada juego levanta y no se puede atravesar —un muro, una presa: el aparato es cinemático y no choca
   con los colisionadores—, lo más alto en un punto, que cuenta como las copas en su techo y en la altura a la que va; sin
   ninguno, como siempre), `Cohete`,
-  `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge no):
+  `MaterialesInstalaciones`. **Miedo** (solo si el juego pone `Humano.ConMiedo = true`; Gorilla Revenge, en sus misiones de noche):
   `miedo` de 0 a 100 que sube con la oscuridad (sin linterna), lo que ve de reojo, los ojos de la
   criatura cuando les da una luz de noche, siseos y rugidos (se oyen a 4 veces su radio), mordiscos,
   los gritos y las muertes de los de alrededor, las luces que se apagan y las `MarcaLeyenda` (camisas,

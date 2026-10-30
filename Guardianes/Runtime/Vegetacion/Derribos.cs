@@ -10,11 +10,25 @@ namespace Guardianes.Vegetacion
     /// Plantas derribadas: la instancia deja de dibujarse en el RenderizadorVegetacion y aparece un
     /// objeto con su malla que cae girando sobre la base (como un pendulo invertido que acelera),
     /// rebota y se queda tumbado. Los arbustos se aplastan. Hay un tope de restos: los mas viejos
-    /// se hunden y desaparecen.
+    /// se hunden y desaparecen. Un resto quieto que deja de verse (fuera de camara o lejos) se quita.
+    /// El hueco queda: la planta no vuelve sola; solo con Restaurar (cada juego decide con que: una
+    /// habilidad de su criatura, una siembra).
     /// </summary>
     public class Derribos : MonoBehaviour
     {
         public int maximoRestos = 220;
+        [Tooltip("Un resto quieto que lleva este tiempo sin verse (s) se quita")]
+        public float ocultoParaQuitar = 3f;
+        [Tooltip("Y estando al menos a esta distancia de la camara (m)")]
+        public float distanciaParaQuitar = 60f;
+        /// <summary>Una planta vuelve a crecer donde cayo (base, especie).</summary>
+        public static event System.Action<Vector3, EspecieVegetal> AlRestaurar;
+        /// <summary>Los huecos: las plantas derribadas (indice del renderizador) y donde estaban.</summary>
+        static readonly Dictionary<int, Vector3> s_Huecos = new Dictionary<int, Vector3>();
+        public static int Huecos => s_Huecos.Count;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void Reiniciar() => s_Huecos.Clear();
         /// <summary>Empieza a caer (base, especie, fuerza del golpe).</summary>
         public static event System.Action<Vector3, EspecieVegetal, float> AlDerribar;
         /// <summary>Un arbol caido golpea el suelo (base, punta, especie).</summary>
@@ -30,8 +44,10 @@ namespace Guardianes.Vegetacion
             public Quaternion inicial;
             public float angulo, velocidad, maximo, edad, altura;
             public bool aplastar, quieto, toco;
-            public float hundir;
+            public float hundir, oculto;
             public EspecieVegetal especie;
+            public int indice;
+            public Renderer render;
         }
 
         static Derribos Instancia
@@ -56,10 +72,37 @@ namespace Guardianes.Vegetacion
             var m = veg.MatrizDe(indice);
             float escala = veg.EscalaDe(indice);
             veg.Derribar(indice);
-            Instancia.Crear(esp, veg.VarianteDe(indice), m, escala, direccion, fuerza);
+            s_Huecos[indice] = m.c3.xyz;
+            Instancia.Crear(esp, veg.VarianteDe(indice), m, escala, direccion, fuerza, indice);
         }
 
-        void Crear(EspecieVegetal esp, int variante, float4x4 m, float escala, Vector3 direccion, float fuerza)
+        /// <summary>
+        /// Las plantas derribadas a menos de 'radio' de 'centro' vuelven a crecer (y sus restos, si quedan, se van).
+        /// Devuelve cuantas.
+        /// </summary>
+        public static int Restaurar(Vector3 centro, float radio)
+        {
+            var veg = RenderizadorVegetacion.Instancia;
+            if (veg == null || s_Huecos.Count == 0) return 0;
+            var vuelven = new List<int>();
+            foreach (var h in s_Huecos)
+            {
+                float dx = h.Value.x - centro.x, dz = h.Value.z - centro.z;
+                if (dx * dx + dz * dz <= radio * radio) vuelven.Add(h.Key);
+            }
+            foreach (int i in vuelven)
+            {
+                s_Huecos.Remove(i);
+                veg.Restaurar(i);
+                if (s_Instancia != null)
+                    foreach (var c in s_Instancia._caidos)
+                        if (c.indice == i && c.t != null) c.hundir = Mathf.Max(c.hundir, 4f);
+                AlRestaurar?.Invoke(veg.MatrizDe(i).c3.xyz, veg.EspecieDe(i));
+            }
+            return vuelven.Count;
+        }
+
+        void Crear(EspecieVegetal esp, int variante, float4x4 m, float escala, Vector3 direccion, float fuerza, int indice)
         {
             var go = new GameObject(esp.name + "_caido");
             go.transform.SetParent(transform, false);
@@ -91,6 +134,8 @@ namespace Guardianes.Vegetacion
                 altura = altura,
                 aplastar = pequeno,
                 especie = esp,
+                indice = indice,
+                render = mr,
             });
             AlDerribar?.Invoke(pos, esp, fuerza);
             // Tope de restos: los mas viejos empiezan a hundirse; si aun asi hay demasiados (un golpe
@@ -110,10 +155,18 @@ namespace Guardianes.Vegetacion
         void Update()
         {
             float dt = Time.deltaTime;
+            var cam = Camera.main;
             foreach (var c in _caidos)
             {
                 if (c.t == null) continue;
                 c.edad += dt;
+                // Quieto y sin verse (fuera de camara, o lejos), se quita: el hueco queda.
+                if (c.quieto && c.hundir <= 0f && c.render != null && cam != null)
+                {
+                    bool lejos = (c.pivote - cam.transform.position).sqrMagnitude > distanciaParaQuitar * distanciaParaQuitar;
+                    c.oculto = !c.render.isVisible && lejos ? c.oculto + dt : 0f;
+                    if (c.oculto > ocultoParaQuitar) c.hundir = 7f;
+                }
                 if (!c.quieto)
                 {
                     // Pendulo invertido: cuanto mas inclinado, mas acelera.
