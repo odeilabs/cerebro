@@ -146,13 +146,15 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `SinMatarCiviles`, `CriaturaViva`, `ReglaCondicion`). Los objetivos de cada criatura heredan de
   `Objetivo` en su juego. Gorilla Revenge aún usa su campaña propia.
 - `Runtime/Sensacion/` — **la sensación de los golpes y del control** (opcional: cada juego la
-  trae a su copia y la llama con su perfil; hoy ninguno). `PerfilSensacion` (asset; `Crear(ArquetipoSensacion)`: `Gigante`, `Agil`,
+  trae a su copia y la llama con su perfil; desde el 30/10/2026 la usa Gorilla Revenge, con el `Gigante` y
+  paradas globales porque su animación es a mano). `PerfilSensacion` (asset; `Crear(ArquetipoSensacion)`: `Gigante`, `Agil`,
   `Creciente`, `Volador`, `Acuatico`, `Arcade`), `Sensaciones` (`Perfil`, `Impacto(Golpe)` con
   `ModoParada` local/global/ninguna, `Golpe.Desde(DatosDanio, Salud)`, `Temblor`, `Vibrar`,
   `EstaParado` para lo animado a mano, `EscalaTiempoBase`, `Opciones` de accesibilidad, eventos
   `AlImpacto`/`AlParar`), `TraumaCamara` (en cualquier cámara, después de su controlador),
   `BufferEntrada` y `MargenApoyo` (coyote time), `AsistenciaPunteria` (`Elegir`, `Corregir`,
-  `BuscarSalud`) y `Medidor` (métricas para las pruebas, `Informe()`). Comprobación sin escena:
+  `BuscarSalud`) y `Medidor` (métricas para las pruebas, `Informe()`; una petición que lleva más de
+  `PeticionPerdida`, 1 s, sin respuesta no cuenta: la siguiente se mide desde la suya). Comprobación sin escena:
   `Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch`.
 - `Runtime/Efectos/EfectosCombate` (`Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—;
   `Rebote(punto, normal, dir, escala)`: la bala que rebota —chispas en un cono alrededor del reflejo, a veces una

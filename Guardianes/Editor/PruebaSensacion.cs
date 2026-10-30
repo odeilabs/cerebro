@@ -84,10 +84,14 @@ namespace Guardianes.EditorTools
             // Medidor.
             Medidor.Reiniciar();
             ahora = 10f; Medidor.Pedir(7); ahora = 10.08f; Medidor.Responder(7);
-            Medidor.Recompensa(); ahora = 13f; Medidor.Recompensa(); ahora = 20f; Medidor.Recompensa();
+            // Una peticion que caduco sin hacerse no cuenta: la siguiente se mide desde la suya, y una
+            // respuesta a una peticion perdida (mas de un segundo) tampoco.
+            ahora = 30f; Medidor.Pedir(8); ahora = 40f; Medidor.Pedir(8); ahora = 40.12f; Medidor.Responder(8);
+            ahora = 50f; Medidor.Pedir(9); ahora = 52f; Medidor.Responder(9);
+            ahora = 10.08f; Medidor.Recompensa(); ahora = 13f; Medidor.Recompensa(); ahora = 20f; Medidor.Recompensa();
             Medidor.Control(false); ahora = 21.5f; Medidor.Control(true);
             Debug.Log(Medidor.Informe());
-            Esperar(Mathf.Abs(Medidor.LatenciaMedia - 0.08f) < 1e-3f, "latencia medida");
+            Esperar(Mathf.Abs(Medidor.LatenciaMedia - 0.10f) < 1e-3f && Mathf.Abs(Medidor.LatenciaMaxima - 0.12f) < 1e-3f, "latencia medida (sin las peticiones perdidas)");
             Esperar(Mathf.Abs(Medidor.EntreRecompensasMedio - 4.96f) < 1e-3f && Mathf.Abs(Medidor.EntreRecompensasMaximo - 7f) < 1e-3f, "tiempo entre recompensas");
             Esperar(Mathf.Abs(Medidor.PeorSinControl - 1.5f) < 1e-3f, "tiempo sin control");
             Medidor.reloj = () => Time.unscaledTime;

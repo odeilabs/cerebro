@@ -55,11 +55,13 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 
 1. **Probar un build de cada juego sin la carpeta `cerebro` al lado.**
 2. **Aplicar la sensación común**, en local en cada juego (traída a su copia y llamada desde su
-   código, con su perfil; cuando lo diga el autor: Basiliskos está en desarrollo): Gorilla Revenge con un
-   perfil `Gigante` (combo, palmada, lanzar, remates a helicópteros) y Basiliskos con `Creciente`
-   (mordisco con buffer, emboscada, estrangular, sprint que rompe), `TraumaCamara` en sus cámaras y
-   `Medidor.Informe()` en sus pruebas. Después, el sonido en capas sobre `AlImpacto` y la destrucción
-   en cadena en `Estructura` y `Humano`.
+   código, con su perfil; cuando lo diga el autor: Basiliskos está en desarrollo). **Gorilla Revenge ya
+   la usa** (30/10/2026: `SensacionKoba` con el `Gigante`, paradas globales, `TraumaCamara` en su cámara,
+   buffer de entrada, cortar la recuperación y `Medidor` en sus pruebas). Falta Basiliskos con
+   `Creciente` (mordisco con buffer, emboscada, estrangular, sprint que rompe). Después, el sonido en
+   capas sobre `AlImpacto`, la destrucción en cadena en `Estructura` y `Humano`, y las opciones de
+   accesibilidad (`Sensaciones.Opciones`: paradas, sacudida, vibración, destellos) en el panel de
+   `OpcionesJuego`, que hoy no deja a un juego añadir filas.
 3. **Pasar la campaña de Gorilla Revenge al director común** (sus objetivos propios como subclases) y
    probar en su modo libre el día y la noche y el miedo.
 4. **Pruebas comunes**: subir al paquete la base del `ConductorPrueba` (pasos, fotos a RenderTexture,

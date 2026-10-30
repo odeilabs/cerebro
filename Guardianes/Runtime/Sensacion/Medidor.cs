@@ -31,13 +31,26 @@ namespace Guardianes.Sensacion
             _impactos = _recompensas = 0; _fuerzaImpactos = 0f;
         }
 
+        /// <summary>
+        /// Una petición que lleva más que esto sin respuesta no se hizo (el buffer la dejó caducar, estaba en
+        /// recarga): no cuenta, y la siguiente de esa acción se mide desde la suya.
+        /// </summary>
+        public const float PeticionPerdida = 1f;
+
         /// <summary>El jugador pide una acción.</summary>
-        public static void Pedir(int accion) { if (!_pedidas.ContainsKey(accion)) _pedidas[accion] = reloj(); }
+        public static void Pedir(int accion)
+        {
+            float t = reloj();
+            if (!_pedidas.TryGetValue(accion, out var antes) || t - antes > PeticionPerdida) _pedidas[accion] = t;
+        }
 
         /// <summary>La acción ya se ve (empieza la animación, sale el golpe).</summary>
         public static void Responder(int accion)
         {
-            if (_pedidas.TryGetValue(accion, out var t)) { _latencias.Add(reloj() - t); _pedidas.Remove(accion); }
+            if (!_pedidas.TryGetValue(accion, out var t)) return;
+            float latencia = reloj() - t;
+            if (latencia <= PeticionPerdida) _latencias.Add(latencia);
+            _pedidas.Remove(accion);
         }
 
         /// <summary>Algo que premia (XP, una presa, un objetivo, un descubrimiento).</summary>
