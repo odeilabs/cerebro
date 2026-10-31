@@ -486,9 +486,21 @@ namespace Guardianes.Enemigos
             Vector3 haciaKong = _kong.position - _pos;
             haciaKong.y = 0f;
             if (haciaKong.sqrMagnitude < 1f) haciaKong = transform.forward;
-            _dirPasada = Quaternion.Euler(0f, Random.Range(-12f, 12f), 0f) * haciaKong.normalized;
-            // A 5-11 m de su costado: al alcance de la mano si Kong le sale al paso.
-            _ladoPasada = Random.Range(5f, 11f) * (Random.value < 0.5f ? -1f : 1f);
+            // A 5-11 m de su costado: al alcance de la mano si Kong le sale al paso. De las lineas posibles (tres
+            // rumbos, los dos costados), la de dosel mas bajo junto a Kong: un piloto no ametralla rozando las ceibas
+            // (45-56 m) si puede pasar sobre el dosel normal, y asi la pasada no se queda fuera del alcance del salto.
+            float mejor = float.MaxValue;
+            float lado0 = Random.Range(5f, 11f), giro0 = Random.Range(-12f, 12f);
+            for (int g = -1; g <= 1; g++)
+                for (int l = -1; l <= 1; l += 2)
+                {
+                    Vector3 dir = Quaternion.Euler(0f, giro0 + g * 14f, 0f) * haciaKong.normalized;
+                    Vector3 linea = _kong.position + Vector3.Cross(Vector3.up, dir) * (lado0 * l);
+                    float techo = float.MinValue;
+                    for (int k = -1; k <= 2; k++) techo = Mathf.Max(techo, Dosel(linea + dir * (k * 22f), radioRotor + 3f));
+                    techo += Random.value * 2f; // entre lineas parecidas, al azar
+                    if (techo < mejor) { mejor = techo; _dirPasada = dir; _ladoPasada = lado0 * l; }
+                }
             _finPasada = Time.time + 16f;
             Cambiar(Estado.Pasada);
         }
