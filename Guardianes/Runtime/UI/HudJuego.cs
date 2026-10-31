@@ -95,7 +95,7 @@ namespace Guardianes.UI
             Helicoptero.AlExplotar -= Derribado;
         }
 
-        void Descubierta(ZonaHumana z) => Avisar($"Intrusos en la selva: {z.nombre}");
+        void Descubierta(ZonaHumana z) => Avisar(Guardianes.Juego.Textos.F("Intrusos en la selva: {0}", Guardianes.Juego.Textos.T(z.nombre)));
         void Liberada(ZonaHumana z) => Avisar($"{z.nombre} liberado. La selva respira de nuevo.");
         void Purificada(Vector3 p, float r) { if (!string.IsNullOrEmpty(textoPurificar)) Avisar(textoPurificar); }
         void Despega(Helicoptero h)
@@ -487,7 +487,7 @@ namespace Guardianes.UI
         public void FinQte(bool exito)
         {
             _qte.SetActive(false);
-            _qteResultado.text = exito ? "BIEN" : "FALLASTE";
+            _qteResultado.text = Guardianes.Juego.Textos.T(exito ? "BIEN" : "FALLASTE");
             _qteResultado.color = exito ? new Color(0.6f, 1f, 0.6f, 1f) : new Color(1f, 0.45f, 0.35f, 1f);
             _qteResultadoHasta = Time.unscaledTime + 1.4f;
         }
@@ -499,7 +499,7 @@ namespace Guardianes.UI
             _inicio.SetActive(visible);
             if (!visible) { CerrarPaneles(); return; }
             _botonContinuarPartida.SetActive(guardada != null);
-            if (guardada != null) _textoContinuarPartida.text = "Continuar: " + guardada;
+            if (guardada != null) _textoContinuarPartida.text = Guardianes.Juego.Textos.F("Continuar: {0}", guardada);
             _textoCampana.text = campana;
             _textoNivel.text = nivel;
             _textoInicioInfo.text = info;

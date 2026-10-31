@@ -73,3 +73,7 @@ Inocentes muertos	Innocents killed
 Zonas liberadas {0}/{1}	Zones freed {0}/{1}
 Lugares descubiertos {0}/{1}	Places discovered {0}/{1}
 Helicoptero derribado	Helicopter down
+BIEN	GOOD
+FALLASTE	FAILED
+Continuar: {0}	Continue: {0}
+Intrusos en la selva: {0}	Intruders in the jungle: {0}
