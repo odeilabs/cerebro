@@ -143,10 +143,12 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   (monta, pone la hora, cuenta la introducción con la criatura quieta, lleva los objetivos con sus
   diálogos, vigila las reglas, desenlace, balance con la pantalla de misión y, si falla, la pantalla
   de caída y la repite; cada juego hereda `Preparar`, `Bloquear`, `AlTerminar`, `FilasBalance`,
-  `Valoracion` y los textos), `Objetivo` (`Narracion`, `Esperar`, `Sobrevivir`, `Llegar`, `Condicion`
-  con funciones, `Descubrir`; `Dice`/`AlAcabar`/`ConPista`) y `Regla` (`SinSerVisto`,
+  `Valoracion` y los textos; para retomar una misión a medias, `PrimerObjetivo` —los de antes se saltan con
+  `Objetivo.Saltar` y no se cuenta la introducción— y `AlEmpezarObjetivo` —el autoguardado—; `AntesDelBalance`,
+  `TituloCompletada`, `PieFallida` y `FallarDesdeFuera`), `Objetivo` (`Narracion`, `Esperar`, `Sobrevivir`, `Llegar`,
+  `Condicion` con funciones, `Descubrir`; `Dice`/`AlAcabar`/`ConPista`; `Saltar`) y `Regla` (`SinSerVisto`,
   `SinMatarCiviles`, `CriaturaViva`, `ReglaCondicion`). Los objetivos de cada criatura heredan de
-  `Objetivo` en su juego. Gorilla Revenge aún usa su campaña propia.
+  `Objetivo` en su juego. Lo usan Basiliskos y, desde el 31/10/2026, la campaña de Gorilla Revenge.
 - `Runtime/Sensacion/` — **la sensación de los golpes y del control** (opcional: cada juego la
   trae a su copia y la llama con su perfil; desde el 30/10/2026 la usa Gorilla Revenge, con el `Gigante` y
   paradas globales porque su animación es a mano). `PerfilSensacion` (asset; `Crear(ArquetipoSensacion)`: `Gigante`, `Agil`,

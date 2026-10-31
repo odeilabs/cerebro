@@ -47,6 +47,11 @@ namespace Guardianes.Misiones
             }
         }
         public virtual void Terminar() { }
+        /// <summary>
+        /// Se retoma la mision despues de este objetivo (una partida guardada a medias): deja el mundo como lo dejo el
+        /// jugador al cumplirlo. Lo llama el director, sin empezarlo, para los anteriores al primero (PrimerObjetivo).
+        /// </summary>
+        public virtual void Saltar(DirectorMisiones d) { D = d; }
         public float Tiempo => Time.time - Inicio;
 
         public Objetivo Dice(params string[] lineas) { dialogo = lineas; return this; }
