@@ -59,7 +59,7 @@ namespace Guardianes.UI
         {
             _opciones = Panel(r, "MenuOpciones", "OPCIONES");
             var m = _opciones.transform;
-            float y0 = 230f, paso = 58f;
+            float y0 = 235f, paso = 53f;
             void Fila(int col, int fila, string nombre, System.Func<string> valor, System.Action cambiar)
             {
                 var t = Boton(m, nombre, new Vector2(col == 0 ? -330f : 330f, y0 - fila * paso), () => { cambiar(); RefrescarOpciones(); }, 620f);
@@ -123,6 +123,11 @@ namespace Guardianes.UI
                 OpcionesJuego.Aplicar();
             });
             Fila(0, 7, "Paradas y destellos de los golpes", () => SiNo(OpcionesJuego.EfectosGolpes), () => { OpcionesJuego.EfectosGolpes = !OpcionesJuego.EfectosGolpes; OpcionesJuego.Aplicar(); });
+            Fila(0, 8, "Música", () => $"{Mathf.RoundToInt(OpcionesJuego.VolumenMusica * 100f)} %", () =>
+            {
+                OpcionesJuego.VolumenMusica = OpcionesJuego.VolumenMusica >= 0.99f ? 0f : Mathf.Min(1f, OpcionesJuego.VolumenMusica + 0.25f);
+                OpcionesJuego.Aplicar();
+            });
             Fila(1, 7, "Vibración del mando", () => SiNo(OpcionesJuego.Vibracion), () => { OpcionesJuego.Vibracion = !OpcionesJuego.Vibracion; OpcionesJuego.Aplicar(); });
             Boton(m, "Controles", new Vector2(-330f, -280f), AbrirControles, 620f);
             Boton(m, "Volver", new Vector2(330f, -280f), CerrarOpciones, 620f);

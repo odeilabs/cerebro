@@ -173,7 +173,10 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   los rebotes con el banco `rebotes` —`armas/rebote_*`, el «piiu» de `generar_sonidos.py --solo rebote`, que pone
   `ConstructorAudio`; mientras no estén, una
   chapa de `metales` muy aguda— y su propio tope, `rebotesPorSegundo`; los perdigones de un tiro que rebotan suenan
-  una vez —mismo tirador y fotograma—, algo más fuerte cuantos más rebotan; `RebotesSonados`), `Runtime/Camara/CamaraCriatura`
+  una vez —mismo tirador y fotograma—, algo más fuerte cuantos más rebotan; `RebotesSonados`), **Musica** (`MusicaJuego`, opcional: `Asegurar` y
+  `Decidir`): tres bucles de `Resources/Audio/musica` —exploracion, combate y jefe, de `Tools~/arte/audio/generar_musica.py`—
+  que se funden segun lo que diga el juego, con el combate sostenido unos segundos y su volumen, `OpcionesJuego.VolumenMusica`
+  (Musica, en el panel); `Editor/ImportadorMusica` los deja en streaming y Vorbis. `Runtime/Camara/CamaraCriatura`
   (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`
   (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero; `OpcionesJuego`: las
   opciones del jugador en PlayerPrefs —pantalla completa, resolución, VSync, volumen, sensibilidad e invertir el eje
@@ -238,7 +241,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
 - `Tools~/` (Unity no lo importa) — `generar_shaders_lit.py --proyecto <proyecto con HDRP>`,
   `arte/terreno`, `arte/vegetacion`, `arte/efectos`, `arte/audio` (texturas y sonidos procedurales
   en Python: numpy/scipy/Pillow; todos con `--proyecto <carpeta del proyecto Unity>` o `--salida`;
-  `arte/armas` solo dice dónde está el kit de armas, que desde el 28/10/2026 vive en AssetsCreator),
+  `arte/armas` solo dice dónde está el kit de armas, que desde el 28/10/2026 vive en AssetsCreator; `arte/audio/generar_musica.py`:
+  la musica provisional, tres bucles sin costura con `--tono`),
   `vehiculos/sdf_helicoptero.py` (+ `decimar_obj.py` en Blender) y `traer_cerebro.py` (comparar la
   copia de un juego con el cerebro, traer y subir cambios: ver `../CLAUDE.md`).
 

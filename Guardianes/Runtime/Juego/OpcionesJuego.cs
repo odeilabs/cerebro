@@ -24,6 +24,8 @@ namespace Guardianes.Juego
         public static int Resolucion = -1;
         public static bool VSync = true;
         public static float Volumen = 1f;
+        /// <summary>El volumen de la musica (MusicaJuego), sobre el general.</summary>
+        public static float VolumenMusica = 1f;
         public static float Sensibilidad = 1f;
         public static bool InvertirY;
         /// <summary>Escala del texto de los subtitulos y la narracion (1, 1,25 o 1,5).</summary>
@@ -109,6 +111,7 @@ namespace Guardianes.Juego
                 Resolucion = PlayerPrefs.GetInt(P + "resolucion", -1);
                 VSync = PlayerPrefs.GetInt(P + "vsync", 1) == 1;
                 Volumen = PlayerPrefs.GetFloat(P + "volumen", 1f);
+                VolumenMusica = PlayerPrefs.GetFloat(P + "volumen_musica", 1f);
                 Sensibilidad = PlayerPrefs.GetFloat(P + "sensibilidad", 1f);
                 InvertirY = PlayerPrefs.GetInt(P + "invertir", 0) == 1;
                 Subtitulos = PlayerPrefs.GetFloat(P + "subtitulos", 1f);
@@ -133,6 +136,7 @@ namespace Guardianes.Juego
                 PlayerPrefs.SetInt(P + "resolucion", Resolucion);
                 PlayerPrefs.SetInt(P + "vsync", VSync ? 1 : 0);
                 PlayerPrefs.SetFloat(P + "volumen", Volumen);
+                PlayerPrefs.SetFloat(P + "volumen_musica", VolumenMusica);
                 PlayerPrefs.SetFloat(P + "sensibilidad", Sensibilidad);
                 PlayerPrefs.SetInt(P + "invertir", InvertirY ? 1 : 0);
                 PlayerPrefs.SetFloat(P + "subtitulos", Subtitulos);
