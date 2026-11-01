@@ -111,6 +111,12 @@ namespace Guardianes.Enemigos
         public static event System.Action<Humano> AlMorir;
         /// <summary>Empieza a huir de la criatura (la primera vez): cuenta para ahuyentar sin matar.</summary>
         public static event System.Action<Humano> AlAsustarse;
+        /// <summary>Un golpe fuerte de la criatura cerca lo tumba sin matarlo (Tumbar).</summary>
+        public static event System.Action<Humano> AlTumbar;
+        /// <summary>Tumbado por un golpe cercano: sale despedido hacia atras y no hace nada hasta levantarse.</summary>
+        public bool Tumbado => Time.time < _tumbadoHasta && Actual != Estado.Muerto;
+        float _tumbadoHasta;
+        Vector3 _empujeTumbado;
         /// <summary>Empieza a huir (cada vez).</summary>
         public static event System.Action<Humano> AlHuir;
         /// <summary>Ve a la criatura por primera vez (sigilo).</summary>
@@ -331,6 +337,7 @@ namespace Guardianes.Enemigos
                 if (!conservarCuerpo && Time.time - MuertoDesde > SegundosCuerpo) Destroy(gameObject);
                 return;
             }
+            if (Tumbado) { Tambalearse(Time.deltaTime); return; }
             if (_criatura == null) _criatura = Criatura.Jugador;
             bool hay = _criatura != null && !_criatura.Salud.Muerto;
             Vector3 aCriatura = hay ? _criatura.PuntoBlanco - Ojos : Vector3.forward * 9999f;
@@ -1034,6 +1041,34 @@ namespace Guardianes.Enemigos
         public static event System.Action<Humano> AlDespertar;
 
         /// <summary>Huye durante unos segundos.</summary>
+        /// <summary>
+        /// La reaccion a un golpe fuerte de la criatura cerca (sin matarlo): sale despedido hacia atras, desde 'desde',
+        /// con la animacion de golpe, y durante un rato (1,2 s mas 1,3 por cada punto de 'fuerza') ni anda ni dispara.
+        /// Cada juego decide cuando (los golpes de su criatura que sacuden el suelo).
+        /// </summary>
+        public void Tumbar(Vector3 desde, float fuerza)
+        {
+            if (Actual == Estado.Muerto || protegido) return;
+            fuerza = Mathf.Clamp(fuerza, 0f, 2f);
+            Vector3 dir = transform.position - desde;
+            dir.y = 0f;
+            dir = dir.sqrMagnitude > 0.01f ? dir.normalized : -transform.forward;
+            _empujeTumbado = dir * (4f + 6f * fuerza);
+            _tumbadoHasta = Time.time + 1.2f + 1.3f * fuerza;
+            if (Dormido) Despertar();
+            if (_anim != null) { _anim.SetBool(PApuntar, false); _anim.SetBool(PDisparar, false); _anim.SetTrigger(PGolpe); }
+            AlTumbar?.Invoke(this);
+        }
+
+        void Tambalearse(float dt)
+        {
+            _empujeTumbado = Vector3.MoveTowards(_empujeTumbado, Vector3.zero, 10f * dt);
+            Vector3 p = transform.position + _empujeTumbado * dt;
+            if (TerrenoMundo.Instancia != null) p.y = Mapa.Altura(p.x, p.z);
+            transform.position = p;
+            if (_anim != null) _anim.SetFloat(PVelocidad, 0f, 0.1f, dt);
+        }
+
         public void Asustar(float segundos)
         {
             if (Actual != Estado.Muerto) _miedoHasta = Mathf.Max(_miedoHasta, Time.time + segundos);

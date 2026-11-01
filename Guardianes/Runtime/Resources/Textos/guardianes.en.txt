@@ -77,3 +77,6 @@ BIEN	GOOD
 FALLASTE	FAILED
 Continuar: {0}	Continue: {0}
 Intrusos en la selva: {0}	Intruders in the jungle: {0}
+Temblor de la cámara	Camera shake
+Paradas y destellos de los golpes	Hit stops and flashes
+Vibración del mando	Controller vibration

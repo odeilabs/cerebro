@@ -59,7 +59,7 @@ namespace Guardianes.UI
         {
             _opciones = Panel(r, "MenuOpciones", "OPCIONES");
             var m = _opciones.transform;
-            float y0 = 220f, paso = 66f;
+            float y0 = 230f, paso = 58f;
             void Fila(int col, int fila, string nombre, System.Func<string> valor, System.Action cambiar)
             {
                 var t = Boton(m, nombre, new Vector2(col == 0 ? -330f : 330f, y0 - fila * paso), () => { cambiar(); RefrescarOpciones(); }, 620f);
@@ -116,9 +116,17 @@ namespace Guardianes.UI
                 _ => "normal",
             }, () => { OpcionesJuego.Nivel = (OpcionesJuego.Dificultad)(((int)OpcionesJuego.Nivel + 1) % 3); OpcionesJuego.Aplicar(); });
             Fila(0, 6, "Consejos de la primera vez", () => SiNo(OpcionesJuego.Consejos), () => { OpcionesJuego.Consejos = !OpcionesJuego.Consejos; OpcionesJuego.Aplicar(); });
-            Boton(m, "Controles", new Vector2(-330f, -260f), AbrirControles, 620f);
-            Boton(m, "Volver", new Vector2(330f, -260f), CerrarOpciones, 620f);
-            var nota = Etiqueta(m, "Fácil: recibes la mitad de daño y tardan más en reconocerte. Difícil: al revés.", new Vector2(0f, -330f), 20, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f));
+            // Accesibilidad de la sensacion de los golpes (Sensaciones.Opciones).
+            Fila(1, 6, "Temblor de la cámara", () => $"{Mathf.RoundToInt(OpcionesJuego.TemblorCamara * 100f)} %", () =>
+            {
+                OpcionesJuego.TemblorCamara = OpcionesJuego.TemblorCamara > 0.75f ? 0.5f : OpcionesJuego.TemblorCamara > 0.25f ? 0f : 1f;
+                OpcionesJuego.Aplicar();
+            });
+            Fila(0, 7, "Paradas y destellos de los golpes", () => SiNo(OpcionesJuego.EfectosGolpes), () => { OpcionesJuego.EfectosGolpes = !OpcionesJuego.EfectosGolpes; OpcionesJuego.Aplicar(); });
+            Fila(1, 7, "Vibración del mando", () => SiNo(OpcionesJuego.Vibracion), () => { OpcionesJuego.Vibracion = !OpcionesJuego.Vibracion; OpcionesJuego.Aplicar(); });
+            Boton(m, "Controles", new Vector2(-330f, -280f), AbrirControles, 620f);
+            Boton(m, "Volver", new Vector2(330f, -280f), CerrarOpciones, 620f);
+            var nota = Etiqueta(m, "Fácil: recibes la mitad de daño y tardan más en reconocerte. Difícil: al revés.", new Vector2(0f, -345f), 20, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f));
             nota.color = new Color(0.8f, 0.78f, 0.7f);
             _opciones.SetActive(false);
 

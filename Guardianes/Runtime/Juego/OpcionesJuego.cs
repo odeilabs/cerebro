@@ -35,6 +35,11 @@ namespace Guardianes.Juego
         public static string Idioma = "es";
         /// <summary>Los consejos de la primera vez (los controles cuando hacen falta).</summary>
         public static bool Consejos = true;
+        /// <summary>Accesibilidad de la sensacion de los golpes (Sensaciones.Opciones): lo que tiembla la camara (1, 0,5 o 0).</summary>
+        public static float TemblorCamara = 1f;
+        /// <summary>Las paradas y los destellos de los golpes.</summary>
+        public static bool EfectosGolpes = true;
+        public static bool Vibracion = true;
 
         public static event Action AlCambiar;
         static bool _cargadas;
@@ -112,6 +117,9 @@ namespace Guardianes.Juego
                 Nivel = (Dificultad)Mathf.Clamp(PlayerPrefs.GetInt(P + "dificultad", 1), 0, 2);
                 Idioma = PlayerPrefs.GetString(P + "idioma", "es");
                 Consejos = PlayerPrefs.GetInt(P + "consejos", 1) == 1;
+                TemblorCamara = Mathf.Clamp01(PlayerPrefs.GetFloat(P + "temblor", 1f));
+                EfectosGolpes = PlayerPrefs.GetInt(P + "efectos_golpes", 1) == 1;
+                Vibracion = PlayerPrefs.GetInt(P + "vibracion", 1) == 1;
             }
             catch (Exception e) { Debug.LogWarning("[GD] Opciones no leidas: " + e.Message); }
             Aplicar(false);
@@ -133,6 +141,9 @@ namespace Guardianes.Juego
                 PlayerPrefs.SetInt(P + "dificultad", (int)Nivel);
                 PlayerPrefs.SetString(P + "idioma", Idioma);
                 PlayerPrefs.SetInt(P + "consejos", Consejos ? 1 : 0);
+                PlayerPrefs.SetFloat(P + "temblor", TemblorCamara);
+                PlayerPrefs.SetInt(P + "efectos_golpes", EfectosGolpes ? 1 : 0);
+                PlayerPrefs.SetInt(P + "vibracion", Vibracion ? 1 : 0);
                 PlayerPrefs.Save();
             }
             catch (Exception e) { Debug.LogWarning("[GD] Opciones no guardadas: " + e.Message); }
@@ -142,6 +153,11 @@ namespace Guardianes.Juego
         public static void Aplicar(bool guardar = true)
         {
             AudioListener.volume = Mathf.Clamp01(Volumen);
+            // La sensacion de los golpes (accesibilidad): la camara, las paradas y destellos y la vibracion.
+            Guardianes.Sensacion.Sensaciones.Opciones.sacudida = TemblorCamara;
+            Guardianes.Sensacion.Sensaciones.Opciones.paradas = EfectosGolpes;
+            Guardianes.Sensacion.Sensaciones.Opciones.destellos = EfectosGolpes;
+            Guardianes.Sensacion.Sensaciones.Opciones.vibracion = Vibracion;
             // En las pruebas en batch no se toca la pantalla.
             if (!Application.isBatchMode)
             {

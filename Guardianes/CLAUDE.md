@@ -136,7 +136,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   estatuas, huellas: una vez cada una); se contagia y se calma con luz. Umbrales `Nervioso` (35: anda
   más despacio), `Aterrado` (70: los armados disparan a las sombras, los demás se quedan helados, y
   ante una criatura pequeña huyen en vez de atacar; `AlAterrarse`) y `Roto` (95: tira el arma y huye
-  para no volver, `Ahuyentar`/`AlAhuyentar`). `AlSerAtacado` cuando la criatura le hace daño.
+  para no volver, `Ahuyentar`/`AlAhuyentar`). `AlSerAtacado` cuando la criatura le hace daño. **Tumbar**
+  (`Tumbar(desde, fuerza)`, `Tumbado`, `AlTumbar`): un golpe fuerte de la criatura cerca, sin matarlo, lo despide hacia
+  atrás con la animación de golpe y un rato no anda ni dispara; cada juego decide cuándo.
 - `Runtime/Misiones/` — **el director de misiones común**: `Mision` (número, `rotulo` —lo que se ve en vez de
   «Misión N»: un encargo, una misión fuera de la cuenta; vacío, el número—, acto, título,
   etiquetas, hora, introducción y desenlace, objetivos, reglas, `preparar`), `DirectorMisiones`
@@ -175,7 +177,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`
   (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero; `OpcionesJuego`: las
   opciones del jugador en PlayerPrefs —pantalla completa, resolución, VSync, volumen, sensibilidad e invertir el eje
-  Y de la cámara, tamaño y fondo de los subtítulos, daltonismo con su paleta `Peligro`/`Aviso`/`Bien`, dificultad
+  Y de la cámara, tamaño y fondo de los subtítulos, daltonismo con su paleta `Peligro`/`Aviso`/`Bien`, la
+  accesibilidad de la sensación —`TemblorCamara`, `EfectosGolpes` (paradas y destellos) y `Vibracion`, que `Aplicar` pasa a
+  `Sensaciones.Opciones` y salen en el panel—, dificultad
   —`DanioRecibido`, que aplica `Salud` a la criatura del jugador, y `Deteccion`, que aplica `Humano`—, idioma y los
   consejos; los controles: cada juego `Registrar` sus acciones y las teclas cambiadas se guardan; en batch, las de
   serie—; `Textos`: los idiomas —`T` traduce un texto con las tablas `Resources/Textos/*.<idioma>.txt` («español»
