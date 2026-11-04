@@ -484,9 +484,11 @@ namespace Guardianes.UI
             Llenar(_qteProgreso, progreso);
         }
 
-        public void FinQte(bool exito)
+        /// <param name="conResultado">Falso: se cierra sin decir BIEN ni FALLASTE (una decision, que no se acierta ni se falla).</param>
+        public void FinQte(bool exito, bool conResultado = true)
         {
             _qte.SetActive(false);
+            if (!conResultado) return;
             _qteResultado.text = Guardianes.Juego.Textos.T(exito ? "BIEN" : "FALLASTE");
             _qteResultado.color = exito ? new Color(0.6f, 1f, 0.6f, 1f) : new Color(1f, 0.45f, 0.35f, 1f);
             _qteResultadoHasta = Time.unscaledTime + 1.4f;
