@@ -84,6 +84,13 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
    **En marcha (17 oct 2026)**: ya está en `Guardianes/Runtime/Splash` (el componente sin tocar, `OdeiLabs.mp4` y
    el póster); Basiliskos lo usa en su escena `Arranque` con su salto del Input System (`SaltarSplash`, del juego).
    Falta: el constructor común de la escena de arranque (hoy, el de Basiliskos) y probarlo en una build.
+8. **Las correcciones de imagen de Basiliskos, en todos los juegos** (noviembre de 2026; ver *La imagen y la
+   fotosensibilidad* en [CLAUDE.md](CLAUDE.md)): traer a la copia de **Gorilla Revenge** `RenderizadorVegetacion` (los
+   vectores de movimiento de la vegetación, que salía borrosa), `CalidadJuego` (la distancia de vegetación de cada nivel) y
+   `CamaraCriatura` (el corte de cámara), compilar y mirar sus fotos. Mirar también si dibuja algo más con
+   `RenderMeshInstanced` por su cuenta. Y subir al paquete, desde `MedicionRendimiento` de Basiliskos, el detector de
+   destellos (`-estrobo`) y la medida de lo que cuesta cada cosa (`-ablacion`), para pasarlos en cada juego antes de cada
+   versión; cada juego, su aviso de epilepsia en el arranque y en la tienda.
 
 ## Después
 

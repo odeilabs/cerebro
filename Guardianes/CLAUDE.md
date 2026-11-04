@@ -44,7 +44,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   hierba, flores, roca, tronco y herbazal —un trozo de hierba alta cerrada: varias matas en un círculo de algo más de
   un metro, que plantadas a 1,7 m no dejan ver el suelo; las formas nuevas van al final del enum, los assets guardan
   el número—), `RenderizadorVegetacion` (instancing por cámara con culling/LOD en
-  Burst; `Buscar`, `Derribar`, `Restaurar`), `Derribos` (el resto tumbado se quita cuando lleva un rato sin verse y
+  Burst, con la matriz anterior en cada instancia —sin ella los vectores de movimiento salen mal y todo se emborrona—;
+  `PonerDistancia`, la distancia de cada nivel de calidad; `Buscar`, `Derribar`, `Restaurar`), `Derribos` (el resto tumbado se quita cuando lleva un rato sin verse y
   lejos de la cámara; el hueco queda —`Huecos`— y la planta no vuelve sola: `Restaurar(centro, radio)` la hace
   rebrotar, con `AlRestaurar`; cada juego decide con qué —Gorilla Revenge, con la Ira de Koba—), `DatosVegetacion`.
 - `Runtime/Criaturas/Criatura` — **la criatura del jugador** (Koba, el basilisco...). Los humanos,

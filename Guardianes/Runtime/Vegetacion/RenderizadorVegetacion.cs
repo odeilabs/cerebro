@@ -47,15 +47,24 @@ namespace Guardianes.Vegetacion
         int _lado;
         float2 _origen;
 
+        // Lo que recibe cada instancia. Sin prevObjectToWorld, los vectores de movimiento salen de una matriz que no es la suya:
+        // la planta parece moverse aunque este quieta y el desenfoque de movimiento y el TAA la emborronan.
+        struct DibujoInstancia
+        {
+            public Matrix4x4 objectToWorld;
+            public Matrix4x4 prevObjectToWorld;
+        }
+
         class PorCamara
         {
-            public NativeArray<float4x4> salida;
+            public NativeArray<float4x4> salida; // dos por instancia: DibujoInstancia
             public NativeArray<int> inicio, cuenta;
         }
         readonly Dictionary<Camera, PorCamara> _camaras = new Dictionary<Camera, PorCamara>();
         RenderParams[][][] _params; // [tipo][lod][submalla]
         Mesh[][] _mallas;           // [tipo][lod]
         readonly Plane[] _planos = new Plane[6];
+        bool _dibujar = true, _sombras = true;
 
         void OnEnable()
         {
@@ -181,7 +190,7 @@ namespace Guardianes.Vegetacion
                 {
                     var malla = esp.Malla(_tipos[t].variante, l);
                     _mallas[t][l] = malla;
-                    var sombra = l < esp.sombras.Length ? esp.sombras[l] : ShadowCastingMode.On;
+                    var sombra = !_sombras ? ShadowCastingMode.Off : l < esp.sombras.Length ? esp.sombras[l] : ShadowCastingMode.On;
                     _params[t][l] = new RenderParams[malla.subMeshCount];
                     for (int s = 0; s < malla.subMeshCount; s++)
                     {
@@ -223,14 +232,14 @@ namespace Guardianes.Vegetacion
         // ------------------------------------------------------------------ Dibujo por camara
         void AlEmpezarCamara(ScriptableRenderContext ctx, Camera cam)
         {
-            if (!_matrices.IsCreated || _matrices.Length == 0) return;
+            if (!_matrices.IsCreated || _matrices.Length == 0 || !_dibujar) return;
             if (cam.cameraType == CameraType.Preview || cam.cameraType == CameraType.Reflection) return;
 
             if (!_camaras.TryGetValue(cam, out var pc))
             {
                 pc = new PorCamara
                 {
-                    salida = new NativeArray<float4x4>(_matrices.Length, Allocator.Persistent),
+                    salida = new NativeArray<float4x4>(_matrices.Length * 2, Allocator.Persistent),
                     inicio = new NativeArray<int>(_tipos.Count * MaxLods, Allocator.Persistent),
                     cuenta = new NativeArray<int>(_tipos.Count * MaxLods, Allocator.Persistent),
                 };
@@ -280,7 +289,7 @@ namespace Guardianes.Vegetacion
                         var rp = porLod[l][s];
                         if (rp.material == null) continue;
                         rp.camera = cam;
-                        Graphics.RenderMeshInstanced(rp, malla, s, pc.salida.Reinterpret<Matrix4x4>(), n, pc.inicio[b]);
+                        Graphics.RenderMeshInstanced(rp, malla, s, pc.salida.Reinterpret<DibujoInstancia>(64), n, pc.inicio[b]);
                     }
                 }
             }
@@ -305,6 +314,22 @@ namespace Guardianes.Vegetacion
                     if (math.distancesq(p.xz, centro.xz) <= radio * radio) resultado.Add(k);
                 }
             }
+        }
+
+        /// <summary>Cambia la distancia de dibujo (cada nivel de calidad) con la vegetacion ya cargada.</summary>
+        public void PonerDistancia(float multiplicador)
+        {
+            multiplicadorDistancia = multiplicador;
+            if (_distLod2.IsCreated) PrepararDistancias();
+        }
+
+        /// <summary>Para medir lo que cuesta (`MedicionRendimiento`): dejar de dibujarla o quitarle las sombras.</summary>
+        public void Ablacion(bool dibujar, bool sombras)
+        {
+            _dibujar = dibujar;
+            if (_sombras == sombras) return;
+            _sombras = sombras;
+            PrepararParametros();
         }
 
         public EspecieVegetal EspecieDe(int indice) => especies[_tipos[_especieDe[indice]].especie];
@@ -399,7 +424,9 @@ namespace Guardianes.Vegetacion
                 for (int i = 0; i < elegidas; i++)
                 {
                     int b = cubetaDe[i];
-                    salida[inicio[b] + escrito[b]] = matrices[eleccion[i]];
+                    int o = (inicio[b] + escrito[b]) * 2;
+                    salida[o] = matrices[eleccion[i]];
+                    salida[o + 1] = matrices[eleccion[i]];
                     escrito[b]++;
                 }
                 escrito.Dispose();

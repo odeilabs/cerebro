@@ -184,6 +184,29 @@ Detalle, valores de partida y fuentes en [Investigacion/Fluidez-y-sensacion.md](
 - Cada mecánica nueva pasa la lista de comprobación del informe y se juega con mando y teclado,
   además de las pruebas en batch.
 
+## La imagen y la fotosensibilidad (lo que ya ha fallado: mirarlo en cada juego)
+
+Fallos reales de un juego de la saga que no se veían en las pruebas. Lo común ya está corregido en el paquete; lo que
+cada juego haga por su cuenta tiene que cumplir lo mismo.
+
+- **Lo que se dibuja con instancing lleva su matriz anterior.** Con `Graphics.RenderMeshInstanced` y `motionVectorMode =
+  Object`, si los datos de cada instancia no traen `prevObjectToWorld` los vectores de movimiento salen mal: lo dibujado
+  parece moverse aunque esté quieto y el desenfoque de movimiento, el TAA, DLSS y FSR lo emborronan. En Basiliskos (noviembre
+  de 2026) toda la vegetación salía borrosa con la criatura quieta y sin viento. Comprobación: la misma vista con
+  `MotionBlur` a 0; si, con todo quieto, la imagen cambia, los vectores están mal.
+- **Los niveles de calidad se aplican de verdad.** `CalidadJuego` asignaba `multiplicadorDistancia` después de cargar la
+  vegetación y ese valor no se volvía a leer: la distancia de cada nivel nunca funcionó en el juego compilado. Ahora va por
+  `RenderizadorVegetacion.PonerDistancia`. Al añadir un ajuste a un nivel, comprobar en el juego compilado que cambia algo.
+- **Un corte de cámara se le dice a HDRP.** Si la cámara salta, el primer fotograma saca los vectores de movimiento del salto
+  y cruza un latigazo de desenfoque de lado a lado. `CamaraCriatura.Recolocar` ya llama a `HDCamera.Reset`; una cámara propia
+  que salte tiene que hacer lo mismo.
+- **Fotosensibilidad.** Ningún juego sale con más de **3 destellos por segundo** en una zona grande de la pantalla, y todos
+  llevan un aviso de epilepsia en el arranque y en la tienda: el aviso no sustituye al arreglo.
+- **Mirar el juego compilado, a su velocidad real.** Las pruebas en batch no tienen desenfoque de movimiento y van a pocos
+  fotogramas; un fallo puede depender de los fps. Los destellos de Basiliskos no salían a 18-27 fps y sí a 100-170: el
+  detector que hacía capturas normales frenaba el juego y no los veía. Tampoco se mide con `Time.timeScale = 0`: con el tiempo
+  parado HDRP no hace lo mismo (exposición, vectores de movimiento).
+
 ## Verificar (cómo son las pruebas de la saga)
 
 - `Tools/Unity-Batch.ps1 -Metodo <Juego>.EditorTools.<Clase>.<Metodo>DesdeBatch [-Extra ...]`:

@@ -102,6 +102,8 @@ namespace Guardianes.Camara
             _foco = Foco();
             _velFoco = Vector3.zero;
             _distanciaActual = Distancia;
+            // Un corte: sin esto, el primer fotograma saca los vectores de movimiento del salto y sale un latigazo de desenfoque.
+            if (TryGetComponent(out Camera camara)) UnityEngine.Rendering.HighDefinition.HDCamera.GetOrCreate(camara).Reset();
         }
 
         Vector3 Foco() => objetivo.position + Vector3.up * alturaObjetivo * Escala;

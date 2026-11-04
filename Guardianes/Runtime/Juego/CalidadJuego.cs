@@ -33,7 +33,7 @@ namespace Guardianes.Juego
         public static event System.Action<Nivel> AlAplicar;
         Volume _volumen;
         VolumeProfile _perfil;
-        float _resolucion = 100f;
+        float _resolucion = 100f, _resolucionForzada = -1f;
 
         void Awake()
         {
@@ -104,14 +104,14 @@ namespace Guardianes.Juego
             }
             Volumen(nivel);
             int n = (int)nivel;
-            _resolucion = new[] { 58f, 72f, 87f, 100f }[n];
+            _resolucion = _resolucionForzada > 0f ? _resolucionForzada : new[] { 58f, 72f, 87f, 100f }[n];
             foreach (var cam in FindObjectsByType<Camera>())
             {
                 var hd = cam.GetComponent<HDAdditionalCameraData>();
                 if (hd != null) hd.allowDynamicResolution = nivel != Nivel.Ultra;
             }
             if (RenderizadorVegetacion.Instancia != null)
-                RenderizadorVegetacion.Instancia.multiplicadorDistancia = new[] { 0.5f, 0.7f, 0.9f, 1f }[n];
+                RenderizadorVegetacion.Instancia.PonerDistancia(new[] { 0.5f, 0.7f, 0.9f, 1f }[n]);
             AlAplicar?.Invoke(nivel);
             if (TerrenoMundo.Instancia != null)
                 foreach (var t in TerrenoMundo.Instancia.Terrenos)
@@ -127,6 +127,19 @@ namespace Guardianes.Juego
                 EfectosCombate.Instancia.presupuesto = new[] { 200, 350, 500, 600 }[n];
             QualitySettings.lodBias = new[] { 0.6f, 0.8f, 1f, 1.2f }[n];
             Debug.Log($"[GD] Calidad {Nombre(nivel)} (resolucion {_resolucion}%, grafica {SystemInfo.graphicsDeviceName})");
+        }
+
+        /// <summary>Para medir: la resolucion interna en % en vez de la del nivel (negativo, la del nivel).</summary>
+        public void ForzarResolucion(float porcentaje)
+        {
+            _resolucionForzada = porcentaje;
+            Aplicar(Actual, false);
+            if (porcentaje > 0f)
+                foreach (var cam in FindObjectsByType<Camera>())
+                {
+                    var hd = cam.GetComponent<HDAdditionalCameraData>();
+                    if (hd != null) hd.allowDynamicResolution = true;
+                }
         }
 
         public static string Nombre(Nivel n) => n switch
