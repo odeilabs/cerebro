@@ -267,6 +267,22 @@ ni de ametralladora montada; el texturizado PBR casi no hace caso a `--color`.
   `Tools~/arte/empaquetar_materiales.py` al formato del juego.
 - **Animales y serpientes** (FBX Generic con raíz `root`): impórtalos como Generic con
   `optimizeGameObjects = false` y monta el `Animator` con los nombres del `.clips.json`.
+- **Fauna que sale en grupo** (lo aprendido en Basiliskos: `Tools/arte/fauna_assetscreator.py` y `ConstructorAnimales`):
+  - Una especie que el generador no tiene puede salir de la ficha de otra de su familia (alzada, peso, colores, `pelaje`,
+    `cuerna`), registrada en tu proceso como hace `generador/basiliskos/jaguar.py`, sin tocar AssetsCreator: el pecarí sale
+    del jabalí, el venado del ciervo y el tapetí del conejo. Solo dentro de la familia: la capibara y el tapir sacados del
+    jabalí son jabalíes de otro color. Las tablas del generador van por el nombre de la especie (largo del pelo, fibra,
+    pigmentos, quién no lleva el vientre claro): copia su entrada a tu ficha o sale con el vientre beis y las cerdas pardas.
+  - `--detalle bajo --sin-boca --sin-cornea --pbr 1024` da unos 24.000 triángulos y de 7 a 10 materiales (con boca, 17); el
+    caballo, 8.500 y 3. El caballo no trae ficha `_criatura_unity.json`: sus materiales van por el nombre de sus mapas.
+  - `ModelImporter.generateMeshLods` también vale para `SkinnedMeshRenderer`: una piara de 40 añade unos 150.000 triángulos
+    con sus sombras, no millones. El pelo lleva UV por triángulo, así que hay tres vértices por triángulo (unos 68.000 por
+    animal) y el skinning los mueve todos aunque se dibuje un LOD bajo; aun así, medido en una RTX 5080 a 1080p, cuarenta
+    cuestan 0,6 ms de CPU y nada que se note de GPU.
+  - Importa solo los clips que use el juego (`clipAnimations`) y pon `updateWhenOffscreen = false` con la caja ampliada;
+    mide el tamaño y apoya los pies ANTES de ampliarla.
+  - Los colores de verdad salen negros a la sombra de la selva y los bayos, rojo oscuro: con un pardo de 0,33 sRGB no se ve
+    el animal. Súbelos y bájales saturación en la ficha: el jaguar, que se ve bien, va a 0,65.
 - Lo copiado va al repo del juego por LFS. No instales los scripts de `AssetsCreatorWin\unity\` en
   un juego de la saga salvo que haga falta uno concreto (y entonces una sola copia).
 
