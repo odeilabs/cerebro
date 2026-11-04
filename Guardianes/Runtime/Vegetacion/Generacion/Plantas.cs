@@ -19,6 +19,7 @@ namespace Guardianes.Vegetacion.Generacion
             Ceiba, Dosel, Palmera, HelechoArboreo, Platanera, Bambu, Arbusto, Helecho, HojasGrandes, Hierba, Flores, Roca, TroncoCaido,
             // Las nuevas, al final (los assets guardan el numero).
             Herbazal,
+            Conifera,
         }
 
         public const int SubMadera = 0;
@@ -44,6 +45,7 @@ namespace Guardianes.Vegetacion.Generacion
                 case Forma.Roca: Roca(m, ref r, detalle); break;
                 case Forma.TroncoCaido: TroncoCaido(m, ref r, detalle); break;
                 case Forma.Herbazal: Herbazal(m, ref r, detalle); break;
+                case Forma.Conifera: Conifera(m, ref r, detalle); break;
             }
             return m.Construir(nombre);
         }
@@ -202,6 +204,49 @@ namespace Guardianes.Vegetacion.Generacion
             }
         }
 
+        // ================================================================== Conifera (pinos y abetos de los bosques frios)
+        /// <summary>
+        /// Tronco recto que se afina hasta la punta y pisos de ramas caidas (frondas), mas largas abajo: la silueta de
+        /// cono de un abeto. Las frondas van en la submalla de follaje con el atlas de columnas (el de los helechos).
+        /// </summary>
+        static void Conifera(ConstructorMalla m, ref Random r, int detalle)
+        {
+            float alto = r.NextFloat(20f, 33f);
+            float radioBase = r.NextFloat(0.3f, 0.52f);
+            int lados = detalle == 0 ? 10 : detalle == 1 ? 6 : 4;
+            int anillos = detalle == 0 ? 10 : detalle == 1 ? 5 : 3;
+            var eje = Curva(ref r, Vector3.zero, new Vector3(r.NextFloat(-0.03f, 0.03f), 1f, r.NextFloat(-0.03f, 0.03f)), alto, anillos, Vector3.up, 0.1f, 0.012f);
+            float fase0 = r.NextFloat();
+            m.Tubo(SubMadera, eje, (i, a) => Mathf.Lerp(radioBase, 0.03f, i / (float)(eje.Count - 1)) * (1f + 0.04f * Mathf.Sin(a * 3f + i)),
+                lados, 2f, Mathf.Max(1f, Mathf.Round(radioBase * 6.283f / 2f)), i => Pesos(FlexTronco(eje[i].y, alto) * 0.6f, 0f, fase0));
+
+            int pisos = detalle == 0 ? 17 : detalle == 1 ? 10 : 6;
+            int porPiso = detalle == 0 ? 7 : detalle == 1 ? 5 : 4;
+            float baseCopa = alto * r.NextFloat(0.16f, 0.3f);
+            var centro = new Vector3(0f, alto * 0.55f, 0f);
+            for (int p = 0; p < pisos; p++)
+            {
+                float t = p / (pisos - 1f);
+                float y = Mathf.Lerp(baseCopa, alto * 0.985f, t);
+                var b = eje[Mathf.Clamp(Mathf.RoundToInt(y / alto * (eje.Count - 1)), 0, eje.Count - 1)];
+                b.y = y;
+                float largo = Mathf.Lerp(alto * 0.27f, 0.8f, Mathf.Pow(t, 0.85f));
+                // Cuanto mas lejos, menos frondas y mas anchas: la masa de la copa no adelgaza.
+                float ancho = (detalle == 0 ? 0.42f : detalle == 1 ? 0.62f : 0.95f) * Mathf.Lerp(1f, 0.55f, t);
+                for (int k = 0; k < porPiso; k++)
+                {
+                    float az = (k + r.NextFloat(-0.3f, 0.3f)) / porPiso * Mathf.PI * 2f + p * 2.39996f;
+                    float elevacion = Mathf.Lerp(-0.12f, 0.55f, t) + r.NextFloat(-0.08f, 0.08f);
+                    float ancho0 = ancho * largo * r.NextFloat(0.85f, 1.1f);
+                    m.Fronda(SubHojas, b, az, elevacion, r.NextFloat(0.7f, 1.2f), largo * r.NextFloat(0.85f, 1.1f),
+                        s => ancho0 * Mathf.Sin(Mathf.Clamp01(s * 1.02f + 0.08f) * Mathf.PI) * (1f - 0.35f * s) + 0.01f,
+                        r.NextFloat(0.15f, 0.35f), Columna(r.NextInt(2)), Pesos(FlexTronco(y, alto) * 0.6f, 0.3f, r.NextFloat()), centro,
+                        detalle == 0 ? 5 : 3, r.NextFloat(-0.25f, 0.25f), 0.25f);
+                }
+            }
+        }
+
+        // ================================================================== Dosel
         // ================================================================== Arbol de dosel
         static void Dosel(ConstructorMalla m, ref Random r, int detalle)
         {

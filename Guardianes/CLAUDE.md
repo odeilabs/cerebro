@@ -43,7 +43,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   (ceiba, dosel, palmera, helecho arbóreo, platanera, bambú, arbusto, helecho, hojas grandes,
   hierba, flores, roca, tronco y herbazal —un trozo de hierba alta cerrada: varias matas en un círculo de algo más de
   un metro, que plantadas a 1,7 m no dejan ver el suelo; las formas nuevas van al final del enum, los assets guardan
-  el número—), `RenderizadorVegetacion` (un `BatchRendererGroup`: las matrices de todas las plantas en un buffer que no se vuelve a subir y,
+  el número— y conífera: tronco recto y pisos de ramas caídas, con silueta de cono, para los bosques fríos), `RenderizadorVegetacion` (un `BatchRendererGroup`: las matrices de todas las plantas en un buffer que no se vuelve a subir y,
   por cada vista que pide Unity —la cámara y cada luz con sombra—, jobs Burst que descartan celdas y plantas, eligen el LOD y
   agrupan por especie, LOD y cascada; cada planta solo entra en las cascadas que la necesitan, como en el GPU Resident Drawer, y
   a más de 40 m su sombra lleva un LOD menos; la matriz anterior es la misma que la actual: quieta no se mueve, los vectores de
@@ -59,6 +59,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Celebrar`. `IEntradaCamara` para que la cámara lea los controles de cada juego.
   `PuntoDisparo(desde, out punto)`: a dónde apunta un tirador (cada humano por disparo, el cañón por ráfaga,
   cada cohete); de serie, falso y sin gastar `Random`: apuntan como siempre (a `AlturaBlanco` con su reparto).
+  `AnimalAnimado`: un cuadrúpedo de AssetsCreator (o cualquier modelo Generic) movido por sus clips con Playables, sin Animator Controller: la marcha va con la velocidad a la que se mueve el objeto, un bucle pedido encima (`Bucle`), acciones (`Accion`) y la muerte (`Final`). Sale de Basiliskos y lo estrena Fenrir Hunt.
 - `Runtime/Combate/` — `Salud` + `DatosDanio`/`TipoDanio`, `Impacto` (daño en área, empuje,
   derribo de vegetación; también a los blancos de `Balas`, una vez por `Salud`, con la distancia y la
   fracción que da cada uno), `Lanzable`. **Balas** (`Balas.cs`): todos los tiros (humanos, cañón y cohetes)
