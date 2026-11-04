@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Guardianes.Mundo;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -10,26 +12,28 @@ using UnityEngine.Rendering;
 namespace Guardianes.Vegetacion
 {
     /// <summary>
-    /// Dibuja toda la vegetacion del mundo con instancing de GPU: las plantas se agrupan en celdas
-    /// de 64 m; por cada camara (juego, escena o capturas) un job Burst descarta celdas fuera del
-    /// frustum (ampliado para no perder sombras), elige el LOD de cada planta por distancia y
-    /// agrupa las matrices por (especie, LOD). Se envian con Graphics.RenderMeshInstanced en
-    /// beginCameraRendering, antes del culling de HDRP, asi que sirve tambien fuera del modo juego.
+    /// Dibuja toda la vegetacion del mundo con un BatchRendererGroup: las matrices de todas las plantas viven en un buffer de
+    /// la GPU, que no se vuelve a subir, y en cada vista que pide Unity (cada camara y cada luz con sombra) unos jobs Burst
+    /// descartan celdas de 64 m y plantas, eligen el LOD por distancia y agrupan lo visible por (especie, LOD, cascadas).
+    /// En una luz, cada planta solo entra en las cascadas que la necesitan (lo mismo que el GPU Resident Drawer) y, lejos de
+    /// la camara, con un LOD menos que en la imagen. La matriz anterior es la misma que la actual: quietas no se mueven y
+    /// sus vectores de movimiento solo llevan el viento. Sirve tambien fuera del modo juego.
     /// Las plantas derribadas se marcan y dejan de dibujarse (Derribar).
     /// </summary>
     [ExecuteAlways]
     [DefaultExecutionOrder(-40)]
-    public class RenderizadorVegetacion : MonoBehaviour
+    public unsafe class RenderizadorVegetacion : MonoBehaviour
     {
         public const int MaxLods = 4;
         const float Celda = 64f;
+        const int MaxSubmallas = 3;
+        // Por debajo de esto, la sombra usa el LOD de la imagen: de cerca se le ven las hojas.
+        const float SombraFina = 40f;
 
         public EspecieVegetal[] especies = new EspecieVegetal[0];
         [Tooltip("Vegetacion (.bytes) que genera el constructor de la escena")]
         public TextAsset datos;
         [Range(0.25f, 2.5f)] public float multiplicadorDistancia = 1f;
-        [Tooltip("Las celdas fuera de camara a menos de esto aun se dibujan (sombras que entran en plano)")]
-        public float margenSombras = 50f;
 
         public static RenderizadorVegetacion Instancia { get; private set; }
         public int TotalInstancias => _especieDe.IsCreated ? _especieDe.Length : 0;
@@ -42,40 +46,32 @@ namespace Guardianes.Vegetacion
         NativeArray<byte> _vivo;
         NativeArray<int2> _celdas;       // inicio, cuenta
         NativeArray<float3> _celdaMin, _celdaMax;
-        NativeArray<float> _distLod2;    // (especie * MaxLods + lod) -> distancia^2 (escala 1)
+        NativeArray<float> _distLod2;    // (tipo * MaxLods + lod) -> distancia^2 (escala 1)
         NativeArray<int> _numLods;
+        NativeArray<byte> _conSombra;    // (tipo * MaxLods + lod) -> proyecta sombra
+        NativeArray<byte> _subMallas;    // (tipo * MaxLods + lod) -> submallas de su malla
+        NativeArray<BatchMeshID> _idMalla;         // (tipo * MaxLods + lod)
+        NativeArray<BatchMaterialID> _idMaterial;  // (tipo * MaxLods + lod) * MaxSubmallas + submalla
         int _lado;
         float2 _origen;
 
-        // Lo que recibe cada instancia. Sin prevObjectToWorld, los vectores de movimiento salen de una matriz que no es la suya:
-        // la planta parece moverse aunque este quieta y el desenfoque de movimiento y el TAA la emborronan.
-        struct DibujoInstancia
-        {
-            public Matrix4x4 objectToWorld;
-            public Matrix4x4 prevObjectToWorld;
-        }
-
-        class PorCamara
-        {
-            public NativeArray<float4x4> salida; // dos por instancia: DibujoInstancia
-            public NativeArray<int> inicio, cuenta;
-        }
-        readonly Dictionary<Camera, PorCamara> _camaras = new Dictionary<Camera, PorCamara>();
-        RenderParams[][][] _params; // [tipo][lod][submalla]
-        Mesh[][] _mallas;           // [tipo][lod]
-        readonly Plane[] _planos = new Plane[6];
+        BatchRendererGroup _grupo;
+        GraphicsBuffer _instancias;
+        BatchID _lote;
+        readonly List<BatchMeshID> _mallasRegistradas = new List<BatchMeshID>();
+        readonly List<BatchMaterialID> _materialesRegistrados = new List<BatchMaterialID>();
+        JobHandle _trabajo;
         bool _dibujar = true, _sombras = true;
+        int _capa;
 
         void OnEnable()
         {
             Instancia = this;
             Cargar();
-            RenderPipelineManager.beginCameraRendering += AlEmpezarCamara;
         }
 
         void OnDisable()
         {
-            RenderPipelineManager.beginCameraRendering -= AlEmpezarCamara;
             Liberar();
             if (Instancia == this) Instancia = null;
         }
@@ -153,14 +149,20 @@ namespace Guardianes.Vegetacion
                 _celdaMax[celda] = math.max(_celdaMax[celda], centro + radio);
             }
 
-            _distLod2 = new NativeArray<float>(_tipos.Count * MaxLods, Allocator.Persistent);
+            int cubetas = _tipos.Count * MaxLods;
+            _distLod2 = new NativeArray<float>(cubetas, Allocator.Persistent);
             _numLods = new NativeArray<int>(_tipos.Count, Allocator.Persistent);
+            _conSombra = new NativeArray<byte>(cubetas, Allocator.Persistent);
+            _subMallas = new NativeArray<byte>(cubetas, Allocator.Persistent);
+            _idMalla = new NativeArray<BatchMeshID>(cubetas, Allocator.Persistent);
+            _idMaterial = new NativeArray<BatchMaterialID>(cubetas * MaxSubmallas, Allocator.Persistent);
             PrepararDistancias();
-            PrepararParametros();
+            PrepararGrupo();
         }
 
         void PrepararDistancias()
         {
+            _trabajo.Complete();
             for (int t = 0; t < _tipos.Count; t++)
             {
                 var esp = especies[_tipos[t].especie];
@@ -174,49 +176,97 @@ namespace Guardianes.Vegetacion
             }
         }
 
-        void PrepararParametros()
+        void PrepararGrupo()
         {
-            var limites = new Bounds(Vector3.zero, new Vector3(Mapa.Medidas.tamano * 1.5f, 3000f, Mapa.Medidas.tamano * 1.5f));
-            _params = new RenderParams[_tipos.Count][][];
-            _mallas = new Mesh[_tipos.Count][];
+            int n = _matrices.Length;
+            if (n == 0) return;
+            _capa = gameObject.layer;
+            _grupo = new BatchRendererGroup(AlCullear, IntPtr.Zero);
+            _grupo.SetEnabledViewTypes(new[] { BatchCullingViewType.Camera, BatchCullingViewType.Light });
+            var min = new float3(float.MaxValue);
+            var max = new float3(float.MinValue);
+            for (int c = 0; c < _celdaMin.Length; c++)
+                if (_celdas[c].y > 0)
+                {
+                    min = math.min(min, _celdaMin[c]);
+                    max = math.max(max, _celdaMax[c]);
+                }
+            _grupo.SetGlobalBounds(new Bounds((min + max) * 0.5f, max - min));
+
+            // Los primeros 64 bytes, a cero (las propiedades que no vienen en los metadatos leen de ahi); luego las dos matrices
+            // de 3x4 de cada instancia. La anterior es la misma: quietas.
+            const int Cero = 64, Matriz = 48;
+            int inicioM = Cero, inicioI = Cero + Matriz * n;
+            var bytes = new NativeArray<float>((Cero + 2 * Matriz * n) / 4, Allocator.TempJob);
+            new JobMatrices { matrices = _matrices, salida = bytes, inicioM = inicioM / 4, inicioI = inicioI / 4 }.Schedule(n, 2048).Complete();
+            _instancias = new GraphicsBuffer(GraphicsBuffer.Target.Raw, bytes.Length, 4);
+            _instancias.SetData(bytes);
+            bytes.Dispose();
+
+            const uint PorInstancia = 0x80000000;
+            var metadatos = new NativeArray<MetadataValue>(4, Allocator.Temp);
+            metadatos[0] = new MetadataValue { NameID = Shader.PropertyToID("unity_ObjectToWorld"), Value = PorInstancia | (uint)inicioM };
+            metadatos[1] = new MetadataValue { NameID = Shader.PropertyToID("unity_WorldToObject"), Value = PorInstancia | (uint)inicioI };
+            metadatos[2] = new MetadataValue { NameID = Shader.PropertyToID("unity_MatrixPreviousM"), Value = PorInstancia | (uint)inicioM };
+            metadatos[3] = new MetadataValue { NameID = Shader.PropertyToID("unity_MatrixPreviousMI"), Value = PorInstancia | (uint)inicioI };
+            _lote = _grupo.AddBatch(metadatos, _instancias.bufferHandle);
+            metadatos.Dispose();
+
+            var mallas = new Dictionary<Mesh, BatchMeshID>();
+            var materiales = new Dictionary<Material, BatchMaterialID>();
             for (int t = 0; t < _tipos.Count; t++)
             {
                 var esp = especies[_tipos[t].especie];
                 int nl = math.min(esp.Lods, MaxLods);
                 var mats = esp.Materiales;
-                _params[t] = new RenderParams[nl][];
-                _mallas[t] = new Mesh[nl];
                 for (int l = 0; l < nl; l++)
                 {
+                    int b = t * MaxLods + l;
                     var malla = esp.Malla(_tipos[t].variante, l);
-                    _mallas[t][l] = malla;
-                    var sombra = !_sombras ? ShadowCastingMode.Off : l < esp.sombras.Length ? esp.sombras[l] : ShadowCastingMode.On;
-                    _params[t][l] = new RenderParams[malla.subMeshCount];
-                    for (int s = 0; s < malla.subMeshCount; s++)
+                    if (!mallas.TryGetValue(malla, out var idMalla))
                     {
-                        _params[t][l][s] = new RenderParams(s < mats.Length ? mats[s] : null)
-                        {
-                            worldBounds = limites,
-                            shadowCastingMode = sombra,
-                            receiveShadows = true,
-                            motionVectorMode = MotionVectorGenerationMode.Object,
-                            layer = gameObject.layer,
-                            lightProbeUsage = LightProbeUsage.BlendProbes,
-                        };
+                        idMalla = _grupo.RegisterMesh(malla);
+                        mallas[malla] = idMalla;
+                        _mallasRegistradas.Add(idMalla);
                     }
+                    _idMalla[b] = idMalla;
+                    var sombra = l < esp.sombras.Length ? esp.sombras[l] : ShadowCastingMode.On;
+                    _conSombra[b] = (byte)(sombra != ShadowCastingMode.Off ? 1 : 0);
+                    int subs = math.min(malla.subMeshCount, MaxSubmallas);
+                    int validas = 0;
+                    for (int s = 0; s < subs; s++)
+                    {
+                        var mat = s < mats.Length ? mats[s] : null;
+                        if (mat == null) continue;
+                        if (!materiales.TryGetValue(mat, out var idMat))
+                        {
+                            idMat = _grupo.RegisterMaterial(mat);
+                            materiales[mat] = idMat;
+                            _materialesRegistrados.Add(idMat);
+                        }
+                        _idMaterial[b * MaxSubmallas + s] = idMat;
+                        validas = s + 1;
+                    }
+                    _subMallas[b] = (byte)validas;
                 }
             }
         }
 
         void Liberar()
         {
-            foreach (var pc in _camaras.Values)
+            _trabajo.Complete();
+            _trabajo = default;
+            if (_grupo != null)
             {
-                if (pc.salida.IsCreated) pc.salida.Dispose();
-                if (pc.inicio.IsCreated) pc.inicio.Dispose();
-                if (pc.cuenta.IsCreated) pc.cuenta.Dispose();
+                foreach (var m in _mallasRegistradas) _grupo.UnregisterMesh(m);
+                foreach (var m in _materialesRegistrados) _grupo.UnregisterMaterial(m);
+                _grupo.Dispose();
+                _grupo = null;
             }
-            _camaras.Clear();
+            _mallasRegistradas.Clear();
+            _materialesRegistrados.Clear();
+            _instancias?.Dispose();
+            _instancias = null;
             if (_matrices.IsCreated) _matrices.Dispose();
             if (_esferas.IsCreated) _esferas.Dispose();
             if (_especieDe.IsCreated) _especieDe.Dispose();
@@ -227,73 +277,154 @@ namespace Guardianes.Vegetacion
             if (_celdaMax.IsCreated) _celdaMax.Dispose();
             if (_distLod2.IsCreated) _distLod2.Dispose();
             if (_numLods.IsCreated) _numLods.Dispose();
+            if (_conSombra.IsCreated) _conSombra.Dispose();
+            if (_subMallas.IsCreated) _subMallas.Dispose();
+            if (_idMalla.IsCreated) _idMalla.Dispose();
+            if (_idMaterial.IsCreated) _idMaterial.Dispose();
         }
 
-        // ------------------------------------------------------------------ Dibujo por camara
-        void AlEmpezarCamara(ScriptableRenderContext ctx, Camera cam)
+        // ------------------------------------------------------------------ Lo que se dibuja en cada vista
+        JobHandle AlCullear(BatchRendererGroup grupo, BatchCullingContext ctx, BatchCullingOutput salida, IntPtr usuario)
         {
-            if (!_matrices.IsCreated || _matrices.Length == 0 || !_dibujar) return;
-            if (cam.cameraType == CameraType.Preview || cam.cameraType == CameraType.Reflection) return;
+            if (!_dibujar || !_matrices.IsCreated || (ctx.cullingLayerMask & (1u << _capa)) == 0) return default;
+            bool sombra = ctx.viewType == BatchCullingViewType.Light;
+            if (sombra && !_sombras) return default;
 
-            if (!_camaras.TryGetValue(cam, out var pc))
-            {
-                pc = new PorCamara
+            int splits = math.clamp(ctx.cullingSplits.Length, 1, 6);
+            var tramos = new NativeArray<int2>(splits, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            int cuantos = 0;
+            if (ctx.cullingSplits.Length == 0) { tramos[0] = new int2(0, ctx.cullingPlanes.Length); cuantos = ctx.cullingPlanes.Length; }
+            else
+                for (int s = 0; s < splits; s++)
                 {
-                    salida = new NativeArray<float4x4>(_matrices.Length * 2, Allocator.Persistent),
-                    inicio = new NativeArray<int>(_tipos.Count * MaxLods, Allocator.Persistent),
-                    cuenta = new NativeArray<int>(_tipos.Count * MaxLods, Allocator.Persistent),
-                };
-                _camaras[cam] = pc;
-            }
+                    var corte = ctx.cullingSplits[s];
+                    tramos[s] = new int2(cuantos, corte.cullingPlaneCount);
+                    cuantos += corte.cullingPlaneCount;
+                }
+            var planos = new NativeArray<float4>(cuantos, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            if (ctx.cullingSplits.Length == 0)
+                for (int i = 0; i < cuantos; i++) planos[i] = Plano(ctx.cullingPlanes[i]);
+            else
+                for (int s = 0; s < splits; s++)
+                {
+                    var corte = ctx.cullingSplits[s];
+                    for (int i = 0; i < corte.cullingPlaneCount; i++)
+                        planos[tramos[s].x + i] = Plano(ctx.cullingPlanes[corte.cullingPlaneOffset + i]);
+                }
 
-            GeometryUtility.CalculateFrustumPlanes(cam, _planos);
-            var planos = new NativeArray<float4>(6, Allocator.TempJob);
-            for (int i = 0; i < 6; i++)
+            // Cascadas de una luz direccional: las esferas que cubre cada una (ver ReceiverSphereCuller en el GPU Resident Drawer).
+            bool cascadas = sombra && splits > 1;
+            for (int s = 0; cascadas && s < splits; s++)
+                if (!(ctx.cullingSplits[s].sphereRadius > 0f)) cascadas = false;
+            var esferasCascada = new NativeArray<float4>(cascadas ? splits : 0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var mezclaCascada = new NativeArray<float>(cascadas ? splits : 0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var planosLuz = new NativeArray<float4>(cascadas ? ctx.receiverPlaneCount : 0, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            int numPlanosLuz = 0;
+            float3x3 aLuz = float3x3.identity;
+            if (cascadas)
             {
-                // El plano cercano no se amplia (lo de detras de la camara no se ve ni sombrea casi).
-                float margen = i == 4 ? 0f : margenSombras;
-                planos[i] = new float4(_planos[i].normal, _planos[i].distance + margen);
+                float4x4 luz = ctx.localToWorldMatrix;
+                aLuz = math.transpose(new float3x3(luz.c0.xyz, luz.c1.xyz, luz.c2.xyz));
+                for (int s = 0; s < splits; s++)
+                {
+                    var corte = ctx.cullingSplits[s];
+                    esferasCascada[s] = new float4(math.mul(aLuz, corte.sphereCenter), corte.sphereRadius);
+                    mezclaCascada[s] = corte.cascadeBlendCullingFactor;
+                }
+                float3 dirLuz = -luz.c2.xyz;
+                for (int i = 0; i < ctx.receiverPlaneCount; i++)
+                {
+                    var p = ctx.cullingPlanes[ctx.receiverPlaneOffset + i];
+                    if (math.dot((float3)p.normal, dirLuz) >= 0f) planosLuz[numPlanosLuz++] = Plano(p);
+                }
             }
 
-            new JobCulling
+            var visibles = new NativeArray<int>(_celdas.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var inicios = new NativeArray<int>(_celdas.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            float3 camara = ctx.lodParameters.cameraPosition;
+            int celdasVisibles = 0, total = 0;
+            new JobCeldas
             {
                 planos = planos,
-                camara = cam.transform.position,
+                tramos = tramos,
+                camara = camara,
                 celdas = _celdas,
                 celdaMin = _celdaMin,
                 celdaMax = _celdaMax,
-                matrices = _matrices,
+                distLod2 = _distLod2,
+                visibles = visibles,
+                inicios = inicios,
+                celdasVisibles = &celdasVisibles,
+                total = &total,
+            }.Run();
+
+            var entradas = new NativeArray<ulong>(total, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var cuentas = new NativeArray<int>(celdasVisibles, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+            var h = new JobPlantas
+            {
+                planos = planos,
+                tramos = tramos,
+                esferasCascada = esferasCascada,
+                mezclaCascada = mezclaCascada,
+                planosLuz = planosLuz,
+                numPlanosLuz = numPlanosLuz,
+                aLuz = aLuz,
+                exclusion = sombra ? (uint)ctx.splitExclusionMask : 0u,
+                sombra = sombra,
+                camara = camara,
+                celdas = _celdas,
                 esferas = _esferas,
                 especieDe = _especieDe,
                 escalaDe = _escalaDe,
                 vivo = _vivo,
                 distLod2 = _distLod2,
                 numLods = _numLods,
-                salida = pc.salida,
-                inicio = pc.inicio,
-                cuenta = pc.cuenta,
-            }.Run();
-            planos.Dispose();
-
-            for (int t = 0; t < _tipos.Count; t++)
+                conSombra = _conSombra,
+                visibles = visibles,
+                inicios = inicios,
+                entradas = entradas,
+                cuentas = cuentas,
+            }.Schedule(celdasVisibles, 2);
+            var filtro = new BatchFilterSettings
             {
-                var porLod = _params[t];
-                for (int l = 0; l < porLod.Length; l++)
-                {
-                    int b = t * MaxLods + l;
-                    int n = pc.cuenta[b];
-                    if (n == 0) continue;
-                    var malla = _mallas[t][l];
-                    for (int s = 0; s < porLod[l].Length; s++)
-                    {
-                        var rp = porLod[l][s];
-                        if (rp.material == null) continue;
-                        rp.camera = cam;
-                        Graphics.RenderMeshInstanced(rp, malla, s, pc.salida.Reinterpret<DibujoInstancia>(64), n, pc.inicio[b]);
-                    }
-                }
-            }
+                renderingLayerMask = 1,
+                layer = (byte)_capa,
+                motionMode = MotionVectorGenerationMode.Object,
+                shadowCastingMode = ShadowCastingMode.On,
+                receiveShadows = true,
+                staticShadowCaster = false,
+                allDepthSorted = false,
+            };
+            h = new JobComandos
+            {
+                inicios = inicios,
+                entradas = entradas,
+                cuentas = cuentas,
+                celdasVisibles = celdasVisibles,
+                bits = splits,
+                cubetas = _tipos.Count * MaxLods,
+                sombra = sombra,
+                subMallas = _subMallas,
+                idMalla = _idMalla,
+                idMaterial = _idMaterial,
+                lote = _lote,
+                filtro = filtro,
+                salida = (BatchCullingOutputDrawCommands*)salida.drawCommands.GetUnsafePtr(),
+            }.Schedule(h);
+            planos.Dispose(h);
+            tramos.Dispose(h);
+            esferasCascada.Dispose(h);
+            mezclaCascada.Dispose(h);
+            planosLuz.Dispose(h);
+            visibles.Dispose(h);
+            inicios.Dispose(h);
+            entradas.Dispose(h);
+            cuentas.Dispose(h);
+            _trabajo = JobHandle.CombineDependencies(_trabajo, h);
+            return h;
         }
+
+        static float4 Plano(Plane p) => new float4(p.normal, p.distance);
 
         // ------------------------------------------------------------------ Consultas y destruccion
         /// <summary>Indices de las plantas vivas cuyo tronco esta a menos de 'radio' de 'centro' (XZ).</summary>
@@ -327,9 +458,7 @@ namespace Guardianes.Vegetacion
         public void Ablacion(bool dibujar, bool sombras)
         {
             _dibujar = dibujar;
-            if (_sombras == sombras) return;
             _sombras = sombras;
-            PrepararParametros();
         }
 
         public EspecieVegetal EspecieDe(int indice) => especies[_tipos[_especieDe[indice]].especie];
@@ -341,119 +470,300 @@ namespace Guardianes.Vegetacion
         /// <summary>Quita la planta del dibujo (la sustituye quien la derriba por su version fisica).</summary>
         public void Derribar(int indice)
         {
+            _trabajo.Complete();
             if (_vivo.IsCreated && indice >= 0 && indice < _vivo.Length) _vivo[indice] = 0;
         }
 
         /// <summary>La vuelve a dibujar (una planta que rebrota; Derribos.Restaurar).</summary>
         public void Restaurar(int indice)
         {
+            _trabajo.Complete();
             if (_vivo.IsCreated && indice >= 0 && indice < _vivo.Length) _vivo[indice] = 1;
         }
 
-        // ------------------------------------------------------------------ Job
-        [BurstCompile(CompileSynchronously = true, FloatMode = FloatMode.Fast)]
-        struct JobCulling : IJob
+        // ------------------------------------------------------------------ Jobs
+        [BurstCompile(FloatMode = FloatMode.Fast)]
+        struct JobMatrices : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<float4x4> matrices;
+            [NativeDisableParallelForRestriction] public NativeArray<float> salida;
+            public int inicioM, inicioI;
+
+            public void Execute(int i)
+            {
+                float4x4 m = matrices[i];
+                Escribir(inicioM + i * 12, m);
+                Escribir(inicioI + i * 12, math.inverse(m));
+            }
+
+            void Escribir(int o, in float4x4 m)
+            {
+                salida[o] = m.c0.x; salida[o + 1] = m.c0.y; salida[o + 2] = m.c0.z;
+                salida[o + 3] = m.c1.x; salida[o + 4] = m.c1.y; salida[o + 5] = m.c1.z;
+                salida[o + 6] = m.c2.x; salida[o + 7] = m.c2.y; salida[o + 8] = m.c2.z;
+                salida[o + 9] = m.c3.x; salida[o + 10] = m.c3.y; salida[o + 11] = m.c3.z;
+            }
+        }
+
+        // Las celdas que puede ver esta vista, y donde empieza cada una en las entradas.
+        [BurstCompile(FloatMode = FloatMode.Fast)]
+        struct JobCeldas : IJob
         {
             [ReadOnly] public NativeArray<float4> planos;
+            [ReadOnly] public NativeArray<int2> tramos;
             public float3 camara;
             [ReadOnly] public NativeArray<int2> celdas;
             [ReadOnly] public NativeArray<float3> celdaMin, celdaMax;
-            [ReadOnly] public NativeArray<float4x4> matrices;
+            [ReadOnly] public NativeArray<float> distLod2;
+            public NativeArray<int> visibles, inicios;
+            [NativeDisableUnsafePtrRestriction] public int* celdasVisibles;
+            [NativeDisableUnsafePtrRestriction] public int* total;
+
+            public void Execute()
+            {
+                float maxD2 = 0f;
+                for (int b = 0; b < distLod2.Length; b++) maxD2 = math.max(maxD2, distLod2[b]);
+                float limite = maxD2 * 9f; // plantas de hasta 3x su tamano base
+                int n = 0, suma = 0;
+                for (int c = 0; c < celdas.Length; c++)
+                {
+                    int2 cel = celdas[c];
+                    if (cel.y == 0) continue;
+                    float3 mn = celdaMin[c], mx = celdaMax[c];
+                    if (math.distancesq(math.clamp(camara, mn, mx), camara) > limite) continue;
+                    if (!EnAlgunTramo(mn, mx)) continue;
+                    visibles[n] = c;
+                    inicios[n] = suma;
+                    n++;
+                    suma += cel.y;
+                }
+                *celdasVisibles = n;
+                *total = suma;
+            }
+
+            bool EnAlgunTramo(float3 mn, float3 mx)
+            {
+                for (int s = 0; s < tramos.Length; s++)
+                {
+                    int2 t = tramos[s];
+                    bool dentro = true;
+                    for (int p = t.x; p < t.x + t.y && dentro; p++)
+                    {
+                        float4 pl = planos[p];
+                        float3 v = math.select(mn, mx, pl.xyz >= 0f);
+                        if (math.dot(pl.xyz, v) + pl.w < 0f) dentro = false;
+                    }
+                    if (dentro) return true;
+                }
+                return false;
+            }
+        }
+
+        // Cada planta de una celda: si se ve, con que LOD y en que cascadas. Una entrada: indice | cubeta << 32 | mascara << 48.
+        [BurstCompile(FloatMode = FloatMode.Fast)]
+        struct JobPlantas : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<float4> planos;
+            [ReadOnly] public NativeArray<int2> tramos;
+            [ReadOnly] public NativeArray<float4> esferasCascada;
+            [ReadOnly] public NativeArray<float> mezclaCascada;
+            [ReadOnly] public NativeArray<float4> planosLuz;
+            public int numPlanosLuz;
+            public float3x3 aLuz;
+            public uint exclusion;
+            public bool sombra;
+            public float3 camara;
+            [ReadOnly] public NativeArray<int2> celdas;
             [ReadOnly] public NativeArray<float4> esferas;
             [ReadOnly] public NativeArray<int> especieDe;
             [ReadOnly] public NativeArray<float> escalaDe;
             [ReadOnly] public NativeArray<byte> vivo;
             [ReadOnly] public NativeArray<float> distLod2;
             [ReadOnly] public NativeArray<int> numLods;
-            public NativeArray<float4x4> salida;
-            public NativeArray<int> inicio, cuenta;
+            [ReadOnly] public NativeArray<byte> conSombra;
+            [ReadOnly] public NativeArray<int> visibles, inicios;
+            [NativeDisableParallelForRestriction] public NativeArray<ulong> entradas;
+            [NativeDisableParallelForRestriction] public NativeArray<int> cuentas;
+
+            public void Execute(int v)
+            {
+                int2 cel = celdas[visibles[v]];
+                int o = inicios[v], n = 0;
+                for (int k = cel.x; k < cel.x + cel.y; k++)
+                {
+                    if (vivo[k] == 0) continue;
+                    float4 esf = esferas[k];
+                    int t = especieDe[k];
+                    float s = escalaDe[k];
+                    float d2 = math.distancesq(esf.xyz, camara);
+                    float d2Escala = d2 / (s * s);
+                    int nl = numLods[t];
+                    int lod = -1;
+                    for (int l = 0; l < nl; l++)
+                        if (d2Escala <= distLod2[t * MaxLods + l]) { lod = l; break; }
+                    if (lod < 0) continue;
+                    if (sombra)
+                    {
+                        if (d2 > SombraFina * SombraFina && lod + 1 < nl && conSombra[t * MaxLods + lod + 1] != 0) lod++;
+                        if (conSombra[t * MaxLods + lod] == 0) continue;
+                    }
+                    uint mascara = Mascara(esf);
+                    if (esferasCascada.Length > 0 && mascara != 0) mascara &= MascaraCascadas(esf);
+                    mascara &= ~exclusion;
+                    if (mascara == 0) continue;
+                    entradas[o + n] = (ulong)(uint)k | ((ulong)(uint)(t * MaxLods + lod) << 32) | ((ulong)mascara << 48);
+                    n++;
+                }
+                cuentas[v] = n;
+            }
+
+            uint Mascara(float4 esf)
+            {
+                uint m = 0;
+                for (int s = 0; s < tramos.Length; s++)
+                {
+                    int2 t = tramos[s];
+                    bool dentro = true;
+                    for (int p = t.x; p < t.x + t.y && dentro; p++)
+                    {
+                        float4 pl = planos[p];
+                        if (math.dot(pl.xyz, esf.xyz) + pl.w < -esf.w) dentro = false;
+                    }
+                    if (dentro) m |= 1u << s;
+                }
+                return m;
+            }
+
+            // Lo mismo que ReceiverSphereCuller del GPU Resident Drawer: la planta entra en la cascada si su sombra puede caer en
+            // su esfera, y si la sombra entera cabe en el nucleo de una cascada no hace falta en las mayores.
+            uint MascaraCascadas(float4 esf)
+            {
+                float3 centroLuz = math.mul(aLuz, esf.xyz);
+                float radio = esf.w;
+                float3 dirSombra = math.transpose(aLuz).c2;
+                float largoSombra = float.PositiveInfinity;
+                for (int i = 0; i < numPlanosLuz; i++)
+                {
+                    float4 pl = planosLuz[i];
+                    float cos = math.max(math.abs(math.dot(pl.xyz, dirSombra)), 0.001f);
+                    float sobre = (math.dot(pl.xyz, esf.xyz) + pl.w) / cos;
+                    float sen = math.sqrt(math.max(1f - cos * cos, 0f));
+                    largoSombra = math.min(largoSombra, sobre + radio * sen / cos);
+                }
+                largoSombra = math.max(largoSombra, 0f);
+
+                uint m = 0;
+                for (int s = 0; s < esferasCascada.Length; s++)
+                {
+                    float4 receptor = esferasCascada[s];
+                    float3 aPlanta = centroLuz - receptor.xyz;
+                    float maxDist = radio + receptor.w;
+                    float z2 = maxDist * maxDist - math.lengthsq(aPlanta.xy);
+                    if (z2 < 0f) continue;
+                    if (aPlanta.z > 0f && aPlanta.z * aPlanta.z > z2) continue;
+                    m |= 1u << s;
+                    float nucleo = receptor.w * mezclaCascada[s] - radio;
+                    float3 finSombra = aPlanta + new float3(0f, 0f, largoSombra);
+                    float dist2 = math.max(math.lengthsq(aPlanta), math.lengthsq(finSombra));
+                    if (nucleo > 0f && dist2 < nucleo * nucleo) break;
+                }
+                return m;
+            }
+        }
+
+        // Agrupa lo visible por (cubeta, mascara) y escribe la lista que pide Unity.
+        [BurstCompile]
+        struct JobComandos : IJob
+        {
+            [ReadOnly] public NativeArray<int> inicios, cuentas;
+            [ReadOnly] public NativeArray<ulong> entradas;
+            public int celdasVisibles, bits, cubetas;
+            public bool sombra;
+            [ReadOnly] public NativeArray<byte> subMallas;
+            [ReadOnly] public NativeArray<BatchMeshID> idMalla;
+            [ReadOnly] public NativeArray<BatchMaterialID> idMaterial;
+            public BatchID lote;
+            public BatchFilterSettings filtro;
+            [NativeDisableUnsafePtrRestriction] public BatchCullingOutputDrawCommands* salida;
 
             public void Execute()
             {
-                int cubetas = cuenta.Length;
-                for (int b = 0; b < cubetas; b++) cuenta[b] = 0;
-
-                // Distancia maxima de cualquier LOD (para descartar celdas enteras).
-                float maxD2 = 0f;
-                for (int b = 0; b < cubetas; b++) maxD2 = math.max(maxD2, distLod2[b]);
-                float maxEscala2 = 9f; // plantas de hasta 3x su tamano base
-
-                var eleccion = new NativeArray<int>(matrices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                var cubetaDe = new NativeArray<short>(matrices.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                int elegidas = 0;
-
-                for (int c = 0; c < celdas.Length; c++)
+                int claves = cubetas << bits;
+                var porClave = new NativeArray<int>(claves, Allocator.Temp, NativeArrayOptions.ClearMemory);
+                int total = 0;
+                for (int v = 0; v < celdasVisibles; v++)
                 {
-                    int2 cel = celdas[c];
-                    if (cel.y == 0) continue;
-                    float3 mn = celdaMin[c], mx = celdaMax[c];
-                    float3 cerca = math.clamp(camara, mn, mx);
-                    if (math.distancesq(cerca, camara) > maxD2 * maxEscala2) continue;
-                    if (!CajaVisible(mn, mx)) continue;
+                    int o = inicios[v], n = cuentas[v];
+                    for (int i = 0; i < n; i++) porClave[Clave(entradas[o + i])]++;
+                    total += n;
+                }
+                if (total == 0) return;
 
-                    for (int k = cel.x; k < cel.x + cel.y; k++)
+                var inicio = new NativeArray<int>(claves, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                int acumulado = 0, comandos = 0;
+                for (int c = 0; c < claves; c++)
+                {
+                    inicio[c] = acumulado;
+                    if (porClave[c] == 0) continue;
+                    acumulado += porClave[c];
+                    comandos += subMallas[c >> bits];
+                }
+                if (comandos == 0) return;
+
+                var visibles = (int*)UnsafeUtility.Malloc(sizeof(int) * total, UnsafeUtility.AlignOf<int>(), Allocator.TempJob);
+                var escrito = new NativeArray<int>(claves, Allocator.Temp, NativeArrayOptions.ClearMemory);
+                for (int v = 0; v < celdasVisibles; v++)
+                {
+                    int o = inicios[v], n = cuentas[v];
+                    for (int i = 0; i < n; i++)
                     {
-                        if (vivo[k] == 0) continue;
-                        float4 esf = esferas[k];
-                        if (!EsferaVisible(esf)) continue;
-                        int e = especieDe[k];
-                        float s = escalaDe[k];
-                        float d2 = math.distancesq(esf.xyz, camara) / (s * s);
-                        int nl = numLods[e];
-                        int lod = -1;
-                        for (int l = 0; l < nl; l++)
-                        {
-                            if (d2 <= distLod2[e * 4 + l]) { lod = l; break; }
-                        }
-                        if (lod < 0) continue;
-                        int b = e * 4 + lod;
-                        eleccion[elegidas] = k;
-                        cubetaDe[elegidas] = (short)b;
-                        elegidas++;
-                        cuenta[b]++;
+                        ulong e = entradas[o + i];
+                        int c = Clave(e);
+                        visibles[inicio[c] + escrito[c]] = (int)(uint)e;
+                        escrito[c]++;
                     }
                 }
 
-                int acumulado = 0;
-                for (int b = 0; b < cubetas; b++)
+                var lista = (BatchDrawCommand*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<BatchDrawCommand>() * comandos, UnsafeUtility.AlignOf<BatchDrawCommand>(), Allocator.TempJob);
+                var flags = sombra ? BatchDrawCommandFlags.None : BatchDrawCommandFlags.HasMotion;
+                int d = 0;
+                for (int c = 0; c < claves; c++)
                 {
-                    inicio[b] = acumulado;
-                    acumulado += cuenta[b];
+                    int n = porClave[c];
+                    if (n == 0) continue;
+                    int b = c >> bits;
+                    uint mascara = (uint)(c & ((1 << bits) - 1));
+                    for (int s = 0; s < subMallas[b]; s++)
+                        lista[d++] = new BatchDrawCommand
+                        {
+                            visibleOffset = (uint)inicio[c],
+                            visibleCount = (uint)n,
+                            batchID = lote,
+                            materialID = idMaterial[b * MaxSubmallas + s],
+                            meshID = idMalla[b],
+                            submeshIndex = (ushort)s,
+                            splitVisibilityMask = sombra ? (ushort)mascara : (ushort)0xff,
+                            flags = flags,
+                            sortingPosition = 0,
+                            lightmapIndex = 0xffff,
+                            activeMeshLod = 0xffff,
+                        };
                 }
-                var escrito = new NativeArray<int>(cubetas, Allocator.Temp);
-                for (int i = 0; i < elegidas; i++)
-                {
-                    int b = cubetaDe[i];
-                    int o = (inicio[b] + escrito[b]) * 2;
-                    salida[o] = matrices[eleccion[i]];
-                    salida[o + 1] = matrices[eleccion[i]];
-                    escrito[b]++;
-                }
-                escrito.Dispose();
-                eleccion.Dispose();
-                cubetaDe.Dispose();
+
+                var rango = (BatchDrawRange*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<BatchDrawRange>(), UnsafeUtility.AlignOf<BatchDrawRange>(), Allocator.TempJob);
+                *rango = new BatchDrawRange { drawCommandsBegin = 0, drawCommandsCount = (uint)d, filterSettings = filtro };
+
+                salida->visibleInstances = visibles;
+                salida->visibleInstanceCount = total;
+                salida->drawCommands = lista;
+                salida->drawCommandCount = d;
+                salida->drawRanges = rango;
+                salida->drawRangeCount = 1;
+                salida->instanceSortingPositions = null;
+                salida->instanceSortingPositionFloatCount = 0;
             }
 
-            bool EsferaVisible(float4 esf)
-            {
-                for (int p = 0; p < 6; p++)
-                {
-                    float4 pl = planos[p];
-                    if (math.dot(pl.xyz, esf.xyz) + pl.w < -esf.w) return false;
-                }
-                return true;
-            }
-
-            bool CajaVisible(float3 mn, float3 mx)
-            {
-                for (int p = 0; p < 6; p++)
-                {
-                    float4 pl = planos[p];
-                    float3 v = math.select(mn, mx, pl.xyz >= 0f);
-                    if (math.dot(pl.xyz, v) + pl.w < 0f) return false;
-                }
-                return true;
-            }
+            int Clave(ulong e) => (int)((e >> 32) & 0xffff) << bits | (int)(e >> 48);
         }
     }
 }
