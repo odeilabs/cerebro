@@ -202,6 +202,11 @@ cada juego haga por su cuenta tiene que cumplir lo mismo.
   que salte tiene que hacer lo mismo.
 - **Fotosensibilidad.** Ningún juego sale con más de **3 destellos por segundo** en una zona grande de la pantalla, y todos
   llevan un aviso de epilepsia en el arranque y en la tienda: el aviso no sustituye al arreglo.
+- **El cielo no se mueve en cada fotograma, y de noche no lleva nubes volumétricas.** En Basiliskos, de noche, la imagen
+  saltaba de negra a blanca hasta 59 veces por segundo: mover el sol o la luna hace que HDRP rehaga el cielo con el que se
+  ilumina y se refleja todo, y con las nubes volumétricas dentro algunas veces salía claro como de día (el agua blanca, la luz
+  ambiente 28.000 veces más fuerte). `CicloDia` ya mueve los astros a pasitos (`pasoAstros`) y apaga esas nubes sin sol.
+  Quien mueva una luz con `interactsWithSky` por su cuenta o ponga nubes volumétricas de noche tiene que mirar esto.
 - **Mirar el juego compilado, a su velocidad real.** Las pruebas en batch no tienen desenfoque de movimiento y van a pocos
   fotogramas; un fallo puede depender de los fps. Los destellos de Basiliskos no salían a 18-27 fps y sí a 100-170: el
   detector que hacía capturas normales frenaba el juego y no los veía. Tampoco se mide con `Time.timeScale = 0`: con el tiempo

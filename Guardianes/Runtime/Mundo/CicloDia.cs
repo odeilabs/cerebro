@@ -58,6 +58,9 @@ namespace Guardianes.Mundo
         [Tooltip("La que queda con luna")]
         public float luzNoche = 0.12f;
 
+        [Tooltip("Lo que se mueven de una vez el sol y la luna (grados): cada movimiento rehace el cielo entero")]
+        public float pasoAstros = 0.1f;
+
         [Header("Nubes")]
         [Tooltip("Cielo cubierto (0 despejado .. 1 tormenta): menos sol, luna y luz para la IA, y menos color. Lo pone la Lluvia")]
         [Range(0f, 1f)] public float nublado;
@@ -70,11 +73,14 @@ namespace Guardianes.Mundo
         public Vector3 DireccionAlSol { get; private set; } = Vector3.up;
 
         float _luxSol, _adaptarDeGolpeHasta;
+        Vector3 _dirSol, _dirLuna;
+        bool _astrosAlDia = true;
         Light _cieloNoche;
         Volume _volumen;
         Exposure _exposicion;
         ColorAdjustments _color;
         WhiteBalance _balance;
+        VolumetricClouds _nubes;
         bool _noche;
 
         public static string Reloj(float h)
@@ -137,6 +143,7 @@ namespace Guardianes.Mundo
             // Un salto de hora (empieza una mision de noche): la exposicion se ajusta de golpe, sin los
             // segundos de adaptacion del ojo (si no, la escena sale negra o blanca un rato).
             _adaptarDeGolpeHasta = Time.unscaledTime + 1.5f;
+            _astrosAlDia = true;
             Aplicar();
         }
 
@@ -207,6 +214,17 @@ namespace Guardianes.Mundo
             _color.saturation.Override(0f);
             _balance = perfil.Add<WhiteBalance>(false);
             _balance.temperature.Override(0f);
+            _nubes = perfil.Add<VolumetricClouds>(false);
+            _nubes.enable.Override(false);
+            _nubes.enable.overrideState = false;
+        }
+
+        // A pasitos: si se mueven en cada fotograma, HDRP rehace en cada fotograma el cielo, sus reflejos y su luz ambiente.
+        void Girar(Light luz, Vector3 hacia, ref Vector3 aplicada)
+        {
+            if (!_astrosAlDia && Vector3.Angle(aplicada, hacia) < pasoAstros) return;
+            aplicada = hacia;
+            luz.transform.rotation = Quaternion.LookRotation(-hacia, Vector3.up);
         }
 
         void Aplicar()
@@ -225,7 +243,7 @@ namespace Guardianes.Mundo
                 float f = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(-0.11f, -0.06f, aSol.y));
                 sol.enabled = f > 0.001f;
                 sol.intensity = _luxSol * f * (1f - 0.7f * nublado);
-                sol.transform.rotation = Quaternion.LookRotation(-aSol, Vector3.up);
+                Girar(sol, aSol, ref _dirSol);
                 sol.shadows = sol.enabled ? LightShadows.Soft : LightShadows.None;
             }
             if (luna != null)
@@ -233,7 +251,7 @@ namespace Guardianes.Mundo
                 float f = lunaArriba * (1f - Dia);
                 luna.enabled = f > 0.001f;
                 luna.intensity = luxLuna * f * (1f - 0.6f * nublado);
-                luna.transform.rotation = Quaternion.LookRotation(-aLuna, Vector3.up);
+                Girar(luna, aLuna, ref _dirLuna);
                 // HDRP solo da sombra a una direccional: la luna cuando no hay sol.
                 luna.shadows = luna.enabled && (sol == null || !sol.enabled) ? LightShadows.Soft : LightShadows.None;
             }
@@ -243,6 +261,11 @@ namespace Guardianes.Mundo
                 _cieloNoche.enabled = f > 0.001f && luxCieloNoche > 0f;
                 _cieloNoche.intensity = luxCieloNoche * f * (1f - 0.25f * nublado);
             }
+            _astrosAlDia = false;
+            // Sin sol no hay nubes volumetricas: de noche no se ven, y HDRP, al rehacer con ellas el cielo con el que se ilumina y
+            // se refleja todo, a veces lo saca claro como de dia: el agua blanca y la luz ambiente 28.000 veces mas fuerte, a
+            // destellos de un fotograma (Basiliskos, noviembre de 2026: la playa de noche, hasta 59 destellos por segundo).
+            if (_nubes != null) _nubes.enable.overrideState = aSol.y < -0.12f;
             if (_exposicion != null)
             {
                 _exposicion.limitMin.value = Mathf.Lerp(exposicionNoche.x, exposicionDia.x, Dia);
