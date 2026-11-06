@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Guardianes.Camara;
 using Guardianes.Criaturas;
 using Guardianes.Juego;
 using UnityEngine;
@@ -69,6 +71,14 @@ namespace Guardianes.Misiones
     {
         public Narracion(params string[] lineas) { dialogo = lineas; }
         public override bool Cumplido => D.DialogoTerminado && Tiempo > 1f;
+    }
+
+    /// <summary>Una escena rodada en medio de la mision: el director rueda sus planos y sigue.</summary>
+    public class Escena : Objetivo
+    {
+        public readonly List<Plano> planos;
+        public Escena(params Plano[] planos) { this.planos = new List<Plano>(planos); }
+        public override bool Cumplido => true;
     }
 
     /// <summary>Esperar unos segundos (que pase algo en el mundo).</summary>

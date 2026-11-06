@@ -38,6 +38,17 @@ namespace Guardianes.Vegetacion
         public static RenderizadorVegetacion Instancia { get; private set; }
         public int TotalInstancias => _especieDe.IsCreated ? _especieDe.Length : 0;
 
+        SolidosVegetacion _solidos;
+        /// <summary>Lo solido, para lo que anda por el suelo: se monta la primera vez que se pide. Sin vegetacion cargada, null.</summary>
+        public SolidosVegetacion Solidos
+        {
+            get
+            {
+                if (_solidos == null && _especieDe.IsCreated) _solidos = new SolidosVegetacion(this);
+                return _solidos;
+            }
+        }
+
         // Instancias ordenadas por celda.
         NativeArray<float4x4> _matrices;
         NativeArray<float4> _esferas;    // centro (mundo) y radio
@@ -256,6 +267,7 @@ namespace Guardianes.Vegetacion
         {
             _trabajo.Complete();
             _trabajo = default;
+            _solidos = null;
             if (_grupo != null)
             {
                 foreach (var m in _mallasRegistradas) _grupo.UnregisterMesh(m);

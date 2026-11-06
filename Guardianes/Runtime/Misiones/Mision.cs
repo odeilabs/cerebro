@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Guardianes.Camara;
 
 namespace Guardianes.Misiones
 {
@@ -24,6 +25,8 @@ namespace Guardianes.Misiones
         public bool horaAvanza;
         public string[] introduccion = new string[0];
         public string[] desenlace = new string[0];
+        /// <summary>Los planos de la entrada y de la salida: si los hay, se ruedan en lugar de contar la introduccion y el desenlace.</summary>
+        public List<Plano> planosEntrada, planosSalida;
         public readonly List<Objetivo> objetivos = new List<Objetivo>();
         public readonly List<Regla> reglas = new List<Regla>();
         /// <summary>Monta el escenario (el director pasa su raiz: lo que cuelga de ella se borra al empezar otra mision o al repetirla).</summary>

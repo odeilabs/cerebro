@@ -119,10 +119,14 @@ Unity haga el `.meta` y se sube con `subir`.
 
 ## Qué va al cerebro y qué al juego
 
-- **Lo que vaya a servir a más de un juego va al cerebro**, no a un juego: mundo (relieve, agua,
-  vegetación, día y noche), humanos de Ferrox y su IA (detección, miedo), instalaciones, vehículos,
-  combate, efectos, sonido, cámara, HUD base, misiones (director, objetivos, reglas), pruebas,
+- **Lo que vaya a servir a más de un juego va al cerebro**, no a un juego: la maquinaria del mundo
+  (relieve, agua, vegetación, día y noche), humanos de Ferrox y su IA (detección, miedo), instalaciones,
+  vehículos, combate, efectos, sonido, cámara, HUD base, misiones (director, objetivos, reglas), pruebas,
   herramientas de editor y generadores de arte.
+- **Cada mundo vive en su juego y es único.** El cerebro da instrucciones y maquinaria; la geografía, las
+  especies, la luz y el aspecto de cada mundo son del juego y no se suben. Lo que en un mundo es un fallo
+  puede ser el carácter de otro: el resplandor magenta de la vegetación de Midgard se queda en Fenrir Hunt.
+  Un arreglo visual del cerebro no se trae a un juego sin mirar si le quita carácter a su mundo.
 - **Lo de una criatura concreta va en su juego**, colgado de `Guardianes.Criaturas.Criatura`, de
   los eventos estáticos o de los métodos virtuales (`Premiar`, `Celebrar`, `HudJuego.ConstruirEstado`...).
   Si un sistema empieza en un juego y luego lo necesita otro, se sube al cerebro con cuidado de

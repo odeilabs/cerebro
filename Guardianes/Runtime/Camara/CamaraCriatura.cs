@@ -1,5 +1,6 @@
 using Guardianes.Criaturas;
 using Guardianes.Mundo;
+using Guardianes.Vegetacion;
 using UnityEngine;
 
 namespace Guardianes.Camara
@@ -35,6 +36,10 @@ namespace Guardianes.Camara
         public float planoCercano = 0.3f;
         [Tooltip("Inclinacion inicial (grados)")]
         public float inclinacion = 22f;
+        [Tooltip("No se mete en lo solido de la vegetacion y se acerca si una roca tapa a la criatura")]
+        public bool chocaConVegetacion;
+        [Tooltip("Lo solido mas fino que acerca la camara (m): lo de menos, un tronco, se deja pasar por delante")]
+        public float radioQueTapa = 1.5f;
 
         static readonly int IdVision = Shader.PropertyToID("_GD_Vision");
         static readonly int IdVisionFin = Shader.PropertyToID("_GD_VisionFin");
@@ -147,9 +152,12 @@ namespace Guardianes.Camara
                 Vector3 p = _foco + dir * (dist * t);
                 if (p.y < Suelo(p) + sobreSuelo) { d = Mathf.Max(limitesDistancia.x * k * 0.6f, dist * (t - 1f / 12f)); break; }
             }
+            var solidos = chocaConVegetacion && RenderizadorVegetacion.Instancia != null ? RenderizadorVegetacion.Instancia.Solidos : null;
+            if (solidos != null) d = Mathf.Min(d, Mathf.Max(limitesDistancia.x * k * 0.6f, solidos.Rayo(_foco, dir, dist, radioQueTapa)));
             _distanciaActual = Mathf.Lerp(_distanciaActual, d, 1f - Mathf.Exp(-dt * (d < _distanciaActual ? 12f : 3f)));
             Vector3 pos = _foco + dir * _distanciaActual;
             pos.y = Mathf.Max(pos.y, Suelo(pos) + sobreSuelo);
+            if (solidos != null) pos = solidos.Apartar(pos, planoCercano * k * 2f);
 
             if (_temblor > 0.001f)
             {

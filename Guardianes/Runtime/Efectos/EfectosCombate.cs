@@ -50,6 +50,8 @@ namespace Guardianes.Efectos
         [Tooltip("Particulas que se pueden emitir por fotograma (las rafagas grandes se recortan)")]
         public int presupuesto = 600;
         public float distanciaMaxima = 900f;
+        [Tooltip("Cuanto alumbran los fuegos: un juego de noches muy oscuras lo baja para que la exposicion no los queme")]
+        [Range(0f, 1f)] public float luzFuegos = 1f;
 
         public static EfectosCombate Instancia { get; private set; }
         /// <summary>Rebotes de bala que han llegado a los efectos (las pruebas; los lejanos cuentan aunque no se pinten).</summary>
@@ -436,7 +438,7 @@ namespace Guardianes.Efectos
             if (k > 0f) _camara.Sacudir(fuerza * k * k);
         }
 
-        void Destello(Vector3 pos, float lumenes, float rango, float duracion)
+        public void Destello(Vector3 pos, float lumenes, float rango, float duracion)
         {
             Luz mejor = null;
             foreach (var l in _destellos)
@@ -788,6 +790,23 @@ namespace Guardianes.Efectos
             }
         }
 
+        /// <summary>Motas de luz de un color (magia, runas, algo que no es de este mundo): salen de 'p' hacia 'dir'; tamano en metros.</summary>
+        public void Motas(Vector3 p, Vector3 dir, float tamano, Color color, int cuantas = 6, float vida = 1.6f)
+        {
+            if (!Cerca(p)) return;
+            for (int i = 0; i < cuantas; i++)
+                Emitir(_motas, p + Random.insideUnitSphere * tamano, dir * Random.Range(0.5f, 1.2f) + Random.insideUnitSphere * tamano * 0.4f,
+                       Mathf.Max(0.04f, tamano * Random.Range(0.12f, 0.3f)), vida * Random.Range(0.6f, 1.2f), color);
+        }
+
+        /// <summary>Hojas sueltas: salen alrededor de 'p', en un radio, con esa velocidad.</summary>
+        public void Hojas(Vector3 p, Vector3 velocidad, float radio, int cuantas = 6)
+        {
+            if (!Cerca(p)) return;
+            for (int i = 0; i < cuantas; i++)
+                Emitir(_hojas, p + Random.insideUnitSphere * radio, velocidad + Random.insideUnitSphere * 0.6f, Random.Range(0.2f, 0.5f), Random.Range(5f, 9f), Variar(Color.white, 0.15f));
+        }
+
         /// <summary>Salpicadura en el agua (algo que entra, una criatura que nada): tamano en metros.</summary>
         public void Salpicadura(Vector3 p, float tamano, int cuantas = 12)
         {
@@ -954,7 +973,7 @@ namespace Guardianes.Efectos
                 float vida = Mathf.InverseLerp(f.fin, f.fin - (f.fin - f.inicio) * 0.4f, Time.time);
                 float parpadeo = 0.75f + 0.5f * Mathf.PerlinNoise(Time.time * 7f, f.semilla);
                 l.luz.transform.position = f.pos + Vector3.up * f.radio * 1.2f;
-                l.luz.intensity = 4e5f * f.radio / (4f * Mathf.PI) * parpadeo * vida;
+                l.luz.intensity = 4e5f * f.radio / (4f * Mathf.PI) * parpadeo * vida * luzFuegos;
             }
         }
     }

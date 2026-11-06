@@ -48,7 +48,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   agrupan por especie, LOD y cascada; cada planta solo entra en las cascadas que la necesitan, como en el GPU Resident Drawer, y
   a más de 40 m su sombra lleva un LOD menos; la matriz anterior es la misma que la actual: quieta no se mueve, los vectores de
   movimiento solo llevan el viento; el shader tiene que ser compatible con DOTS instancing; `PonerDistancia`, la distancia de cada
-  nivel de calidad; `Buscar`, `Derribar`, `Restaurar`), `Derribos` (el resto tumbado se quita cuando lleva un rato sin verse y
+  nivel de calidad; `Buscar`, `Derribar`, `Restaurar`), `SolidosVegetacion` (`RenderizadorVegetacion.Solidos`: los troncos, las rocas y los troncos caídos como círculos y segmentos en una rejilla de 16 m, sin colisionadores, con la forma que dice `EspecieVegetal.SolidoDe`; `Apartar(p, radio, tumba, pisa)`: saca del sólido lo que se mete, salvo lo que el cuerpo tumba o pisa; `Metido`, para las pruebas, y `Rayo`, para la cámara), `Derribos` (el resto tumbado se quita cuando lleva un rato sin verse y
   lejos de la cámara; el hueco queda —`Huecos`— y la planta no vuelve sola: `Restaurar(centro, radio)` la hace
   rebrotar, con `AlRestaurar`; cada juego decide con qué —Gorilla Revenge, con la Ira de Koba—), `DatosVegetacion`.
 - `Runtime/Criaturas/Criatura` — **la criatura del jugador** (Koba, el basilisco...). Los humanos,
@@ -167,7 +167,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `BuscarSalud`) y `Medidor` (métricas para las pruebas, `Informe()`; una petición que lleva más de
   `PeticionPerdida`, 1 s, sin respuesta no cuenta: la siguiente se mide desde la suya). Comprobación sin escena:
   `Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch`.
-- `Runtime/Efectos/EfectosCombate` (`Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—;
+- `Runtime/Efectos/EfectosCombate` (`luzFuegos`, lo que iluminan los fuegos: cada juego el suyo; `Motas` y `Hojas`, el ambiente que pide cada mundo; `Destello`; `Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—;
   `Rebote(punto, normal, dir, escala)`: la bala que rebota —chispas en un cono alrededor del reflejo, a veces una
   trazadora desviada y un destello—, que pinta solo con `Balas.AlImpactar`; un tiro que da en un blanco sin
   colisionadores o rebota no deja polvillo ni chispas —la sangre la pone el juego—; la trazadora se apaga en lo que
@@ -182,7 +182,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Decidir`): tres bucles de `Resources/Audio/musica` —exploracion, combate y jefe, de `Tools~/arte/audio/generar_musica.py`—
   que se funden segun lo que diga el juego, con el combate sostenido unos segundos y su volumen, `OpcionesJuego.VolumenMusica`
   (Musica, en el panel); `Editor/ImportadorMusica` los deja en streaming y Vorbis. `Runtime/Camara/CamaraCriatura`
-  (las medidas valen para `tamanoReferencia` y crecen con la criatura), `Runtime/Juego/`
+  (las medidas valen para `tamanoReferencia` y crecen con la criatura; `chocaConVegetacion`: se acerca si un tronco o una roca la tapan), `CamaraCine` + `Plano` (`Fijo`, `Viaje`, `Orbita`, con `Dice`/`Al`/`Fov`/`Negro`: las cinemáticas rodadas de cada juego; `Mision.planosEntrada`/`planosSalida`, el objetivo `Escena` y `DirectorMisiones.Rodar`, con `AlPlano` para las fotos; `HudJuego.Cine`: bandas y subtítulos, sin avisos ni títulos; disuelve el follaje entre la cámara y lo que se mira), `Runtime/Juego/`
   (`CalidadJuego` con `AlAplicar`, `RecursosJuego`, `Descubrimiento` con `tipo` entero; `OpcionesJuego`: las
   opciones del jugador en PlayerPrefs —pantalla completa, resolución, VSync, volumen, sensibilidad e invertir el eje
   Y de la cámara, tamaño y fondo de los subtítulos, daltonismo con su paleta `Peligro`/`Aviso`/`Bien`, la

@@ -32,6 +32,9 @@ namespace Guardianes.UI
         protected Criatura _criatura;
         protected Image _vida, _vidaRetardo, _mira, _negro;
         protected Text _aviso, _zonas, _ayuda, _objetivo, _narracion, _titulo, _subtitulo;
+        const float AltoBanda = 132f;
+        Image _bandaArriba, _bandaAbajo;
+        float _bandas;
         protected float _vidaMostrada = 1f;
         float _avisoHasta;
         float _negroDesde, _negroHasta, _negroInicio, _negroFin;
@@ -139,6 +142,10 @@ namespace Guardianes.UI
             mira.enabled = false;
             _mira = mira;
 
+            // Las bandas de cine: tapan el estado y el objetivo; los subtitulos van por encima.
+            _bandaArriba = Banda(r, 1f);
+            _bandaAbajo = Banda(r, 0f);
+
             // Pantallas: negro para los fundidos, narracion y titulos por encima.
             _negro = new GameObject("Negro", typeof(Image)).GetComponent<Image>();
             _negro.transform.SetParent(r, false);
@@ -166,6 +173,20 @@ namespace Guardianes.UI
             ConstruirOpciones(r);
             PrepararSubtitulos();
             ConstruirExtras(r);
+        }
+
+        Image Banda(Transform r, float y)
+        {
+            var b = new GameObject("Banda", typeof(Image)).GetComponent<Image>();
+            b.transform.SetParent(r, false);
+            b.color = Color.black;
+            b.raycastTarget = false;
+            var rt = b.rectTransform;
+            rt.anchorMin = new Vector2(0f, y);
+            rt.anchorMax = new Vector2(1f, y);
+            rt.pivot = new Vector2(0.5f, y);
+            rt.sizeDelta = Vector2.zero;
+            return b;
         }
 
         /// <summary>Lo que cada juego anade a los menus (sus botones y paneles), al final del montaje.</summary>
@@ -445,6 +466,10 @@ namespace Guardianes.UI
             _dialogoHasta = Time.unscaledTime + segundos;
         }
 
+        /// <summary>Las bandas negras de las cinematicas.</summary>
+        public void Cine(bool si) => EnCine = si;
+        public bool EnCine { get; private set; }
+
         /// <summary>Titulo del nivel arriba a la derecha (campana).</summary>
         public void Nivel(string texto) => _nivel.text = texto;
 
@@ -567,10 +592,15 @@ namespace Guardianes.UI
             float fn = Mathf.InverseLerp(_negroDesde, _negroHasta, Time.unscaledTime);
             _negro.color = new Color(0f, 0f, 0f, Mathf.Lerp(_negroInicio, _negroFin, fn * fn * (3f - 2f * fn)));
             _narracion.color = new Color(0.97f, 0.94f, 0.86f, Aparicion(_narracionDesde, _narracionHasta, 0.9f));
-            float at = Aparicion(_tituloDesde, _tituloHasta, 1.2f);
+            float at = EnCine ? 0f : Aparicion(_tituloDesde, _tituloHasta, 1.2f);
             _titulo.color = new Color(1f, 0.9f, 0.7f, at);
             _dialogo.color = new Color(1f, 0.95f, 0.82f, Aparicion(_dialogoDesde, _dialogoHasta, 0.4f));
             _subtitulo.color = new Color(0.95f, 0.92f, 0.85f, at);
+
+            _bandas = Mathf.MoveTowards(_bandas, EnCine ? 1f : 0f, Time.unscaledDeltaTime * 1.4f);
+            float altoBanda = AltoBanda * _bandas * _bandas * (3f - 2f * _bandas);
+            _bandaArriba.rectTransform.sizeDelta = _bandaAbajo.rectTransform.sizeDelta = new Vector2(0f, altoBanda);
+            _nivel.enabled = _bandas < 0.5f;
 
             ActualizarPantallas();
             ActualizarSubtitulos();
@@ -595,7 +625,7 @@ namespace Guardianes.UI
                 _avisoHasta = Time.time + 4.5f;
             }
             float a = Mathf.Clamp01((_avisoHasta - Time.time) / 0.8f);
-            _aviso.color = new Color(1f, 0.93f, 0.8f, a);
+            _aviso.color = new Color(1f, 0.93f, 0.8f, EnCine ? 0f : a);
             _ayuda.color = new Color(1f, 1f, 1f, Mathf.Clamp01(1f - (Time.timeSinceLevelLoad - 40f) / 5f));
             _mira.enabled = MiraVisible;
         }

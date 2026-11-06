@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Guardianes.Camara;
 using Guardianes.Criaturas;
 using Guardianes.Enemigos;
 using Guardianes.Mundo;
@@ -23,6 +24,8 @@ namespace Guardianes.Misiones
     {
         public static DirectorMisiones Instancia { get; private set; }
         public static event Action<DirectorMisiones> AlEmpezarMision, AlCompletarMision, AlFallarMision;
+        /// <summary>Empieza un plano de una cinematica rodada (las fotos de las pruebas).</summary>
+        public event Action<Plano> AlPlano;
 
         [Header("Flujo")]
         [Tooltip("Al completar una mision, pasa a la siguiente (lo decide el juego en AlTerminar)")]
@@ -133,7 +136,9 @@ namespace Guardianes.Misiones
             Actual = null;
             if (EnCinematica) Bloquear(false);
             EnCinematica = false;
-            if (Hud != null) { Hud.Objetivo(""); Hud.Marcador(null); }
+            var cine = Camera.main != null ? Camera.main.GetComponent<CamaraCine>() : null;
+            if (cine != null) cine.Soltar();
+            if (Hud != null) { Hud.Objetivo(""); Hud.Marcador(null); Hud.Cine(false); }
         }
 
         IEnumerator Ejecutar(Mision m)
@@ -169,7 +174,7 @@ namespace Guardianes.Misiones
             // Retomada a medias: los objetivos ya hechos se saltan y la introduccion no se vuelve a contar.
             int primero = Mathf.Clamp(PrimerObjetivo(m), 0, Mathf.Max(0, m.objetivos.Count - 1));
             for (int i = 0; i < primero; i++) m.objetivos[i].Saltar(this);
-            if (primero == 0) yield return Cinematica(m.introduccion, true);
+            if (primero == 0) yield return Cinematica(m.introduccion, true, m.planosEntrada);
             else yield return Cinematica(null, true);
             if (Hud != null)
             {
@@ -187,6 +192,7 @@ namespace Guardianes.Misiones
                 o.Empezar(this);
                 Decir(o.dialogo);
                 Debug.Log($"[GD] Mision {m.numero}: objetivo {NumeroObjetivo + 1}/{m.objetivos.Count}: {o.GetType().Name} '{o.texto}'");
+                if (o is Escena escena) yield return Rodar(escena.planos);
                 while (!o.Cumplido)
                 {
                     o.Actualizar();
@@ -213,7 +219,7 @@ namespace Guardianes.Misiones
             foreach (var r in m.reglas) r.Terminar();
             if (Hud != null) { Hud.Objetivo(""); Hud.Marcador(null); }
             yield return new WaitForSeconds(Rapido ? 0.5f : 1.5f);
-            yield return Cinematica(m.desenlace, false);
+            yield return Cinematica(m.desenlace, false, m.planosSalida);
             yield return Balance(m);
         }
 
@@ -332,8 +338,13 @@ namespace Guardianes.Misiones
         /// <summary>Lo que se oscurece la pantalla en las cinematicas (cada juego: con plano de cine, menos).</summary>
         protected virtual float OscuridadCinematica => 0.6f;
 
-        protected IEnumerator Cinematica(string[] lineas, bool desdeNegro)
+        protected IEnumerator Cinematica(string[] lineas, bool desdeNegro, List<Plano> planos = null)
         {
+            if (planos != null && planos.Count > 0)
+            {
+                yield return Rodar(planos);
+                yield break;
+            }
             EnCinematica = true;
             Bloquear(true);
             if (lineas != null && lineas.Length > 0 && Hud != null)
@@ -352,6 +363,54 @@ namespace Guardianes.Misiones
                 Hud.Narrar("", 0f);
             }
             if (Hud != null) Hud.Fundido(0f, 1.2f);
+            Bloquear(false);
+            EnCinematica = false;
+        }
+
+        /// <summary>
+        /// Rueda unos planos con la criatura quieta, las bandas de cine y lo que se dice en cada uno como subtitulos. Cada plano
+        /// dura lo suyo o lo que tarde en leerse lo que se dice en el; Intro o Espacio pasan al siguiente.
+        /// </summary>
+        public IEnumerator Rodar(List<Plano> planos)
+        {
+            var cam = CamaraCine.Asegurar();
+            if (cam == null) yield break;
+            EnCinematica = true;
+            Bloquear(true);
+            if (Hud != null)
+            {
+                Hud.Objetivo("");
+                Hud.Marcador(null);
+                Hud.Cine(true);
+                Hud.Fundido(0f, 1f);
+            }
+            foreach (var p in planos)
+            {
+                p.alEmpezar?.Invoke();
+                float lectura = 0f;
+                foreach (var l in p.dice) lectura += Lectura(Guardianes.Juego.Textos.T(l)) + 0.3f;
+                p.segundos = Rapido ? Mathf.Min(p.segundos, 1.2f) : Mathf.Max(p.segundos, lectura + 0.5f);
+                cam.Poner(p);
+                AlPlano?.Invoke(p);
+                Decir(p.dice);
+                float fin = Time.time + p.segundos;
+                bool negro = false;
+                yield return null;
+                while (Time.time < fin && !Saltar())
+                {
+                    if (p.aNegro && !negro && Time.time > fin - 1.2f && Hud != null) { negro = true; Hud.Fundido(1f, 1.1f); }
+                    yield return null;
+                }
+                _dialogos.Clear();
+                _finDialogo = 0f;
+                if (Hud != null) Hud.Dialogo("", 0f);
+            }
+            cam.Soltar();
+            if (Hud != null)
+            {
+                Hud.Cine(false);
+                Hud.Fundido(0f, 1.2f);
+            }
             Bloquear(false);
             EnCinematica = false;
         }

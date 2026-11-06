@@ -18,6 +18,15 @@ namespace Guardianes.Vegetacion
         Roca,
     }
 
+    /// <summary>Lo solido de una variante a escala 1, medido en su malla.</summary>
+    public struct FormaSolida
+    {
+        public float radio;
+        /// <summary>Medio largo a lo largo de su eje Z (un tronco caido); 0 en lo que esta de pie.</summary>
+        public float medioLargo;
+        public float alto;
+    }
+
     /// <summary>
     /// Una especie de la selva. Las mallas no son assets: se generan al cargar (Plantas.Generar, con
     /// semilla fija) para cada variante y LOD y se guardan en memoria. Aqui van los parametros, los
@@ -52,6 +61,7 @@ namespace Guardianes.Vegetacion
 
         [NonSerialized] Mesh[] _mallas;
         [NonSerialized] Bounds _limites;
+        [NonSerialized] FormaSolida[] _solidos;
 
         public int Lods => distancias.Length;
         public Material[] Materiales => forma == Plantas.Forma.Roca ? new[] { materialMadera } : new[] { materialMadera, materialHojas };
@@ -65,6 +75,41 @@ namespace Guardianes.Vegetacion
 
         /// <summary>Caja que envuelve todas las variantes (LOD 0) a escala 1.</summary>
         public Bounds Limites { get { Preparar(); return _limites; } }
+
+        /// <summary>Lo solido de una variante: se mide en la madera de su malla la primera vez que se pide.</summary>
+        public FormaSolida SolidoDe(int variante)
+        {
+            Preparar();
+            if (_solidos == null)
+            {
+                _solidos = new FormaSolida[variantes];
+                for (int v = 0; v < variantes; v++) _solidos[v] = Medir(Malla(v, 0));
+            }
+            return _solidos[Mathf.Clamp(variante, 0, variantes - 1)];
+        }
+
+        FormaSolida Medir(Mesh m)
+        {
+            var v = m.vertices;
+            float alto = 0f, x = 0f, z = 0f, suma = 0f;
+            int n = 0;
+            foreach (int i in m.GetIndices(0))
+            {
+                var p = v[i];
+                alto = Mathf.Max(alto, p.y);
+                x = Mathf.Max(x, Mathf.Abs(p.x));
+                z = Mathf.Max(z, Mathf.Abs(p.z));
+                // Los primeros metros del tronco: arriba se afina y salen las ramas.
+                if (p.y < 4f)
+                {
+                    suma += Mathf.Sqrt(p.x * p.x + p.z * p.z);
+                    n++;
+                }
+            }
+            if (forma == Plantas.Forma.TroncoCaido) return new FormaSolida { radio = x, medioLargo = Mathf.Max(0f, z - x), alto = alto };
+            if (forma == Plantas.Forma.Roca) return new FormaSolida { radio = (x + z) * 0.5f, alto = alto };
+            return new FormaSolida { radio = n > 0 ? suma / n : radioTronco, alto = alto };
+        }
 
         public void Preparar()
         {
@@ -88,6 +133,7 @@ namespace Guardianes.Vegetacion
 
         public void Liberar()
         {
+            _solidos = null;
             if (_mallas == null) return;
             foreach (var m in _mallas)
             {
