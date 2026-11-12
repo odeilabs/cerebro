@@ -60,6 +60,9 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `PuntoDisparo(desde, out punto)`: a dónde apunta un tirador (cada humano por disparo, el cañón por ráfaga,
   cada cohete); de serie, falso y sin gastar `Random`: apuntan como siempre (a `AlturaBlanco` con su reparto).
   `AnimalAnimado`: un cuadrúpedo de AssetsCreator (o cualquier modelo Generic) movido por sus clips con Playables, sin Animator Controller: la marcha va con la velocidad a la que se mueve el objeto, un bucle pedido encima (`Bucle`), acciones (`Accion`) y la muerte (`Final`). Sale de Basiliskos y lo estrena Fenrir Hunt.
+  `MantoAnimal`: el pelo por capas de un animal de la vía de juego de AssetsCreator (`ultra/animal_juego.py`): `Capas(n)` pinta
+  n de las capas del manto (siempre con la última: el pelo mide lo mismo y es menos denso), 0 lo apaga; lo monta
+  `Editor/Criaturas/MantoAssetsCreator`.
 - `Runtime/Combate/` — `Salud` + `DatosDanio`/`TipoDanio`, `Impacto` (daño en área, empuje,
   derribo de vegetación; también a los blancos de `Balas`, una vez por `Salud`, con la distancia y la
   fracción que da cada uno), `Lanzable`. **Balas** (`Balas.cs`): todos los tiros (humanos, cañón y cohetes)
@@ -233,11 +236,16 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   sin ficha, con la regla y su copia de siempre; lo que ya está igual no se vuelve a copiar;
   `ImportadorArmas`: la malla de los OBJ de `Art/Humanos/Armas` se llama como el modelo —un OBJ de un solo objeto la
   deja en «default»—, que es por lo que `Arma.DeHumano` reconoce el calibre, también en los prefabs de antes—,
-  `ConstructorHelicoptero`, `ConfiguradorZonas`).
+  `ConstructorHelicoptero`, `ConfiguradorZonas`), `Criaturas/MantoAssetsCreator` (un animal de la vía de juego de AssetsCreator
+  sobre una instancia de su FBX: un material por cada uno de su ficha `*_criatura_unity.json` en `Materiales/`, las capas del
+  manto en `Guardianes/Manto` con su `MantoAnimal`, los mechones en `Guardianes/Tarjeta`, la sombra del pelo y el `LODGroup` con
+  `lod1_*` y `lod2_*`; portado de `AssetsCreatorCriatura` sin los perfiles de difusión: la mucosa y la trufa van en Standard).
 - `Shaders/` — variantes de HDRP/Lit generadas por `Tools~/generar_shaders_lit.py`:
   `Guardianes/Vegetacion` (+ `Viento.hlsl`), `Guardianes/Pelaje` (+ `Pelaje.hlsl`),
-  `Guardianes/Rio` (+ `Rio.hlsl`) y `Guardianes/Escamas` (+ `Escamas.hlsl`: piel de serpiente; la
-  textura es una máscara de dibujo y los colores llegan por globales `_GD_Escamas*`).
+  `Guardianes/Rio` (+ `Rio.hlsl`), `Guardianes/Escamas` (+ `Escamas.hlsl`: piel de serpiente; la
+  textura es una máscara de dibujo y los colores llegan por globales `_GD_Escamas*`), `Guardianes/Manto` (+ `Manto.hlsl`: las
+  capas peinadas del pelo de un animal de la vía de juego, todo por material; deforma también con la tangente) y
+  `Guardianes/Tarjeta` (+ `Tarjeta.hlsl`: los mechones del pelo largo y la sombra del pelo), portados de AssetsCreator.
   **No editar los `.shader` ni los `Data.hlsl` generados**: se cambia el `.hlsl` o el generador.
   Propios: `Guardianes/Particula`, `Guardianes/Cascada` y `Guardianes/Calor` (los cuerpos calientes
   de una visión térmica, como material de sustitución en un pase de HDRP; con variante

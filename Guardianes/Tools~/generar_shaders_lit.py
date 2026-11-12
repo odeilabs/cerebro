@@ -18,6 +18,11 @@ Variantes (en Shaders/ del paquete):
     Guardianes/Pelaje      ->  Shaders/Pelaje/PelajeLit.shader          (+ Pelaje.hlsl, con superficie)
     Guardianes/Rio         ->  Shaders/Rio/RioLit.shader                (+ Rio.hlsl)
     Guardianes/Escamas     ->  Shaders/Escamas/EscamasLit.shader        (+ Escamas.hlsl, con superficie)
+    Guardianes/Manto       ->  Shaders/Manto/MantoLit.shader            (+ Manto.hlsl, con superficie y tangente)
+    Guardianes/Tarjeta     ->  Shaders/Tarjeta/TarjetaLit.shader        (+ Tarjeta.hlsl, con superficie)
+
+Manto y Tarjeta son el pelo de los animales de la via de juego de AssetsCreator (ultra/animal_juego.py):
+las capas peinadas del manto y las tarjetas del pelo largo. Los monta Editor/Criaturas/MantoAssetsCreator.
 
 Las pasadas de profundidad y motion vectors del Lit solo piden color/normal de vertice si hay
 desplazamiento; aqui los forzamos para que la deformacion sea identica en todas las pasadas.
@@ -38,7 +43,14 @@ VARIANTES = [
     ("Guardianes/Pelaje", "Shaders/Pelaje", "PelajeLit.shader", "Pelaje.hlsl", True),
     ("Guardianes/Rio", "Shaders/Rio", "RioLit.shader", "Rio.hlsl", False),
     ("Guardianes/Escamas", "Shaders/Escamas", "EscamasLit.shader", "Escamas.hlsl", True),
+    ("Guardianes/Manto", "Shaders/Manto", "MantoLit.shader", "Manto.hlsl", True),
+    ("Guardianes/Tarjeta", "Shaders/Tarjeta", "TarjetaLit.shader", "Tarjeta.hlsl", True),
 ]
+
+# Las que deforman tambien con la tangente: el manto peina a lo largo del flujo, que va en el marco tangente de la
+# malla (por eso sigue al hueso). Sin ella en las pasadas de profundidad y movimiento, cada pasada lo desplazaria distinto.
+CON_TANGENTE = ("Guardianes/Manto",)
+TANGENTE_ORIGINAL = re.compile(r"#if REQUIRE_TANGENT_TO_WORLD \|\| defined\(\w+\)\n#define ATTRIBUTES_NEED_TANGENT\n#endif")
 
 CABECERA = """// GENERADO por Tools~/generar_shaders_lit.py a partir de HDRP/Lit ({version}). No editar a mano:
 // los cambios van en {mod} o en el generador.
@@ -63,16 +75,20 @@ def carpeta_hdrp(proyecto):
     return candidatos[0]
 
 
-def forzar_atributos(texto):
+def forzar_atributos(texto, tangente=False):
     texto = re.sub(r"#define REQUIRE_NORMAL .*", "#define REQUIRE_NORMAL 1 // Guardianes: la deformacion usa la normal", texto)
     texto = re.sub(r"#define REQUIRE_VERTEX_COLOR .*", "#define REQUIRE_VERTEX_COLOR 1 // Guardianes: pesos en el color de vertice", texto)
+    if tangente:
+        texto, n = TANGENTE_ORIGINAL.subn("#define ATTRIBUTES_NEED_TANGENT // Guardianes: la deformacion usa la tangente", texto)
+        if n != 1:
+            sys.exit("Las pasadas del Lit han cambiado: no encuentro donde pedir la tangente")
     return texto
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--proyecto", required=True, help="proyecto Unity con HDRP (para copiar su Lit)")
-    ap.add_argument("--solo", default="", help="variantes separadas por comas (Vegetacion,Pelaje,Rio,Escamas)")
+    ap.add_argument("--solo", default="", help="variantes separadas por comas (Vegetacion,Pelaje,Rio,Escamas,Manto,Tarjeta)")
     a = ap.parse_args()
     solo = set(s.strip() for s in a.solo.split(",") if s.strip())
 
@@ -104,8 +120,9 @@ def main():
         datos_incl = '"%sData.hlsl"' % prefijo if con_superficie else '"%sLitData.hlsl"' % PAQ
         s = s.replace('#include "%sLitData.hlsl"' % PAQ, '#include "%s"\n            #include %s' % (mod, datos_incl))
         open(os.path.join(destino, archivo), "w", encoding="utf-8", newline="\n").write(cab + s)
-        open(os.path.join(destino, prefijo + "DepthPass.hlsl"), "w", encoding="utf-8", newline="\n").write(cab + forzar_atributos(depth))
-        open(os.path.join(destino, prefijo + "MotionVectorPass.hlsl"), "w", encoding="utf-8", newline="\n").write(cab + forzar_atributos(mv))
+        tan = nombre in CON_TANGENTE
+        open(os.path.join(destino, prefijo + "DepthPass.hlsl"), "w", encoding="utf-8", newline="\n").write(cab + forzar_atributos(depth, tan))
+        open(os.path.join(destino, prefijo + "MotionVectorPass.hlsl"), "w", encoding="utf-8", newline="\n").write(cab + forzar_atributos(mv, tan))
         if con_superficie:
             if ALFA_ORIGINAL not in datos or SUPERFICIE_ORIGINAL not in datos:
                 sys.exit("LitData.hlsl ha cambiado: no encuentro donde enganchar la superficie")
