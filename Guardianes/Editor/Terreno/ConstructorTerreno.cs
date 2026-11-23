@@ -22,6 +22,11 @@ namespace Guardianes.EditorTools.Terreno
             public float tamano;      // metros por repeticion
             public float normal;      // escala del mapa de normales
             public Color tinte;       // multiplicador del albedo (remap max)
+            /// <summary>
+            /// Las texturas de otra capa (su carpeta en Capas/), con este nombre y este tinte: varios mundos de un juego
+            /// tiñen el mismo suelo a su manera (la hierba gris de Helheim, la nieve de Niflheim) sin pisarse. Vacio: las suyas.
+            /// </summary>
+            public string textura;
         }
 
         // Las normales vienen horneadas a escala fisica para el tamano de tesela de Tools~/arte/terreno
@@ -53,7 +58,8 @@ namespace Guardianes.EditorTools.Terreno
                 bool nueva = capa == null;
                 if (nueva) capa = new TerrainLayer();
 
-                string baseTex = $"{CarpetaCapas}/{d.nombre}/{d.nombre}";
+                string tex = string.IsNullOrEmpty(d.textura) ? d.nombre : d.textura;
+                string baseTex = $"{CarpetaCapas}/{tex}/{tex}";
                 capa.diffuseTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(baseTex + "_albedo.png");
                 capa.normalMapTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(baseTex + "_normal.png");
                 capa.maskMapTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(baseTex + "_mascara.png");

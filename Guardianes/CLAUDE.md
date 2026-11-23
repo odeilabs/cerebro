@@ -25,7 +25,10 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   Terrain y pinta 8 capas con Burst; `Purificar`), `AguaMundo` (lagos con WaterSurface, cintas de
   río, cascadas; todo sube con `Mapa.Crecida`), `Rios` (trazado denso con meandros a partir de puntos de control), `Lago`,
   `Zona`/`TipoZona` (los valores son bits de las partidas guardadas: los nuevos van al final),
-  `Ruido` (fBm, crestas, hash, para Burst). **Día y noche**: `CicloDia` mueve el sol según la hora
+  `Ruido` (fBm, crestas, hash, para Burst). **Varios mundos** (`Mundos`, desde Fenrir Hunt): cada mundo es su escena y
+  `Ir(escena, pendiente, fundido)` viaja con un fundido a negro (un lienzo que no se destruye al cargar); `Pendiente` es lo que
+  el juego tiene que hacer al llegar (lo lee en su arranque y lo quita con `Recoger`), `Viajando`, `Actual` y `AlLlegar`. Lo que
+  cruza va en estáticos o en la partida de cada juego; las escenas tienen que estar en la compilación. **Día y noche**: `CicloDia` mueve el sol según la hora
   con la latitud y la declinación del sitio (sigue encendido hasta ~6° bajo el horizonte: el cielo
   físico hace el crepúsculo), crea la luna (direccional; HDRP solo da sombra a una: la luna cuando no
   hay sol) y un relleno de cielo nocturno desde arriba sin sombras (sin él, bajo el dosel la noche es
@@ -208,7 +211,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `Capturador`, `Diagnostico`, `AvisoCerebro` (al abrir el editor, avisa de los cambios del cerebro
   que la copia no tiene y de los de la copia que no se han subido), `ImportadorTexturas`, `Terreno/` (`Relieve` y `PasadasRelieve`:
   erosión, subida con detalle, niveles de los ríos, tallar ríos y lagos, allanar zonas y lugares,
-  humedad; el relieve base es de cada juego), `Vegetacion/` (`EspeciesSelva`, `RepartoVegetacion`
+  humedad; el relieve base es de cada juego; `ConstructorTerreno.DefCapa.textura`: una capa con las texturas de otra y su
+  propio nombre y tinte, para que cada mundo tiña el mismo suelo a su manera sin pisar las capas de los demás), `Vegetacion/` (`EspeciesSelva`, `RepartoVegetacion`
   con reglas por juego; `ReglasSelvaTropical` son las de la isla de Koba), `Agua/MaterialesAgua`,
   `Efectos/ConstructorEfectos`, `Audio/ConstructorAudio`, `Enemigos/` (`ConstructorHumanos` desde
   AssetsCreator —`Def.familia`: el prefijo de los clips de quieto, andar, apuntar y disparar, `fusil_ak` de serie, o
