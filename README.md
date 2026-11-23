@@ -127,7 +127,7 @@ deterministas (semillas fijas). Rutas desde `Guardianes/Tools~/`:
 | Script | Qué genera |
 | --- | --- |
 | `generar_shaders_lit.py --proyecto <p> [--solo Vegetacion,Pelaje,Rio,Escamas]` | Las variantes de HDRP/Lit del paquete a partir del `Lit.shader` del HDRP del proyecto. Solo hace falta al cambiar de versión de HDRP o al tocar un `.hlsl`. |
-| `arte/terreno/generar_capas_terreno.py --proyecto <p> [--solo ...] [--res 2048]` | Capas del suelo (hojarasca, barro, musgo, roca, guijarros, arena, hierba, contaminado) en `Art/Terreno/Capas`. |
+| `arte/terreno/generar_capas_terreno.py --proyecto <p> [--solo ...] [--res 2048]` | Capas del suelo (hojarasca, barro, musgo, roca, guijarros, arena, hierba, contaminado y nieve) en `Art/Terreno/Capas`. |
 | `arte/vegetacion/generar_texturas_vegetacion.py --proyecto <p> [--solo ...]` | Cortezas, hojas, frondas, hierba y flores en `Art/Vegetacion/Texturas`. |
 | `arte/efectos/generar_texturas_efectos.py --proyecto <p>` | Láminas de partículas (humo, bola de fuego, llamas, chispa, fogonazo, escombro, hoja, anillo, espuma de cascada). |
 | `arte/audio/generar_sonidos.py --proyecto <p> [--criatura serpiente] [--solo a,b]` | Sonidos sintetizados: voces de criatura, disparos, explosiones, madera, metal, árboles, ambientes en bucle. |

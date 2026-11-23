@@ -256,7 +256,8 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `DOTS_INSTANCING_ON` y propiedades en `UnityPerMaterial`, que el GPU Resident Drawer exige).
   Las globales llevan el prefijo `_GD_`.
 - `Tools~/` (Unity no lo importa) — `generar_shaders_lit.py --proyecto <proyecto con HDRP>`,
-  `arte/terreno`, `arte/vegetacion`, `arte/efectos`, `arte/audio` (texturas y sonidos procedurales
+  `arte/terreno` (las capas del suelo; desde Fenrir Hunt, tambien `nieve`: nieve vieja venteada, con sastrugi, rizos, costras y
+  huellas), `arte/vegetacion`, `arte/efectos`, `arte/audio` (texturas y sonidos procedurales
   en Python: numpy/scipy/Pillow; todos con `--proyecto <carpeta del proyecto Unity>` o `--salida`;
   `arte/armas` solo dice dónde está el kit de armas, que desde el 28/10/2026 vive en AssetsCreator; `arte/audio/generar_musica.py`:
   la musica provisional, tres bucles sin costura con `--tono`),

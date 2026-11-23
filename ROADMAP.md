@@ -111,7 +111,7 @@ juego está en el `ROADMAP.md` de su carpeta; el mapa de la saga, en `../README.
 - Criaturas grandes que vuelan (Fénix, Grifo, Pájaro del Trueno, Roc) y que nadan (Leviatán,
   Kraken, Megalodón, Jörmungandr): cámara y control de vuelo/buceo en `CamaraCriatura`, agua
   abierta (océano) en `AguaMundo`, y biomas nuevos (desierto, tundra, volcán, bosque templado) en el
-  reparto de vegetación y las capas de terreno.
+  reparto de vegetación y las capas de terreno. Hecho: la capa de nieve (`capa_nieve.py`, de Fenrir Hunt).
 - Varias cabezas (Cerbero, Hidra, Tifón: la espina procedural de Basiliskos sirve para los cuellos),
   fuego que se propaga por la vegetación, lava y terreno que cambia en juego, raíces que crecen.
 - Partida guardada común (hoy cada juego guarda la suya) y menú de inicio común.

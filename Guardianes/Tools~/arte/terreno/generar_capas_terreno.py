@@ -40,6 +40,7 @@ CAPAS = [
     "arena",
     "hierba_suelo",
     "contaminado",
+    "nieve",
 ]
 
 
