@@ -173,7 +173,7 @@ en español. Ensamblados `Guardianes` (runtime) y `Guardianes.Editor`.
   `BuscarSalud`) y `Medidor` (métricas para las pruebas, `Informe()`; una petición que lleva más de
   `PeticionPerdida`, 1 s, sin respuesta no cuenta: la siguiente se mide desde la suya). Comprobación sin escena:
   `Guardianes.EditorTools.PruebaSensacion.ComprobarDesdeBatch`.
-- `Runtime/Efectos/EfectosCombate` (`luzFuegos`, lo que iluminan los fuegos: cada juego el suyo; `Motas` y `Hojas`, el ambiente que pide cada mundo; `Destello`; `Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—;
+- `Runtime/Efectos/EfectosCombate` (`luzFuegos`, lo que iluminan los fuegos: cada juego el suyo; `Motas` y `Hojas`, el ambiente que pide cada mundo; `Vapor`: bocanadas blancas que suben de un círculo —una fuente caliente—; `Destello`; `Gotas`: una rociada de un color —la sangre o el veneno de un mordisco—;
   `Rebote(punto, normal, dir, escala)`: la bala que rebota —chispas en un cono alrededor del reflejo, a veces una
   trazadora desviada y un destello—, que pinta solo con `Balas.AlImpactar`; un tiro que da en un blanco sin
   colisionadores o rebota no deja polvillo ni chispas —la sangre la pone el juego—; la trazadora se apaga en lo que

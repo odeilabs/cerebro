@@ -799,6 +799,22 @@ namespace Guardianes.Efectos
                        Mathf.Max(0.04f, tamano * Random.Range(0.12f, 0.3f)), vida * Random.Range(0.6f, 1.2f), color);
         }
 
+        /// <summary>
+        /// Vapor de agua caliente (una fuente termal, un manantial, el aliento de algo grande en el frio): bocanadas blancas que
+        /// suben despacio desde un circulo de ese radio y se deshacen. Se llama cada poco mientras se quiera ver.
+        /// </summary>
+        public void Vapor(Vector3 centro, float radio, int cuantas = 2, float subida = 1.2f)
+        {
+            if (!Cerca(centro, radio)) return;
+            float tam = Mathf.Clamp(radio * 0.25f, 0.6f, 3f);
+            for (int i = 0; i < cuantas; i++)
+            {
+                var r = Random.insideUnitCircle * radio;
+                Emitir(_humo, centro + new Vector3(r.x, 0.3f, r.y), Vector3.up * subida * Random.Range(0.6f, 1.3f) + Random.insideUnitSphere * 0.3f,
+                       Random.Range(1.2f, 2.4f) * tam, Random.Range(3f, 5.5f), new Color(0.93f, 0.95f, 0.97f, 0.35f));
+            }
+        }
+
         /// <summary>Hojas sueltas: salen alrededor de 'p', en un radio, con esa velocidad.</summary>
         public void Hojas(Vector3 p, Vector3 velocidad, float radio, int cuantas = 6)
         {
